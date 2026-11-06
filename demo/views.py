@@ -13,7 +13,6 @@ from django.forms import modelformset_factory
 from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as _
 from markdown_it import MarkdownIt
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
@@ -447,16 +446,16 @@ class ProductListView(TitleLayoutFromQueryMixin, MVPListView):
     model = Product
     create_form_class = ProductForm
     show_create_action = True
-    page_eyebrow = _("Catalogue")
+    page_eyebrow = "Catalogue"
     page_lead = "Check out our amazing products!"
-    page_info = _(
+    page_info = (
         "Every product in the catalogue. Search by name or description, narrow the "
         "list with the filters, and sort it with the ordering control. Selecting a "
         "product opens its detail page."
     )
     page_info_actions = [
         {
-            "text": _("List view documentation"),
+            "text": "List view documentation",
             "href": "https://github.com/django-mvp/django-mvp/blob/main/docs/views.md",
             "icon": "external-link",
             "target": "_blank",
@@ -519,11 +518,9 @@ class ProductCreateView(TitleLayoutFromQueryMixin, MVPCreateView):
 
     model = Product
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
-    page_eyebrow = _("Catalogue")
-    page_lead = _(
-        "Add a product to the catalogue. It stays a draft until you publish it."
-    )
-    page_info = _(
+    page_eyebrow = "Catalogue"
+    page_lead = "Add a product to the catalogue. It stays a draft until you publish it."
+    page_info = (
         "A product needs a name before it can be saved. Leave the slug empty "
         "and it is made from the name. Price and stock can be filled in later, "
         "and customers only see the product once its status is Published."
@@ -547,11 +544,11 @@ class ProductDetailView(TitleLayoutFromQueryMixin, MVPDetailView):
     model = Product
     show_list_action = True
     show_detail_action = True
-    page_actions = [{"text": _("Share"), "icon": "share", "href": "#", "ghost": True}]
+    page_actions = [{"text": "Share", "icon": "share", "href": "#", "ghost": True}]
 
     def get_page_eyebrow(self):
         """Name the product's category above its name."""
-        return self.object.category or _("Product")
+        return self.object.category or "Product"
 
     def get_page_lead(self):
         """Use the product's description as the lead."""
@@ -592,8 +589,8 @@ class OrderLineInline(InlineFormSet):
     model = OrderLine
     fields = ["quantity"]
     extra = 1
-    title = _("Order lines")
-    description = _(
+    title = "Order lines"
+    description = (
         "How many of this product each order asked for. Add a row per order, "
         "or remove one to drop it when you save."
     )
@@ -677,10 +674,10 @@ class ComplexFormDemoView(MVPFormView):
     """
 
     form_class = LayoutDemoForm
-    page_title = _("Complex Form")
+    page_title = "Complex Form"
     page_width = PageWidth.MEDIUM
     success_url = reverse_lazy("complex-form-demo")
-    success_message = _("Form submitted successfully.")
+    success_message = "Form submitted successfully."
 
 
 class ProductDeleteView(TitleLayoutFromQueryMixin, MVPDeleteView):
@@ -796,8 +793,8 @@ class DataTablesView(TitleLayoutFromQueryMixin, MVPTableView):
     table_class = ProductTable
     paginate_by = 25
     show_create_action = True
-    page_eyebrow = _("Catalogue")
-    page_lead = _("Every product, sortable by any column.")
+    page_eyebrow = "Catalogue"
+    page_lead = "Every product, sortable by any column."
     # The product list's filterset; the table's column headers sort, so its sort is dropped.
     filterset_class = ProductFilter
     toolbar_filters = ["q", "status", "category", "o"]
@@ -907,19 +904,19 @@ class PageTitleDemoView(DemoTemplateView):
     page_title = "Page Title"
 
     SHORT = {
-        "eyebrow": _("Layout"),
-        "title": _("Page Title"),
-        "lead": _(
+        "eyebrow": "Layout",
+        "title": "Page Title",
+        "lead": (
             "The block at the top of every page: an eyebrow, the title, a lead and the "
             "page's actions, in the layout you choose."
         ),
     }
     LONG = {
-        "eyebrow": _("Layout · Page furniture · Headings and their arrangement"),
-        "title": _(
+        "eyebrow": "Layout · Page furniture · Headings and their arrangement",
+        "title": (
             "A page title long enough to wrap onto a second line on a laptop screen"
         ),
-        "lead": _(
+        "lead": (
             "A lead that goes on for longer than it should, to show where the line breaks and how far "
             "the text runs before it wraps. Most pages need one sentence here; some write three, and "
             "the layout has to hold up either way."
@@ -965,13 +962,13 @@ class PageTitleDemoView(DemoTemplateView):
             return []
         return [
             {
-                "text": _("Bookmark"),
+                "text": "Bookmark",
                 "icon": "bookmark",
                 "type": "button",
                 "ghost": True,
             },
             {
-                "text": _("Print"),
+                "text": "Print",
                 "icon": "print",
                 "type": "button",
                 "onclick": "window.print()",
@@ -983,7 +980,7 @@ class PageTitleDemoView(DemoTemplateView):
         """The info dialog's text, when switched on."""
         if not self.options()["info"]:
             return ""
-        return _(
+        return (
             "The info icon opens this dialog in every layout, always beside the "
             "heading and never inside it."
         )

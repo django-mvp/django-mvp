@@ -5,7 +5,6 @@ out its sort, since a table sorts by its column headers.
 """
 
 import django_filters
-from django.utils.translation import gettext_lazy as _
 from mvp_forms.widgets import TomSelect, TomSelectMultiple
 
 from mvp.filters import SearchFilter, SortFilter
@@ -25,37 +24,35 @@ class ProductFilter(django_filters.FilterSet):
     """Every way the product list can be narrowed or ordered."""
 
     q = SearchFilter(fields=["name", "description", "category__name"])
-    status = django_filters.ChoiceFilter(
-        choices=Product.STATUS_CHOICES, label=_("Status")
-    )
+    status = django_filters.ChoiceFilter(choices=Product.STATUS_CHOICES, label="Status")
     category = django_filters.ModelMultipleChoiceFilter(
         queryset=Category.objects.order_by("name"),
-        label=_("Category"),
-        widget=TomSelectMultiple(counted=True, none_text=_("Category")),
+        label="Category",
+        widget=TomSelectMultiple(counted=True, none_text="Category"),
     )
-    is_featured = django_filters.BooleanFilter(label=_("Featured only"))
+    is_featured = django_filters.BooleanFilter(label="Featured only")
     priority = django_filters.ChoiceFilter(
         choices=Product.PRIORITY_CHOICES,
-        label=_("Priority"),
-        widget=TomSelect(placeholder=_("Any priority"), clear_button=True),
+        label="Priority",
+        widget=TomSelect(placeholder="Any priority", clear_button=True),
     )
     sku = django_filters.MultipleChoiceFilter(
         method="filter_sku",
-        label=_("SKU"),
-        help_text=_("Type to find a SKU. The control counts the ones chosen."),
-        widget=TomSelectMultiple(counted=True, none_text=_("Any SKU")),
+        label="SKU",
+        help_text="Type to find a SKU. The control counts the ones chosen.",
+        widget=TomSelectMultiple(counted=True, none_text="Any SKU"),
     )
-    price = django_filters.RangeFilter(label=_("Price"))
-    stock = django_filters.RangeFilter(label=_("Stock"))
-    release_date = django_filters.DateFromToRangeFilter(label=_("Release date"))
-    is_available = django_filters.BooleanFilter(label=_("Available"))
+    price = django_filters.RangeFilter(label="Price")
+    stock = django_filters.RangeFilter(label="Stock")
+    release_date = django_filters.DateFromToRangeFilter(label="Release date")
+    is_available = django_filters.BooleanFilter(label="Available")
     o = SortFilter(
         options=[
-            ("name", _("Name (A–Z)"), ["name", "pk"]),  # noqa: RUF001
-            ("-name", _("Name (Z–A)"), ["-name", "-pk"]),  # noqa: RUF001
-            ("price", _("Price, lowest first"), ["price", "pk"]),
-            ("-price", _("Price, highest first"), ["-price", "-pk"]),
-            ("-release_date", _("Newest first"), ["-release_date", "-pk"]),
+            ("name", "Name (A–Z)", ["name", "pk"]),  # noqa: RUF001
+            ("-name", "Name (Z–A)", ["-name", "-pk"]),  # noqa: RUF001
+            ("price", "Price, lowest first", ["price", "pk"]),
+            ("-price", "Price, highest first", ["-price", "-pk"]),
+            ("-release_date", "Newest first", ["-release_date", "-pk"]),
         ]
     )
 
@@ -77,10 +74,8 @@ class ProductQuickFilter(django_filters.FilterSet):
     """A short filterset: everything fits in the toolbar, so there is no modal."""
 
     q = SearchFilter(fields=["name", "description"])
-    status = django_filters.ChoiceFilter(
-        choices=Product.STATUS_CHOICES, label=_("Status")
-    )
-    is_featured = django_filters.BooleanFilter(label=_("Featured only"))
+    status = django_filters.ChoiceFilter(choices=Product.STATUS_CHOICES, label="Status")
+    is_featured = django_filters.BooleanFilter(label="Featured only")
     o = ProductFilter.base_filters["o"]
 
     class Meta:

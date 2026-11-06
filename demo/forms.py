@@ -3,7 +3,6 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Column, Fieldset, Layout, Row
 from django import forms
-from django.utils.translation import gettext_lazy as _
 
 from .models import Product
 
@@ -63,22 +62,20 @@ class LayoutDemoForm(forms.Form):
     """
 
     SHIPPING_METHOD_CHOICES = [
-        ("standard", _("Standard (3-5 days)")),
-        ("express", _("Express (1-2 days)")),
-        ("overnight", _("Overnight")),
+        ("standard", "Standard (3-5 days)"),
+        ("express", "Express (1-2 days)"),
+        ("overnight", "Overnight"),
     ]
 
-    name = forms.CharField(max_length=100, help_text=_("Your full name"))
-    email = forms.EmailField(help_text=_("We'll never share your email"))
-    address = forms.CharField(max_length=200, label=_("Street address"))
+    name = forms.CharField(max_length=100, help_text="Your full name")
+    email = forms.EmailField(help_text="We'll never share your email")
+    address = forms.CharField(max_length=200, label="Street address")
     city = forms.CharField(max_length=100)
-    postal_code = forms.CharField(max_length=20, label=_("Postal code"))
+    postal_code = forms.CharField(max_length=20, label="Postal code")
     shipping_method = forms.ChoiceField(
-        choices=SHIPPING_METHOD_CHOICES, label=_("Shipping method")
+        choices=SHIPPING_METHOD_CHOICES, label="Shipping method"
     )
-    newsletter = forms.BooleanField(
-        required=False, label=_("Subscribe to our newsletter")
-    )
+    newsletter = forms.BooleanField(required=False, label="Subscribe to our newsletter")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -89,12 +86,12 @@ class LayoutDemoForm(forms.Form):
         # helper regardless of caller.
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            Fieldset(_("Contact details"), "name", "email"),
+            Fieldset("Contact details", "name", "email"),
             HTML(
-                f'<p class="text-sm opacity-70">{_("Where should we ship your order?")}</p>'
+                f'<p class="text-sm opacity-70">{"Where should we ship your order?"}</p>'
             ),
             Fieldset(
-                _("Shipping address"),
+                "Shipping address",
                 "address",
                 Row(
                     Column("city", css_class="w-1/2"),
@@ -102,5 +99,5 @@ class LayoutDemoForm(forms.Form):
                     css_class="flex gap-4",
                 ),
             ),
-            Fieldset(_("Preferences"), "shipping_method", "newsletter"),
+            Fieldset("Preferences", "shipping_method", "newsletter"),
         )
