@@ -76,6 +76,13 @@ until that app is installed. Add `"object_preferences"` to `INSTALLED_APPS`, and
 `mvp.models.PreferencesMixin` to your user model. See
 [Getting Started](getting-started.md#your-user-model).
 
+**`ImproperlyConfigured`: "django-mvp stores each person's preferences on the user model, and
+… does not have exactly one."** Raised while apps load by `mvp.preferences.require_preferences_field`,
+before any page is served or any command runs. Your user model has no `PreferencesField`. Add
+`mvp.models.PreferencesMixin` to it, or a `PreferencesField` under another name if the model
+already has an attribute called `preferences`, then run `makemigrations`. See
+[Getting Started](getting-started.md#your-user-model).
+
 **`mvp.W006`: "mvp.middleware.PreferencesMiddleware" is missing from MIDDLEWARE, or listed before
 the authentication middleware.** The middleware applies each person's timezone and language to
 their requests, and it needs the signed-in person, so it must come after
