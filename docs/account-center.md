@@ -158,6 +158,13 @@ in the address or the submitted form can make it show or change someone else's
 preferences. Saving valid values returns to the page with a success message, and the
 very next page uses them. An invalid submission saves nothing and marks the field.
 
+The shell's language switcher saves a signed-in person's choice as this same language
+preference. For them it posts to the `mvp-set-language` URL (`/account/preferences/language/`,
+POST only) instead of Django's `set_language`, and the page shows what they picked. The view
+stores only a language your `LANGUAGES` offers, stores nothing when the project offers a
+single language, and then lets Django's `set_language` set the cookie and follow `next`.
+Anything you build that posts a language choice can post there too.
+
 The choices take effect through `mvp.middleware.PreferencesMiddleware`, which
 [Getting started](getting-started.md) asks you to list below `AuthenticationMiddleware`.
 

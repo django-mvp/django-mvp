@@ -41,8 +41,10 @@ from .mounted import mount
 from .pwa.views import InstallView, manifest, service_worker
 from .utils import app_is_installed
 from .views.account import SignInView, SignOutView, account_center
+from .views.preferences import set_language
 
 urlpatterns: list[URLPattern | URLResolver] = [
+    path("account/preferences/language/", set_language, name="mvp-set-language"),
     mount("account/", account_center),
 ]
 
