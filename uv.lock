@@ -805,6 +805,7 @@ dependencies = [
     { name = "django-filter" },
     { name = "django-flex-menus" },
     { name = "django-mvp-forms" },
+    { name = "django-object-preferences" },
     { name = "mergedeep" },
     { name = "tinycss2" },
 ]
@@ -836,6 +837,7 @@ requires-dist = [
     { name = "django-filter", specifier = ">=26.1,<27" },
     { name = "django-flex-menus", specifier = ">=0.4.5" },
     { name = "django-mvp-forms", specifier = ">=0.8.0,<1.0" },
+    { name = "django-object-preferences", specifier = ">=0.2,<0.3" },
     { name = "mergedeep", specifier = ">=1.3,<2.0" },
     { name = "tinycss2", specifier = ">=1.5.1,<2" },
 ]
@@ -866,6 +868,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f5/73/a873d32bacb7f5e782f869ae565e1db0871f890a6512cdf4568961a72a41/django_mvp_forms-0.8.0.tar.gz", hash = "sha256:de6c8edbf180845296f0f24ead5ae19e1feef990f3a1030d1249d291225a15b4", size = 199323, upload-time = "2026-10-22T13:36:38.823Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/35/03585aadbd2126ab2bf42bbc9f5c3b0374b5e237a94eb612ff7ce0dccb63/django_mvp_forms-0.8.0-py3-none-any.whl", hash = "sha256:aca709192d298d53d2749b25537bdb11f8d26025e801040d180e17151f45fd4f", size = 155966, upload-time = "2026-10-22T13:36:37.173Z" },
+]
+
+[[package]]
+name = "django-object-preferences"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/92/8a/1471dd22f1b0a2263ef6612539a799c029af19503eeff2f8a99354642c67/django_object_preferences-0.2.0.tar.gz", hash = "sha256:78359fd60557b8b4431214790742b53eb3c9250b792e4ec60f819c7b9bf59bc6", size = 17831, upload-time = "2026-11-06T22:02:48.427Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/9b/6c2c58574fa8c9b52d39be015e972343add8b7a3d06a1d9d65b3d003bff4/django_object_preferences-0.2.0-py3-none-any.whl", hash = "sha256:dfbc42fd112d96b2fca273c8fc28e61634b38b7c70ac9ae6d1319e85eb3c193e", size = 19545, upload-time = "2026-11-06T22:02:46.97Z" },
 ]
 
 [[package]]
