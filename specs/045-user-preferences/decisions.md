@@ -44,3 +44,9 @@ timezone.
 - **The timezone choices are built once per process.**
 - **No `locale_of` helper and no unloadable-zone fallback.** The first had one caller, the second could not happen. `language` is `required=False`.
 - **SC-002 was wrong as written** ("no new setting"). Sam approved the correction at the plan gate: two installation lines.
+
+## D7 — Two existing test files change, and why
+
+`tests/test_views/test_account.py` (three tests asserting an empty card region) and `tests/test_menus.py` (one test listing the Account Center menu's entries) assert what FS-028 delivered: an Account Center with no card and only its landing entry. FS-045 FR-001 adds the preferences card and menu entry that every project now has, so each assertion changes to expect them. No assertion was weakened: each still pins the exact list or count.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
