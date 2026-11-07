@@ -41,8 +41,8 @@ class ReminderPreferences(forms.Form):
 ```
 
 Nothing else is wired. The group appears on `/account/preferences/` as a fieldset of its own
-beside the others, and one Save button saves every group together. If a value in any group is
-invalid, nothing in any group is saved and the field is marked in its own fieldset. The fieldset's
+beside the others, in the order of `INSTALLED_APPS`, and one Save button saves every group
+together. If a value in any group is invalid, nothing in any group is saved and the field is marked in its own fieldset. The fieldset's
 heading is the group name.
 
 ## Read a person's values
