@@ -20,6 +20,8 @@ switcher's existing component tests.
 - [ ] T006 [US1] The preferences page, its menu entry and its card
 - [ ] T007 [US1] The language switcher saves a signed-in person's choice
 - [ ] T008 [US1] The demo has a person who has chosen
+- [ ] T013 [US1] The Account Center menu ships the preferences entry: menu test and navigation docs
+- [ ] T014 [US1] Document LocalePreferences on the preferences page
 - [ ] T009 [US3] An app's group appears on the page and saves with the others
 - [ ] T010 [US3] Preferences are read the same way under a field of another name
 - [ ] T011 [US3] The developer guide for declaring and reading preferences, and the changelog
@@ -120,6 +122,14 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
 - `seed_accounts` stores a timezone and a language for `regular.user@example.com`.
 - Tests: in `tests/test_demo/test_seed_accounts.py`, that account reads back the stored choices and
   the other two read the defaults.
+
+#### T013 — The Account Center menu ships the preferences entry
+
+- `tests/test_menus.py` expects the new entry, and `docs/navigation.md` lists it. Found after Group 2.
+
+#### T014 — Document LocalePreferences on the preferences page
+
+- `docs/account-center.md` names the form and its group name. Found by the documentation check after Group 3.
 
 ## Phase 3 — User Story 3: An app's developer adds their own preferences to the page (P2)
 
