@@ -75,7 +75,7 @@ def start_django(tmp_path, model=None):
             user_model='AUTH_USER_MODEL = "accounts.User"' if model else "",
         )
     )
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603 - the interpreter running a script this test wrote
         [sys.executable, "-c", START.format(path=str(tmp_path))],
         capture_output=True,
         text=True,
@@ -85,7 +85,9 @@ def start_django(tmp_path, model=None):
 
 
 class TestUserModelCheck:
-    @pytest.mark.parametrize("model", [None, "plain"], ids=["djangos-own", "custom-without-field"])
+    @pytest.mark.parametrize(
+        "model", [None, "plain"], ids=["djangos-own", "custom-without-field"]
+    )
     def test_a_user_model_without_the_field_stops_startup(self, tmp_path, model):
         result = start_django(tmp_path, model)
 
@@ -99,7 +101,9 @@ class TestUserModelCheck:
 
         assert "accounts.User" in result.stderr
 
-    def test_a_field_under_another_name_starts_and_leaves_the_preferences_attribute_alone(self, tmp_path):
+    def test_a_field_under_another_name_starts_and_leaves_the_preferences_attribute_alone(
+        self, tmp_path
+    ):
         result = start_django(tmp_path, "renamed")
 
         assert result.returncode == 0, result.stderr
@@ -167,7 +171,7 @@ def use_project(tmp_path):
     start_django(tmp_path, "renamed")
     (tmp_path / "project_settings.py").write_text(FULL_SETTINGS)
     root = Path(__file__).resolve().parents[1]
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603 - the interpreter running a script this test wrote
         [sys.executable, "-c", USE.format(path=str(tmp_path), root=str(root))],
         capture_output=True,
         text=True,

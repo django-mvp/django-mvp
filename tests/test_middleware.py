@@ -3,7 +3,7 @@
 Source: mvp/middleware.py
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from django.conf.urls.i18n import i18n_patterns
@@ -15,7 +15,7 @@ from django.utils import translation
 
 from tests.conftest import urlconf_of
 
-NOON_UTC = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+NOON_UTC = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
 
 
 def clock(request):
