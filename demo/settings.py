@@ -71,6 +71,7 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",  # MUST be here
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "mvp.middleware.PreferencesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.common.CommonMiddleware",
