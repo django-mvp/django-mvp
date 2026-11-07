@@ -24,6 +24,12 @@ switcher's existing component tests.
 - [ ] T014 [US1] Document LocalePreferences on the preferences page
 - [ ] T009 [US3] An app's group appears on the page and saves with the others
 - [ ] T010 [US3] Preferences are read the same way under a field of another name
+- [ ] T015 [US1] A language named in the URL wins over the stored language
+- [ ] T016 [US1] The language view's CSRF test fails without its decorator
+- [ ] T017 [US3] Group headings are translatable
+- [ ] T018 [US2] The README and the package skill's quickstart install preferences
+- [ ] T019 [US2] The new tests pass lint
+- [ ] T020 [US3] The page's group order is described as it is
 - [ ] T011 [US3] The developer guide for declaring and reading preferences, and the changelog
 
 ## Order
@@ -157,3 +163,23 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
   values with `registry.get_preferences`, and why never through the attribute name.
 - `CHANGELOG.md` under Unreleased: Added (the page, the group, the middleware, the mixin) and a
   breaking-change line saying what to add to a user model.
+
+## Phase 4 — Review fixes
+
+#### T015 — A language named in the URL wins over the stored language
+- With `i18n_patterns`, a signed-in person with a stored language got 404 on a path in another language, because the middleware switched language before URL resolution. The middleware leaves the language alone when `translation.get_language_from_path(request.path_info)` names one. Test: stored `de`, `/fr/...` resolves and renders in French.
+
+#### T016 — The language view's CSRF test fails without its decorator
+- The test runs with the CSRF middleware, which refuses first, so removing `csrf_protect` left it green. It uses a client with `enforce_csrf_checks` against settings without the middleware, and is shown to fail with the decorator removed.
+
+#### T017 — Group headings are translatable
+- Each fieldset's legend is the group's translatable label from django-object-preferences 0.3, with the name as fallback. django-mvp's own group is labelled "Timezone and language". Needs the upstream release (https://github.com/django-mvp/django-object-preferences/issues/30).
+
+#### T018 — The README and the package skill's quickstart install preferences
+- `README.md` and `skills/django-mvp/SKILL.md` add `object_preferences`, the user model mixin and the middleware, matching `docs/getting-started.md`.
+
+#### T019 — The new tests pass lint
+- Three ruff errors in the new test files.
+
+#### T020 — The page's group order is described as it is
+- Groups follow `INSTALLED_APPS` order. `docs/account-center.md` and `docs/developer/preferences.md` say so instead of saying django-mvp's group comes first.
