@@ -138,7 +138,7 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
 
 #### T011 — The developer guide for declaring and reading preferences, and the changelog
 
-- `docs/preferences.md`, listed in the docs index: declaring a group for people, reading a person's
+- `docs/developer/preferences.md`, listed in the docs index: declaring a group for people, reading a person's
   values with `registry.get_preferences`, and why never through the attribute name.
 - `CHANGELOG.md` under Unreleased: Added (the page, the group, the middleware, the mixin) and a
   breaking-change line saying what to add to a user model.

@@ -28,7 +28,7 @@ Django test client. No browser test (Article XIV): nothing here depends on scrip
 | II Simplicity, III Anti-abstraction | One abstract model, one form, one middleware, one small view, one subclass of the upstream page. No setting, no registry of our own |
 | IV Integration-first | Storage, validation, saving and the page's behaviour are django-object-preferences'. Language switching is Django's `set_language`, called from the wrapper |
 | V Security | The page only ever shows and saves `request.user`, behind `LoginRequiredMixin`. The language view writes only a language the project offers, and only for the signed-in person. CSRF on both, which Django's view and the upstream page already enforce |
-| VI, XVII Documentation | Installation steps in `docs/getting-started.md`, the page in `docs/account-center.md`, and a new `docs/preferences.md` for app developers, each in the task that introduces its names |
+| VI, XVII Documentation | Installation steps in `docs/getting-started.md`, the page in `docs/account-center.md`, and a new `docs/developer/preferences.md` for app developers, each in the task that introduces its names |
 | VII Dependencies | One addition, justified. `deptry` stays green |
 | VIII Internationalization | Every new string in the package is translatable. The demo's are not |
 | IX Data model | The package stays model-free: the mixin is abstract. The demo's new user model carries `verbose_name` and `help_text` |
