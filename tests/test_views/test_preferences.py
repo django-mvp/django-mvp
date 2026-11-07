@@ -118,6 +118,20 @@ class TestSaving:
         )
         assert len(form.find_all("button", attrs={"type": "submit"})) == 1
 
+    def test_each_fieldset_is_headed_by_its_groups_translatable_label(self, signed_in):
+        from django.contrib.auth import get_user_model
+        from django.utils.functional import Promise
+
+        group = registry.get_group(get_user_model(), "locale")
+        response = signed_in.get(reverse(URL_NAME))
+
+        legend = BeautifulSoup(response.content, "html.parser").select_one(
+            "main form > fieldset legend"
+        )
+        assert isinstance(group.verbose_name, Promise)
+        assert legend.get_text(strip=True) == str(group.verbose_name)
+        assert legend.get_text(strip=True) != group.name.capitalize()
+
     def test_valid_values_redirect_back_with_a_success_message(self, signed_in, user):
         response = signed_in.post(reverse(URL_NAME), values())
 

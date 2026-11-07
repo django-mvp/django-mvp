@@ -837,7 +837,7 @@ requires-dist = [
     { name = "django-filter", specifier = ">=26.1,<27" },
     { name = "django-flex-menus", specifier = ">=0.4.5" },
     { name = "django-mvp-forms", specifier = ">=0.8.0,<1.0" },
-    { name = "django-object-preferences", specifier = ">=0.2,<0.3" },
+    { name = "django-object-preferences", specifier = ">=0.3,<0.4" },
     { name = "mergedeep", specifier = ">=1.3,<2.0" },
     { name = "tinycss2", specifier = ">=1.5.1,<2" },
 ]
@@ -872,14 +872,14 @@ wheels = [
 
 [[package]]
 name = "django-object-preferences"
-version = "0.2.0"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/92/8a/1471dd22f1b0a2263ef6612539a799c029af19503eeff2f8a99354642c67/django_object_preferences-0.2.0.tar.gz", hash = "sha256:78359fd60557b8b4431214790742b53eb3c9250b792e4ec60f819c7b9bf59bc6", size = 17831, upload-time = "2026-11-06T22:02:48.427Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/86/48/1b629f1696941bb012b1c6da63006308f21eb74d48454eae923df3625935/django_object_preferences-0.3.0.tar.gz", hash = "sha256:af80c02380306b6948b2b1cd971fde35aa22c37ceeae3f910ae388c6c41c8f50", size = 18516, upload-time = "2026-11-07T23:08:20.612Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/9b/6c2c58574fa8c9b52d39be015e972343add8b7a3d06a1d9d65b3d003bff4/django_object_preferences-0.2.0-py3-none-any.whl", hash = "sha256:dfbc42fd112d96b2fca273c8fc28e61634b38b7c70ac9ae6d1319e85eb3c193e", size = 19545, upload-time = "2026-11-06T22:02:46.97Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/c7/cfc516e6008f64a9941de93fe1dcad10d30155e9d5fd466b1a8764d8317f/django_object_preferences-0.3.0-py3-none-any.whl", hash = "sha256:cf8fc0dda9a792aae787bb61a63e4ee34762ae82a6a68868abc830f9e04c2ee2", size = 20185, upload-time = "2026-11-07T23:08:19.063Z" },
 ]
 
 [[package]]

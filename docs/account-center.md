@@ -146,7 +146,8 @@ from the "Preferences" entry in the area's menu or from the card on the landing 
 It shows the preferences your project and its installed apps declare for the user
 model, each group as a fieldset, with one Save button. The groups follow the order of
 `INSTALLED_APPS`. django-mvp declares one, the person's timezone and language, as the form
-`mvp.preferences.LocalePreferences` registered under the name `locale`:
+`mvp.preferences.LocalePreferences` registered under the name `locale` and headed "Timezone
+and language". Each fieldset's heading is its group's `verbose_name`:
 
 - **Timezone** is a select of the timezones Python knows, grouped by region. A person who
   has not chosen one gets your project's `TIME_ZONE`.

@@ -45,7 +45,7 @@ dependencies = [
     "css-inline>=0.23.1,<0.24",
     "tinycss2>=1.5.1,<2",
     "coloraide>=8.14,<9",
-    "django-object-preferences>=0.2,<0.3",  # the preferences field on the user model and the page that edits it
+    "django-object-preferences>=0.3,<0.4",  # the preferences field on the user model and the page that edits it
 ]
 # Optional integrations (django-tables2, ...) are NOT extras:
 # they live in guarded modules under mvp.integrations, required only when

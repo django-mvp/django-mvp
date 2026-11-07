@@ -43,7 +43,7 @@ def require_preferences_field() -> None:
 require_preferences_field()
 
 
-@register(get_user_model(), name="locale")
+@register(get_user_model(), name="locale", verbose_name=_("Timezone and language"))
 class LocalePreferences(forms.Form):
     """A person's timezone and language.
 

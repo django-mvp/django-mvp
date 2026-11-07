@@ -25,10 +25,11 @@ in your app, which is loaded when the apps load:
 # yourapp/preferences.py
 from django import forms
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 from object_preferences.registry import register
 
 
-@register(get_user_model(), name="reminders")
+@register(get_user_model(), name="reminders", verbose_name=_("Reminders"))
 class ReminderPreferences(forms.Form):
     digest = forms.ChoiceField(
         label="Digest",
@@ -43,7 +44,8 @@ class ReminderPreferences(forms.Form):
 Nothing else is wired. The group appears on `/account/preferences/` as a fieldset of its own
 beside the others, in the order of `INSTALLED_APPS`, and one Save button saves every group
 together. If a value in any group is invalid, nothing in any group is saved and the field is marked in its own fieldset. The fieldset's
-heading is the group name.
+heading is the group's `verbose_name`, translatable like any other label. Leave it out and the
+heading is the group's name with a capital first letter.
 
 ## Read a person's values
 

@@ -14,9 +14,9 @@
       </c-slot>
     </c-mvp.page.title>
     <c-mvp.form method="post" action="{{ request.path }}" class="flex flex-col gap-6">
-      {% for name, form in forms.items %}
+      {% for group, form in groups %}
         <fieldset class="flex flex-col gap-4">
-          <legend class="text-lg font-semibold mb-2">{{ name|capfirst }}</legend>
+          <legend class="text-lg font-semibold mb-2">{{ group.verbose_name }}</legend>
           <c-mvp.form.render :form="form" />
         </fieldset>
       {% endfor %}
