@@ -13,7 +13,7 @@ keywords = [
     "data",
     "scaffold",
 ]
-version = "0.33.0"
+version = "0.34.0"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Framework :: Django",
@@ -42,6 +42,9 @@ dependencies = [
     "django-mvp-forms>=0.8.0,<1.0",   # the daisyUI template pack forms render with
     "daisy-cotton (>=0.2,<0.3)",
     "django-filter (>=26.1,<27)",  # every list page's search, sort and filters (ADR 0033)
+    "css-inline>=0.23.1,<0.24",
+    "tinycss2>=1.5.1,<2",
+    "coloraide>=8.14,<9",
 ]
 # Optional integrations (django-tables2, ...) are NOT extras:
 # they live in guarded modules under mvp.integrations, required only when
@@ -106,6 +109,10 @@ non-mirror-paths = [
     "tests/test_components/",
     "tests/test_demo/",
     "tests/test_templates.py",
+    "tests/test_email/test_base_template.py",
+    "tests/test_email/test_mail_clients.py",
+    "tests/test_email/test_overrides.py",
+    "tests/test_email/test_mvp_email.py",
     "tests/test_conftest.py",
     "tests/test_frontend_runtime.py",
     "tests/test_frontend_runtime_e2e.py",
@@ -114,6 +121,7 @@ non-mirror-paths = [
     "tests/test_table_layout_e2e.py",
     "tests/test_full_page_fill_e2e.py",
     "tests/test_list_filters_e2e.py",
+    "tests/test_install_page_e2e.py",
 ]
 
 [tool.deptry]
@@ -207,6 +215,8 @@ module = [
     "django_cotton.*",
     "django_filters.*",
     "django_tables2.*",
+    "tinycss2",
+    "tinycss2.*",
 ]
 ignore_missing_imports = true
 

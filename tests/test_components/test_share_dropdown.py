@@ -3,6 +3,11 @@
 Source: mvp/templates/cotton/mvp/addons/share_dropdown.html
 """
 
+import codecs
+import re
+
+from django.test import RequestFactory
+
 from mvp.config import MVP_CONFIG
 
 
@@ -51,3 +56,32 @@ class TestShareDropdownLinks:
         assert links
         for link in links:
             assert {"noopener", "noreferrer"} <= set(link["rel"])
+
+
+class TestShareDropdownCopyLink:
+    def copied_text(self, soup):
+        """The text the copy item hands to the clipboard, decoded from its script."""
+        script = soup.select_one("ul.menu a[onclick]")["onclick"]
+        literal = re.search(r"writeText\('((?:[^'\\]|\\.)*)'", script)
+        assert literal, script
+        return codecs.decode(literal.group(1), "unicode_escape")
+
+    def test_it_copies_the_url_it_was_given(self, cotton_render_string_soup):
+        url = "https://example.com/shared/?a=1&b='2'"
+        soup = cotton_render_string_soup(
+            '<c-mvp.addons.share-dropdown :url="url" />',
+            context={"mvp_config": MVP_CONFIG, "url": url},
+        )
+
+        assert self.copied_text(soup) == url
+
+    def test_it_copies_the_page_address_when_given_no_url(
+        self, cotton_render_string_soup
+    ):
+        request = RequestFactory().get("/notes/?q=x")
+        soup = cotton_render_string_soup(
+            "<c-mvp.addons.share-dropdown />",
+            context={"mvp_config": MVP_CONFIG, "request": request},
+        )
+
+        assert self.copied_text(soup) == request.build_absolute_uri()

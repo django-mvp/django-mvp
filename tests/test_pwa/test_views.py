@@ -163,3 +163,61 @@ class TestManifestOverrides:
 
         assert manifest["start_url"] == "/app/"
         assert manifest["scope"] == "/app/"
+
+
+@pytest.mark.django_db
+class TestInstallView:
+    PLATFORMS = ("ios", "android", "chromium", "safari", "firefox")
+
+    @pytest.fixture(autouse=True)
+    def in_the_app_shell(self):
+        # The page draws the whole shell, whose menus link to the demo's pages.
+        with override_settings(ROOT_URLCONF="demo.urls"):
+            yield
+
+    def test_it_answers(self, client):
+        response = client.get("/install/")
+
+        assert response.status_code == 200
+
+    def test_every_platforms_steps_are_in_the_page(self, client):
+        response = client.get("/install/")
+
+        rendered = {template.name for template in response.templates}
+        for platform in self.PLATFORMS:
+            assert f"mvp/pwa/install/{platform}.html" in rendered
+
+    def test_the_other_devices_are_readable_without_the_script(self, client):
+        response = client.get("/install/")
+        html = response.content.decode()
+
+        # Only what the script reveals starts hidden: the phone sections under
+        # "Other devices" are drawn shown, so the page reads in full without it.
+        assert '<div data-mvp-install-other="ios" x-bind' in html
+        assert '<div data-mvp-install-other="android" x-bind' in html
+
+    def test_the_title_names_the_short_name(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG, "site_name", "Corner Shop")
+        monkeypatch.setitem(MVP_CONFIG, "short_name", "Corner")
+
+        title = client.get("/install/").context["page"]["title"]
+
+        assert "Corner" in str(title)
+        assert "Corner Shop" not in str(title)
+
+    def test_the_title_falls_back_to_the_site_name(self, client):
+        Site.objects.filter(pk=settings.SITE_ID).update(name="Corner Shop")
+        Site.objects.clear_cache()
+
+        title = client.get("/install/").context["page"]["title"]
+
+        assert "Corner Shop" in str(title)
+
+    def test_a_hostile_site_name_is_escaped(self, client):
+        Site.objects.filter(pk=settings.SITE_ID).update(name="<b>Shop</b>")
+        Site.objects.clear_cache()
+
+        html = client.get("/install/").content.decode()
+
+        assert "<b>Shop</b>" not in html
+        assert "&lt;b&gt;Shop&lt;/b&gt;" in html

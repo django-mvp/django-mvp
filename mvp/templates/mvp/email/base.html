@@ -1,0 +1,97 @@
+{% load i18n mvp_email %}{% get_current_language as LANG %}{% email_brand as brand %}{% email_url "/" as site_url %}{% email_site_name as site_name %}{% comment %}
+The layout every branded email extends. Fill the preheader, body and footer blocks.
+Styles are written once, as rules in the style element, and {% email_inline %} writes them onto the markup while the template renders: Gmail and Outlook drop or ignore most of a style element. Only what cannot be inlined stays in it: the dark scheme and the phone width.
+{% endcomment %}{% email_inline %}<!DOCTYPE html>
+<html lang="{{ LANG }}" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>{% block subject %}{% endblock %}</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: {{ brand.light.page }}; -webkit-text-size-adjust: 100%; }
+    .mvp-email-page { background-color: {{ brand.light.page }}; }
+    .mvp-email-preheader { display: none; max-height: 0; overflow: hidden; mso-hide: all; }
+    .mvp-email-gutter { padding: 32px 0; }
+    .mvp-email-card { width: 600px; max-width: 600px; border: 1px solid {{ brand.light.border }}; border-radius: 8px; }
+    .mvp-email-surface { background-color: {{ brand.light.surface }}; }
+    .mvp-email-footer-card { width: 600px; max-width: 600px; }
+    .mvp-email-header { padding: 32px 40px 0 40px; border-radius: 8px 8px 0 0; }
+    .mvp-email-pad { padding: 24px 40px 40px 40px; border-radius: 0 0 8px 8px; }
+    .mvp-email-footer { padding: 24px 40px; }
+    .mvp-email-font { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; }
+    .mvp-email-text { font-size: 16px; color: {{ brand.light.text }}; }
+    .mvp-email-muted { font-size: 13px; color: {{ brand.light.muted }}; }
+    .mvp-email-logo-link { text-decoration: none; }
+    .mvp-email-logo { display: block; height: 32px; width: auto; border: 0; font-size: 20px; font-weight: 600; color: {{ brand.light.text }}; }
+    .mvp-email-logo-dark { display: none; max-height: 0; overflow: hidden; color: {{ brand.dark.text }}; }
+    h1 { margin: 0 0 16px 0; font-size: 24px; line-height: 1.25; font-weight: 700; }
+    h2 { margin: 0 0 12px 0; font-size: 20px; line-height: 1.25; font-weight: 700; }
+    p { margin: 0 0 12px 0; }
+    ul { margin: 0 0 16px 0; padding-left: 24px; }
+    li { margin: 0 0 8px 0; }
+    a { color: {{ brand.light.text }}; text-decoration: underline; }
+    .mvp-email-muted p { margin: 0 0 8px 0; }
+    .mvp-email-muted a { color: {{ brand.light.muted }}; }
+    .mvp-email-button { background-color: {{ brand.light.primary }}; border-radius: 4px; }
+    .mvp-email-button a { display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; line-height: 1.25; color: {{ brand.light.primary_content }}; text-decoration: none; border-radius: 4px; }
+    .mvp-email-block { margin: 24px 0; }
+    .mvp-email-note { margin: 16px 0 0 0; font-size: 14px; line-height: 1.5; color: {{ brand.light.muted }}; }
+    .mvp-email-hairline { border-top: 1px solid {{ brand.light.border }}; font-size: 0; line-height: 0; }
+    .mvp-email-code { background-color: {{ brand.light.page }}; border-radius: 4px; padding: 16px 24px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 28px; font-weight: 600; letter-spacing: 6px; color: {{ brand.light.text }}; }
+    @media (max-width: 620px) {
+      .mvp-email-card { width: 100% !important; border-radius: 0 !important; border-left: 0 !important; border-right: 0 !important; }
+      .mvp-email-footer-card { width: 100% !important; }
+      .mvp-email-header, .mvp-email-pad, .mvp-email-footer { padding-left: 24px !important; padding-right: 24px !important; }
+      .mvp-email-header, .mvp-email-pad { border-radius: 0 !important; }
+    }
+    @media (prefers-color-scheme: dark) {
+      body, .mvp-email-page { background-color: {{ brand.dark.page }} !important; }
+      .mvp-email-surface { background-color: {{ brand.dark.surface }} !important; }
+      .mvp-email-card { border-color: {{ brand.dark.border }} !important; }
+      .mvp-email-text, .mvp-email-text p, .mvp-email-text td, .mvp-email-text h1, .mvp-email-text h2, .mvp-email-text a, .mvp-email-code { color: {{ brand.dark.text }} !important; }
+      .mvp-email-muted, .mvp-email-muted p, .mvp-email-muted a, .mvp-email-note { color: {{ brand.dark.muted }} !important; }
+      .mvp-email-rule { border-color: {{ brand.dark.border }} !important; }
+      .mvp-email-code { background-color: {{ brand.dark.page }} !important; }
+      .mvp-email-button { background-color: {{ brand.dark.primary }} !important; }
+      .mvp-email-button a { color: {{ brand.dark.primary_content }} !important; }
+      {% if brand.logo_dark %}.mvp-email-logo-light { display: none !important; }
+      .mvp-email-logo-dark { display: block !important; max-height: none !important; overflow: visible !important; }{% endif %}
+    }
+  </style>
+</head>
+<body class="mvp-email-page">
+  <div class="mvp-email-preheader">{% block preheader %}{% endblock %}&#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="mvp-email-page">
+    <tr>
+      <td align="center" class="mvp-email-gutter mvp-email-page">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mvp-email-card">
+          <tr>
+            <td class="mvp-email-header mvp-email-surface">
+              <a href="{{ site_url }}" class="mvp-email-logo-link">
+                <img src="{{ brand.logo }}" alt="{{ site_name }}" height="32" class="mvp-email-logo mvp-email-logo-light mvp-email-font">
+                {% if brand.logo_dark %}<!--[if !mso]><!--><img src="{{ brand.logo_dark }}" alt="{{ site_name }}" height="32" class="mvp-email-logo mvp-email-logo-dark mvp-email-font"><!--<![endif]-->{% endif %}
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td class="mvp-email-pad mvp-email-surface mvp-email-text mvp-email-font">
+              {% block body %}{% endblock %}
+            </td>
+          </tr>
+        </table>
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="mvp-email-footer-card">
+          <tr>
+            <td class="mvp-email-footer mvp-email-muted mvp-email-font">
+              {% block footer %}
+                <p>{% blocktrans %}Sent by <a href="{{ site_url }}">{{ site_name }}</a>.{% endblocktrans %}</p>
+              {% endblock %}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>{% endemail_inline %}

@@ -1,27 +1,26 @@
 {% extends "detail_view.html" %}
-{% load i18n %}
 {# Edit and delete come from the packaged template. Only the body is ours. #}
 {% block page.content %}
   <c-mvp.grid cols="1" md="2" gap="3">
     <div>
       <dl>
-        <dt>{% trans "Name" %}</dt>
+        <dt>Name</dt>
         <dd>
           {{ object.name }}
         </dd>
-        <dt>{% trans "Category" %}</dt>
+        <dt>Category</dt>
         <dd>
           {{ object.category }}
         </dd>
-        <dt>{% trans "Price" %}</dt>
+        <dt>Price</dt>
         <dd>
           ${{ object.price }}
         </dd>
-        <dt>{% trans "Stock" %}</dt>
+        <dt>Stock</dt>
         <dd>
           {{ object.stock }}
         </dd>
-        <dt>{% trans "Status" %}</dt>
+        <dt>Status</dt>
         <dd>
           {{ object.get_status_display }}
         </dd>
@@ -32,11 +31,11 @@
     </div>
   </c-mvp.grid>
   <c-button href="{% url "product-order-lines" pk=object.pk %}"
-            text="{% trans "Edit product and order lines" %}"
+            text="Edit product and order lines"
             icon="list"
             size="sm" />
   <c-button href="{% url "product-order-lines-rows-only" pk=object.pk %}"
-            text="{% trans "Edit order lines only" %}"
+            text="Edit order lines only"
             icon="list-ul"
             size="sm" />
 {% endblock page.content %}

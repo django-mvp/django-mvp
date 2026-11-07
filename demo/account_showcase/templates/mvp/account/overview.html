@@ -1,15 +1,14 @@
 {% extends "mvp/account/overview.html" %}
-{% load i18n %}
 {% block account.cards %}
   {{ block.super }}
-  <c-mvp.card title="{% trans "Component Library" %}"
+  <c-mvp.card title="Component Library"
           icon="overview">
     <c-mvp.text>
-      {% trans "The components the shell is built from, with the markup that renders each one." %}
+      The components the shell is built from, with the markup that renders each one.
     </c-mvp.text>
     <c-slot name="footer">
       <c-button href="{% url 'layout' %}"
-                text="{% trans "Browse components" %}">
+                text="Browse components">
         <c-icon name="arrow-right" aria-hidden="true" />
       </c-button>
     </c-slot>

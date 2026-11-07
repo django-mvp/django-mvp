@@ -11,6 +11,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A printed table shows all of its columns. Its cells wrap and its text gets smaller until it fits the paper, instead of losing the columns past the right edge, and a row header is no longer cut short with an ellipsis. To leave a column off the printout, name `print:hidden` on its cells (#633).
 
+## [v0.34.0] - 2026-11-06
+
+### Added
+
+- With `MVP_CONFIG["pwa"]` set, `mvp.urls` serves a page at `/install/` (URL name `mvp-pwa-install`) that tells a visitor how to install the site as an app. It shows the steps for the device it is open on first, offers the browser's own install button in Chrome and Edge, and keeps every other device's steps on the page. The package adds no menu entry for it: `docs/installable-app.md` shows the menu item to add.
+- A branded HTML email layout. An email extends `mvp/email/base.html` to carry the site's logo, name and theme colours with a dark scheme and a phone-width layout that hold in mail clients. The pieces `c-mvp.email.text`, `c-mvp.email.button`, `c-mvp.email.note`, `c-mvp.email.divider` and `c-mvp.email.code` write the message, and the tags `email_url`, `email_site_name`, `email_brand` and `email_inline` from `mvp_email` fill in the site's address, name, colours and inlined styles. A project's own template at the same path overrides another package's email, such as allauth's, without changing the package. Colours come from the themes in `MVP_CONFIG["theme"]`, with system checks `mvp.W002` to `mvp.W005` naming what the email cannot use, and the `mvp_email_logos` command draws the project's logo to the PNGs the email shows. See `docs/developer/email.md`.
+- Icon names `install`, `install.share`, `install.add` and `install.menu` in the packaged Bootstrap Icons set.
+
+## [v0.33.2] - 2026-11-04
+
+### Fixed
+
+- Copy link in `c-mvp.addons.share-dropdown` copies the `url` the component was given, like every other choice in the menu, instead of the address of the page it is on. Without a `url` it still copies the current page's address (#638).
+
+## [v0.33.1] - 2026-11-04
+
+### Added
+
+- `c-mvp.pagination`, `c-mvp.pagination.compact`, `c-mvp.pagination.link` and `c-mvp.page.list.footer` take `param`, the query parameter their links set, so a page with several paged tables can page each on its own. It defaults to `page`.
+
+### Fixed
+
+- A table page prints every row of the page being viewed, across as many sheets as it needs, instead of cutting the rows off at the height of the window. Any other full-page view, such as a map, still prints as one sheet (#630).
+
 ## [v0.33.0] - 2026-11-02
 
 ### Added

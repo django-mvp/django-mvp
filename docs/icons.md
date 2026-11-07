@@ -120,6 +120,10 @@ own ordering; comma-separated names are aliases for one glyph.
 | `list-view` | `bi bi-view-list` |
 | `more`, `options`, `kebab` | `bi bi-three-dots-vertical` |
 | `external-link` | `bi bi-box-arrow-up-right` |
+| `install` | `bi bi-download` |
+| `install.share` | `bi bi-box-arrow-up` |
+| `install.add` | `bi bi-plus-square` |
+| `install.menu` | `bi bi-three-dots-vertical` |
 | `sort` | `bi bi-sort-down` |
 | `sort-asc` | `bi bi-arrow-up-short` |
 | `sort-desc` | `bi bi-arrow-down-short` |

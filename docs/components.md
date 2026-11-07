@@ -244,7 +244,7 @@ the whole screen. `fill` takes the full width and height and ignores `width`.
 | `c-mvp.page.list.filters.field` | `field` — one filterset field in the toolbar, in its compact form, from a dict `get_toolbar_field()` returns; must sit inside the filter form. `size` sets the size of its buttons and inputs |
 | `c-mvp.page.list.summary` | `class` — the count of what the list holds |
 | `c-mvp.page.list.refinements` | `class` — the applied search and filters, each as a control that removes it |
-| `c-mvp.page.list.footer` | `page_obj`, `size`, `class` — the foot of a list page: the range shown and the pager. Its spacing comes from `class`, and `size` sets the pager's button size |
+| `c-mvp.page.list.footer` | `page_obj`, `param`, `size`, `class` — the foot of a list page: the range shown and the pager. Its spacing comes from `class`, `size` sets the pager's button size and `param` the query parameter its links set |
 | `c-mvp.page.table.toolbar` | slots `heading`, `title`, `actions`, `controls`, `note` and the default slot; `heading_above`, `storage_key`, `class` — the band above a full-page table: a bar that always shows and a panel under it that a button opens and closes; the `controls` sit at the end of the panel's row, and in the bar while it is closed. The `heading` slot holds the page title, drawn at the start of the bar, or above it with `heading_above`, for a title layout too tall for one row; the `title` slot holds what sits beside it, such as the result count |
 | `c-mvp.page.list.actions` | `actions` — renders the action components below, default `['create']` |
 | `c-mvp.page.list.actions.{create,share}` | individual list actions — see [below](#list-components-driven-by-view-context) for the context each one needs |
@@ -372,9 +372,9 @@ declared side whether or not it fits, exactly as it always used to.
 
 | Component | Notes |
 | --- | --- |
-| `c-mvp.pagination` | `page_obj`, `page_window` (default `5`), `use_icons`, `show_first_and_last`, `size`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers, and then a gap of exactly one page shows that page's number where an ellipsis would be |
-| `c-mvp.pagination.compact` | `page_obj`, `size`, `label`, `class` — a pager for narrow screens: Previous, "Page 2 of 6", Next, spread across the full width. The page number is a select holding every page, so any page is one choice away; renders nothing when there's only one page |
-| `c-mvp.pagination.link` / `c-mvp.pagination.wrapper` | building blocks for a hand-built pager: `page`, `text`, `active`, `disabled`, `size`, `class` on the link; `label`, `class` on the labelled wrapper it sits in |
+| `c-mvp.pagination` | `page_obj`, `param` (the query parameter each link sets, default `page`), `page_window` (default `5`), `use_icons`, `show_first_and_last`, `size`, `label` (the `<nav>`'s accessible name, default `Navigation page results`) — renders nothing when there's only one page; `show_first_and_last` swaps the First/Last text controls for the first and last page numbers, and then a gap of exactly one page shows that page's number where an ellipsis would be |
+| `c-mvp.pagination.compact` | `page_obj`, `param`, `size`, `label`, `class` — a pager for narrow screens: Previous, "Page 2 of 6", Next, spread across the full width. The page number is a select holding every page, so any page is one choice away; renders nothing when there's only one page |
+| `c-mvp.pagination.link` / `c-mvp.pagination.wrapper` | building blocks for a hand-built pager: `page`, `param`, `text`, `active`, `disabled`, `size`, `class` on the link; `label`, `class` on the labelled wrapper it sits in |
 
 Menus are normally rendered from Python via django-flex-menus — see
 [Navigation](navigation.md). For a hand-built menu, write daisy-cotton's menu components
@@ -489,11 +489,33 @@ third-party package installed and its integration wired up before you use it.
 | `c-mvp.addons.share-dropdown` | `url` (default: current page URL), `title` (default: `page.title`), `size`, `class` — social share menu (social networks, email, copy link) | nothing |
 | `c-mvp.addons.django-table` | `table`, `class`, `label`, `role` (default `region`) — scrollable region around a django-tables2 table, with its heading and footer rows pinned. A table with no rows draws `c-mvp.page.list.empty` in its body, from `empty_state`, `refinements`, `clear_refinements_url`, `directory`, `create_form` and `model_info`, read from the page when not passed | django-tables2 |
 
+`c-mvp.addons.share-dropdown` shares `url` from every choice, Copy link included. Pass it
+when the page should be shared under another address, such as its canonical one.
+
 `c-mvp.addons.share-dropdown` is plain markup over hard-coded social URLs, so it renders
 anywhere — `c-mvp.page.list.actions.share` puts it on a list page unconditionally.
 
 Give `c-mvp.addons.django-table` a distinct `label` on any page with more than one table.
 The default accessible name is shared.
+
+## Email
+
+Pieces to write an email's message with, inside a template that extends `mvp/email/base.html`.
+They are plain markup that holds in Gmail, Outlook and Apple Mail, drawn in the project's theme
+colours. [Email](developer/email.md) explains the base template and how to use the pieces.
+
+| Component | Attributes | Notes |
+| --- | --- | --- |
+| `c-mvp.email.text` | `mb` (`none`, `xs`, `sm`, `md` default, `lg`, `xl`), `size` (`sm`, `md` default, `lg`), `align` (`start` default, `center`) | a paragraph with its spacing written inline. An unknown value is the default |
+| `c-mvp.email.button` | `href`, `text` | a link drawn as a button, its colour on the table cell so Outlook draws it |
+| `c-mvp.email.note` | nothing | secondary text in the muted colour |
+| `c-mvp.email.divider` | nothing | a rule between parts of the message |
+| `c-mvp.email.code` | `code` | a one-time code in a monospace box |
+
+```django
+<c-mvp.email.text mb="lg">Choose a new password with the button below.</c-mvp.email.text>
+<c-mvp.email.button :href="reset_url" text="Choose a new password" />
+```
 
 ## List components driven by view context
 
@@ -517,7 +539,7 @@ and `table_view.html` do: `<c-mvp.page.list.summary :result_count="result_count"
 | `c-mvp.page.list.filters.field` | — | `field`, one entry of `toolbar_fields` or `toolbar_sort`, drawn by its `kind`. A multi-select list and a developer's widget are drawn inside a `[data-mvp-toolbar-field]` wrapper whose value is the field's name. `size`, the size of its buttons and inputs; a developer's widget keeps its own. Below `sm` the sort is drawn as its icon alone |
 | `c-mvp.page.list.summary` | `result_count`, `refinements`, `model_info` | `class` |
 | `c-mvp.page.list.refinements` | `refinements`, `clear_refinements_url` | `class` |
-| `c-mvp.page.list.footer` | — | `page_obj`, `size`, `class` |
+| `c-mvp.page.list.footer` | — | `page_obj`, `param`, `size`, `class` |
 | `c-mvp.page.list.actions` | `directory`, `create_form`, `create_modal_title`, handed on to each action | `actions` (default `['create']`) |
 | `c-mvp.page.list.actions.create` | `directory` (its `create_url`), optionally `create_form` and `create_modal_title` | `label` (default `Add`, the button's text), `icon` (default `add`), `size`, and `compact`, which draws the icon alone below `sm` with the label still its name to a screen reader |
 | `c-mvp.page.list.actions.share` | — (always renders) | — |

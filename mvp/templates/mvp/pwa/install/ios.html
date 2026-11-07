@@ -1,0 +1,11 @@
+{% load i18n %}
+<ol class="list-decimal ms-5 space-y-2">
+  <li>
+    {% trans "Tap" %} <c-icon name="install.share" aria-hidden="true" /> <strong>{% trans "Share" %}</strong>.
+    {% trans "If you can't see it, tap the More button (⋯) first." %}
+  </li>
+  <li>
+    {% trans "Scroll down and tap" %} <c-icon name="install.add" aria-hidden="true" /> <strong>{% trans "Add to Home Screen" %}</strong>.
+  </li>
+  <li>{% blocktrans %}Leave <strong>Open as Web App</strong> on, and tap <strong>Add</strong>.{% endblocktrans %}</li>
+</ol>

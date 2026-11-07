@@ -1,0 +1,16 @@
+{% extends "mvp/email/base.html" %}
+{% load mvp_email %}
+{% block preheader %}The changes take effect on {{ effective }}.{% endblock %}
+{% block body %}
+  <h1>We're updating our privacy policy</h1>
+  <c-mvp.email.text>On {{ effective }} a new version of our privacy policy takes effect. The main changes:</c-mvp.email.text>
+  <ul>
+    {% for change in changes %}<li>{{ change }}</li>{% endfor %}
+  </ul>
+  <c-mvp.email.button :href="policy_url" text="Read the new policy" />
+  <c-mvp.email.text>You don't need to do anything. Using the site after that date means you accept the new version.</c-mvp.email.text>
+{% endblock %}
+{% block footer %}
+  <p>You're receiving this because you have an account with {% email_site_name %}. We send this email to every account holder when our policies change.</p>
+  <p>{{ postal_address }}</p>
+{% endblock %}

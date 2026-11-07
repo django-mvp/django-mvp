@@ -3,10 +3,9 @@
 Every page link used to render as `?page=N`, which replaced the whole query
 string and dropped a sort (`?o=`), a search (`?q=`) or any filter parameter on
 every page change, even though the sortable column headings right above a
-table preserve everything through `{% querystring_replace %}`. Django's
-built-in `{% querystring %}` tag (5.1+) changes only `page` and leaves
-everything else in the current query string untouched, so no custom
-templatetag is needed here.
+table preserve everything through `{% querystring_replace %}`. The link now
+sets only its page parameter (`{% page_querystring %}`) and leaves everything
+else in the current query string untouched.
 
 The current page was also visually indistinguishable from the rest:
 `btn-active` alone resolves to the same background a plain `.btn` already
@@ -32,8 +31,8 @@ def render(source, request, **context):
     """Compile a Cotton source string and render it against a real request.
 
     A ``RequestContext`` (rather than the plain ``Context`` most component
-    tests use) is required here: the href now goes through Django's
-    ``{% querystring %}`` tag, which reads ``context.request.GET``.
+    tests use) is required here: the href goes through
+    ``{% page_querystring %}``, which reads ``context.request.GET``.
     """
     return template.Template(compiler.process(source)).render(
         RequestContext(request, context)

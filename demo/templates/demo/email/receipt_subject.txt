@@ -1,0 +1,1 @@
+{% load mvp_email %}Receipt for your {% email_site_name %} subscription

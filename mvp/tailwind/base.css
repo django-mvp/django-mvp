@@ -1324,6 +1324,11 @@ html {
    gutter and a tinted backdrop. Printing has no overlay to lock the page behind,
    so the lock is released.
 
+   A filled page around a table gives up its bounded height, so the rows run on
+   across as many sheets as they need instead of being clipped at the height of
+   the window. Only that page: a filled page with nothing to flow, such as a map,
+   takes its height from the bound and would print at no height without it.
+
    A table region scrolls sideways on screen, and paper can't: a column past the
    sheet's edge is lost. So every cell may wrap, inside a word if it has to,
    whatever its column asks for on screen, and the table always fits the sheet.
@@ -1346,6 +1351,17 @@ html {
   [data-mvp-breakpoint] > .drawer-side,
   [data-mvp-breakpoint] .mvp-dock-only {
     display: none !important;
+  }
+
+  [data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill .mvp-table-region),
+  .mvp-page-fill:has(.mvp-table-region) {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+
+  .mvp-page-fill .mvp-table-region {
+    overflow: visible;
   }
 
   .mvp-table-region :is(th, td) {

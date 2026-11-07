@@ -6,10 +6,13 @@ These tests pin that behaviour directly against the class, independent of
 any template tag that reads it.
 """
 
+import re
+
 import pytest
 
 from mvp.layout import LayoutConfig
 from tests.conftest import requires_browser
+from tests.factories import ProductFactory
 
 
 class TestLayoutConfigBreakpoint:
@@ -86,6 +89,10 @@ PRINT_PAGE = "/layout/store/"
 
 PRINT_WIDTHS = {"desktop": 1440, "a4": 794}
 
+TABLE_PAGE = "/django-tables2/"
+BARE_TABLE_PAGE = "/django-tables2/bare/"
+MAP_PAGE = "/layout/full-page/"
+
 at_every_print_width = pytest.mark.parametrize("width", PRINT_WIDTHS.values(), ids=list(PRINT_WIDTHS))
 
 
@@ -110,6 +117,13 @@ def _printed(page, url, width):
           };
         }
     """)
+
+
+def _sheets(page, url, width):
+    """Load a page on screen, print it to A4 and count the sheets."""
+    page.set_viewport_size({"width": width, "height": 900})
+    page.goto(url)
+    return len(re.findall(rb"/Type\s*/Page\b", page.pdf(format="A4")))
 
 
 @pytest.mark.e2e
@@ -158,6 +172,56 @@ class TestPrintingAPage:
         assert root["overflow"] == "visible"
         assert root["background"] == "rgb(255, 255, 255)"
         assert root["mainWidth"] == root["pageWidth"] == 794
+
+    @at_every_print_width
+    @pytest.mark.parametrize(
+        "path", [TABLE_PAGE, BARE_TABLE_PAGE], ids=["toolbar", "bare"]
+    )
+    def test_every_row_of_a_table_page_is_in_the_printed_flow(
+        self, page, live_server, width, path
+    ):
+        ProductFactory.create_batch(30)
+        page.set_viewport_size({"width": width, "height": 900})
+        page.goto(f"{live_server.url}{path}")
+        page.emulate_media(media="print")
+
+        printed = page.evaluate("""
+            () => {
+              const region = document.querySelector('.mvp-table-region');
+              const rows = region.querySelectorAll('tbody tr:not(.mvp-table-filler)');
+              const last = rows[rows.length - 1].getBoundingClientRect();
+              return {
+                rows: rows.length,
+                hidden: region.scrollHeight - region.clientHeight,
+                lastRowBottom: last.bottom + window.scrollY,
+                pageBottom: document.documentElement.scrollHeight,
+              };
+            }
+        """)
+
+        assert printed["rows"] >= 25
+        assert printed["hidden"] == 0
+        assert printed["lastRowBottom"] <= printed["pageBottom"]
+
+    @at_every_print_width
+    def test_a_long_table_runs_on_to_more_sheets(self, page, live_server, width):
+        ProductFactory.create_batch(60)
+
+        assert _sheets(page, f"{live_server.url}{BARE_TABLE_PAGE}", width) > 1
+
+    @at_every_print_width
+    def test_a_filled_page_with_nothing_to_flow_prints_at_its_bounded_height(
+        self, page, live_server, width
+    ):
+        assert _sheets(page, f"{live_server.url}{MAP_PAGE}", width) == 1
+
+        page.emulate_media(media="print")
+        assert (
+            page.evaluate(
+                "document.querySelector('#map').getBoundingClientRect().height"
+            )
+            > 0
+        )
 
     def test_a_dark_theme_prints_dark_text_on_white(self, page, live_server):
         page.goto(f"{live_server.url}{PRINT_PAGE}")

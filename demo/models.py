@@ -2,7 +2,6 @@
 
 from django.db import models
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
 
 class Category(models.Model):
@@ -229,18 +228,18 @@ class OrderLine(models.Model):
         Product,
         on_delete=models.PROTECT,
         related_name="order_lines",
-        verbose_name=_("product"),
-        help_text=_("The product this order line is for."),
+        verbose_name="product",
+        help_text="The product this order line is for.",
     )
     quantity = models.PositiveIntegerField(
         default=1,
-        verbose_name=_("quantity"),
-        help_text=_("How many units of the product were ordered."),
+        verbose_name="quantity",
+        help_text="How many units of the product were ordered.",
     )
 
     class Meta:
-        verbose_name = _("order line")
-        verbose_name_plural = _("order lines")
+        verbose_name = "order line"
+        verbose_name_plural = "order lines"
 
     def __str__(self):
         """Show the order line's product and quantity."""
@@ -259,18 +258,18 @@ class ShipmentLine(models.Model):
         Product,
         on_delete=models.RESTRICT,
         related_name="shipment_lines",
-        verbose_name=_("product"),
-        help_text=_("The product this shipment line is for."),
+        verbose_name="product",
+        help_text="The product this shipment line is for.",
     )
     quantity = models.PositiveIntegerField(
         default=1,
-        verbose_name=_("quantity"),
-        help_text=_("How many units of the product were shipped."),
+        verbose_name="quantity",
+        help_text="How many units of the product were shipped.",
     )
 
     class Meta:
-        verbose_name = _("shipment line")
-        verbose_name_plural = _("shipment lines")
+        verbose_name = "shipment line"
+        verbose_name_plural = "shipment lines"
 
     def __str__(self):
         """Show the shipment line's product and quantity."""
@@ -287,13 +286,13 @@ class Project(models.Model):
 
     name = models.CharField(
         max_length=200,
-        verbose_name=_("name"),
-        help_text=_("The project's name."),
+        verbose_name="name",
+        help_text="The project's name.",
     )
 
     class Meta:
-        verbose_name = _("project")
-        verbose_name_plural = _("projects")
+        verbose_name = "project"
+        verbose_name_plural = "projects"
 
     def __str__(self):
         """Show the project name."""
@@ -310,18 +309,18 @@ class ProjectTask(models.Model):
         Project,
         on_delete=models.CASCADE,
         related_name="tasks",
-        verbose_name=_("project"),
-        help_text=_("The project this task belongs to."),
+        verbose_name="project",
+        help_text="The project this task belongs to.",
     )
     title = models.CharField(
         max_length=200,
-        verbose_name=_("title"),
-        help_text=_("The task's title."),
+        verbose_name="title",
+        help_text="The task's title.",
     )
 
     class Meta:
-        verbose_name = _("project task")
-        verbose_name_plural = _("project tasks")
+        verbose_name = "project task"
+        verbose_name_plural = "project tasks"
 
     def __str__(self):
         """Show the task title."""
@@ -341,8 +340,8 @@ class ProjectNote(models.Model):
         Project,
         on_delete=models.CASCADE,
         related_name="notes",
-        verbose_name=_("project"),
-        help_text=_("The project this note was written for."),
+        verbose_name="project",
+        help_text="The project this note was written for.",
     )
     related_project = models.ForeignKey(
         Project,
@@ -350,18 +349,18 @@ class ProjectNote(models.Model):
         null=True,
         blank=True,
         related_name="cross_notes",
-        verbose_name=_("related project"),
-        help_text=_("A second project this note cross-references, if any."),
+        verbose_name="related project",
+        help_text="A second project this note cross-references, if any.",
     )
     text = models.CharField(
         max_length=200,
-        verbose_name=_("text"),
-        help_text=_("The note's text."),
+        verbose_name="text",
+        help_text="The note's text.",
     )
 
     class Meta:
-        verbose_name = _("project note")
-        verbose_name_plural = _("project notes")
+        verbose_name = "project note"
+        verbose_name_plural = "project notes"
 
     def __str__(self):
         """Show the note text."""

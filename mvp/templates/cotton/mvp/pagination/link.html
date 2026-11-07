@@ -1,12 +1,14 @@
 {# @description A single pagination link or disabled control, building block for a hand-built pager. #}
 {# @prop page:text | description:"Page number this link navigates to." #}
+{# @prop param:text | default:"page" | description:"The query parameter that carries the page number. Give each pager its own on a page with more than one." #}
 {# @prop text:text | description:"Link text, used when no slot content is given." #}
 {# @prop active:boolean | description:"Mark this link as the current page." #}
 {# @prop disabled:boolean | description:"Render a disabled button instead of a link." #}
 {# @prop size:select['sm','md','lg'] | description:"Button size." #}
 {# @prop class:text | description:"Extra classes on the link or button." #}
 {# @slot 1 — Content shown instead of the text prop, e.g. an icon. #}
-<c-vars page text active disabled size class />
+{% load mvp %}
+<c-vars page param="page" text active disabled size class />
 {% if disabled %}
   <c-button size="{{ size }}"
             class="join-item {{ class }}"
@@ -20,7 +22,7 @@
     {% endif %}
   </c-button>
 {% elif active %}
-  <c-button href="{% querystring request.GET page=page %}"
+  <c-button href="{% page_querystring page param %}"
             size="{{ size }}"
             variant="primary"
             class="join-item {{ class }}"
@@ -34,7 +36,7 @@
     {% endif %}
   </c-button>
 {% else %}
-  <c-button href="{% querystring request.GET page=page %}"
+  <c-button href="{% page_querystring page param %}"
             size="{{ size }}"
             class="join-item {{ class }}"
             :attrs="attrs"

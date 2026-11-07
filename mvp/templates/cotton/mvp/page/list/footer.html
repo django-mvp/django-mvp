@@ -1,9 +1,10 @@
 {# @description The foot of a list page: where the reader is in the list, and the way to the next page. Renders nothing when everything fits on one page. #}
 {# @prop page_obj:text | description:"The Django Page object being shown." #}
+{# @prop param:text | default:"page" | description:"The query parameter that carries the page number. Give each pager its own on a page with more than one." #}
 {# @prop size:select['sm','md','lg'] | description:"Size of the pager's buttons." #}
 {# @prop class:text | description:"Extra classes on the footer's root element, where its spacing is set." #}
 {% load i18n %}
-<c-vars page_obj size class />
+<c-vars page_obj param="page" size class />
 {% if page_obj.paginator.num_pages > 1 %}
   <div class="mvp-list-footer w-full {{ class }}" {{ attrs }}>
     {% comment %}
@@ -16,10 +17,10 @@
         <p class="text-sm text-base-content/70">
           {% blocktrans with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}Showing {{ start }}–{{ end }} of {{ total }}{% endblocktrans %}
         </p>
-        <c-mvp.pagination :page_obj="page_obj" page_window="1" show_first_and_last size="{{ size }}" />
+        <c-mvp.pagination :page_obj="page_obj" param="{{ param }}" page_window="1" show_first_and_last size="{{ size }}" />
       </div>
       {# Below md: two buttons a thumb can find, and the page count between. #}
-      <c-mvp.pagination.compact :page_obj="page_obj" size="{{ size }}" class="md:hidden" />
+      <c-mvp.pagination.compact :page_obj="page_obj" param="{{ param }}" size="{{ size }}" class="md:hidden" />
     {% endwith %}
   </div>
 {% endif %}

@@ -684,8 +684,9 @@ Print uses a white page and black text in every theme, including a dark one. Bra
 as `primary` keep their theme values. To print a page differently, add your own `@media print`
 rules marked `!important`, as the package's are.
 
-A [full-page](#full-page-content) view keeps its bounded height, so it prints as one sheet. Table
-pages are full-page views, so rows below that height are cut off the printout.
+A [full-page](#full-page-content) view with a table prints every row of the page being viewed,
+running across as many sheets as it needs, with the heading and footer rows repeated on each. Any
+other full-page view, such as a map, keeps its bounded height and prints as one sheet.
 
 A table fits the width of the paper with all of its columns. Its text and padding get smaller, and
 every cell wraps, inside a word if it has to, including a column that names `mvp-col-nowrap`. A
