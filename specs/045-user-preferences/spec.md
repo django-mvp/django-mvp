@@ -81,6 +81,10 @@ How each of these is achieved is left to research and planning. Sam's notes for 
   A: The person sees the project's default, and the page shows the choice as unset until they
   pick again. Nothing fails. Recorded as FR-009.
 
+- **Q: Does turning preferences on need any new setting?**
+  A: Two installation lines, the app and its middleware, found in research (Sam approved at the
+  plan gate, 2026-11-07). Recorded as SC-002.
+
 - **Q: Does the shell's theme choice become a stored preference?**
   A: Not in this feature. The theme stays a choice kept in the browser, as it is today. Recorded
   under Out of scope.
@@ -257,8 +261,9 @@ appears on the page and saves, then run the same app in a project whose field ha
 
 - **SC-001**: A person who chooses a timezone and a language sees both on the next page they load,
   and in a second browser signed in as them, with nothing else to do.
-- **SC-002**: A project gives its user model preferences with one change and one migration, and no
-  new setting.
+- **SC-002**: A project gives its user model preferences with one change to the user model, one
+  migration, and two installation lines: the app in `INSTALLED_APPS` and the middleware in
+  `MIDDLEWARE`.
 - **SC-003**: An installed app adds its own group to the page with one declaration in its own
   code, and no change to the project.
 - **SC-004**: A project that has not given its user model preferences learns what to add from the

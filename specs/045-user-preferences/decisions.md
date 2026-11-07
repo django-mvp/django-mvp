@@ -43,4 +43,4 @@ timezone.
 - **The language view stores nothing when the project offers one language**, where the group has no language field.
 - **The timezone choices are built once per process.**
 - **No `locale_of` helper and no unloadable-zone fallback.** The first had one caller, the second could not happen. `language` is `required=False`.
-- **SC-002 is wrong as written** ("no new setting"). Put to Sam at the plan gate: two installation lines are needed.
+- **SC-002 was wrong as written** ("no new setting"). Sam approved the correction at the plan gate: two installation lines.
