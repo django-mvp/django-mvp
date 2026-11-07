@@ -212,6 +212,10 @@
    own templates writes it and the scanner cannot see it. */
 @source inline("table-pin-cols");
 
+/* Safelist: a project names this on a table column's cells to leave the column
+   off the printout (docs/layout.md), so nothing in this package has to write it. */
+@source inline("print:hidden");
+
 /* Safelist: cotton/mvp/entrance/index.html builds its card's width cap from the
    `size` attribute. Must cover every width that attribute accepts. */
 @source inline("md:max-w-{sm,md,lg,xl,2xl,3xl,4xl}");
@@ -1087,8 +1091,9 @@
 
 /* On a narrow screen a pinned column may not take the screen with it: it is
    held to under half the width, and a longer value is cut with an ellipsis.
-   The full value is one tap away on the record's own page. */
-@media (width < 48rem) {
+   The full value is one tap away on the record's own page, which paper doesn't
+   have, so this is for screens alone. */
+@media screen and (width < 48rem) {
   :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tbody th,
   :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) tfoot th,
   :is(.mvp-table-region.table-pin-cols, .mvp-table-region .table-pin-cols) thead th[data-row-header] {
@@ -1322,7 +1327,12 @@ html {
    A filled page around a table gives up its bounded height, so the rows run on
    across as many sheets as they need instead of being clipped at the height of
    the window. Only that page: a filled page with nothing to flow, such as a map,
-   takes its height from the bound and would print at no height without it. */
+   takes its height from the bound and would print at no height without it.
+
+   A table region scrolls sideways on screen, and paper can't: a column past the
+   sheet's edge is lost. So every cell may wrap, inside a word if it has to,
+   whatever its column asks for on screen, and the table always fits the sheet.
+   Text and padding come down to give each column more room. */
 @media print {
   :root {
     --page-scroll-lock: initial !important;
@@ -1352,5 +1362,12 @@ html {
 
   .mvp-page-fill .mvp-table-region {
     overflow: visible;
+  }
+
+  .mvp-table-region :is(th, td) {
+    padding: 0.25rem;
+    font-size: 0.75rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
