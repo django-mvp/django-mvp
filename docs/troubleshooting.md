@@ -70,6 +70,19 @@ the whole setting or as one value of its dict. Use `default`, `inline`, `centred
 or the name of a component at `cotton/<name>.html` or `cotton/<name>/index.html`. See
 [`page_title.layout`](configuration.md#page_titlelayout).
 
+**`mvp.E004`: the app "object_preferences" is not in INSTALLED_APPS.** django-mvp stores each
+person's preferences with django-object-preferences, and nothing loads django-mvp's preferences
+until that app is installed. Add `"object_preferences"` to `INSTALLED_APPS`, and add
+`mvp.models.PreferencesMixin` to your user model. See
+[Getting Started](getting-started.md#your-user-model).
+
+**`mvp.W006`: "mvp.middleware.PreferencesMiddleware" is missing from MIDDLEWARE, or listed before
+the authentication middleware.** The middleware applies each person's timezone and language to
+their requests, and it needs the signed-in person, so it must come after
+`django.contrib.auth.middleware.AuthenticationMiddleware`. Without it nothing fails, the choices
+just have no effect. List `"mvp.middleware.PreferencesMiddleware"` directly below the
+authentication middleware.
+
 To silence any of these on purpose, list its identifier in `SILENCED_SYSTEM_CHECKS`, for
 example `SILENCED_SYSTEM_CHECKS = ["mvp.W001"]`. A layout that cannot be found would still fail
 when a page rendered it.
