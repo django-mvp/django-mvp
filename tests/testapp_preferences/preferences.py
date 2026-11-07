@@ -13,7 +13,8 @@ class ReminderPreferences(forms.Form):
         label="Digest",
         choices=[("daily", "Daily"), ("weekly", "Weekly")],
         initial="weekly",
+        required=False,
     )
     page_size = forms.IntegerField(
-        label="Items per page", min_value=5, max_value=100, initial=20
+        label="Items per page", min_value=5, max_value=100, initial=20, required=False
     )
