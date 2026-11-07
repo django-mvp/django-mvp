@@ -142,7 +142,12 @@ class TestTheRequest:
         assert response.status_code == 405
         assert stored(user)["language"] == ""
 
-    def test_a_post_without_a_csrf_token_is_refused(self, user):
+    def test_a_post_without_a_csrf_token_is_refused(self, user, settings):
+        settings.MIDDLEWARE = [
+            m
+            for m in settings.MIDDLEWARE
+            if m != "django.middleware.csrf.CsrfViewMiddleware"
+        ]
         client = Client(enforce_csrf_checks=True)
         client.force_login(user)
 
