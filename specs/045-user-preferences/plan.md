@@ -174,7 +174,7 @@ class AccountPreferencesView(LoginRequiredMixin, PageMixin, PreferencesView):
   `AUTH_USER_MODEL = "users.User"`. It has to be an app of its own: the user model must be in its
   app's first migration, because `django.contrib.admin`'s first migration depends on it, and the
   `demo` app's first migration already exists.
-- The demo installs `object_preferences` and lists the middleware. `seed_demo` keeps its three
+- The demo installs `object_preferences` and lists the middleware. `seed_accounts` keeps its three
   accounts and gives `regular.user@example.com` a stored timezone and language other than the
   defaults, so the walkthrough has a person who has chosen.
 - `tests/settings.py` inherits all of it. The startup error is tested in a subprocess, with a
@@ -190,7 +190,7 @@ nothing else starts until the user model carries the field.
 - **Every existing project stops on upgrade until it adds the field.** That is the decision. The
   error and the changelog say exactly what to add.
 - **Swapping the demo's user model** invalidates the development database. It is rebuilt from
-  `seed_demo`.
+  `seed_accounts`.
 - **A 599-option select.** Grouped by region it is usable without a script. A searchable control
   waits until the shell ships one.
 - **Language prefixes in URLs (`i18n_patterns`).** `LocaleMiddleware` redirects on the prefix

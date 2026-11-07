@@ -117,7 +117,7 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
 
 #### T008 — The demo has a person who has chosen
 
-- `seed_demo` stores a timezone and a language for `regular.user@example.com`.
+- `seed_accounts` stores a timezone and a language for `regular.user@example.com`.
 - Tests: in `tests/test_demo/test_seed_accounts.py`, that account reads back the stored choices and
   the other two read the defaults.
 
