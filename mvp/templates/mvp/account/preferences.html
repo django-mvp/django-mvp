@@ -1,0 +1,28 @@
+{% extends "mvp/account/base.html" %}
+{% load i18n %}
+{% block account.content %}
+  <c-mvp.page only>
+    <c-mvp.page.title :layout="page.title_layout" only>
+      <c-slot name="eyebrow">{{ page.title_args.eyebrow }}</c-slot>
+      <c-slot name="heading">{{ page.title_args.title }}</c-slot>
+      <c-slot name="lead">{{ page.title_args.lead }}</c-slot>
+      <c-slot name="info_trigger">
+        <c-mvp.page.info :text="page.title_args.info" :title="page.title_args.title" :actions="page.title_args.info_actions" only />
+      </c-slot>
+      <c-slot name="actions">
+        {% for action in page.title_args.actions %}<c-button size="sm" :attrs="action" only />{% endfor %}
+      </c-slot>
+    </c-mvp.page.title>
+    <c-mvp.form method="post" action="{{ request.path }}" class="flex flex-col gap-6">
+      {% for name, form in forms.items %}
+        <fieldset class="flex flex-col gap-4">
+          <legend class="text-lg font-semibold mb-2">{{ name|capfirst }}</legend>
+          <c-mvp.form.render :form="form" />
+        </fieldset>
+      {% endfor %}
+      <div class="flex flex-col md:flex-row md:items-center gap-2">
+        <c-button text="{% trans "Save" %}" type="submit" variant="primary" only />
+      </div>
+    </c-mvp.form>
+  </c-mvp.page>
+{% endblock account.content %}

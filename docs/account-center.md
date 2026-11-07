@@ -135,8 +135,31 @@ decides its own access rules, the same way any other view in your project does.
 ## What it looks like with nothing installed
 
 With no app contributing anything, the landing page renders its own heading and
-introduction, and an empty region where a contributed card will appear later. It does
+introduction, and one card in the region where contributed cards appear: the card for
+the [preferences page](#the-preferences-page). The landing page is never empty. It does
 not fall back to listing the menu — the menu is already in the sidebar.
+
+## The preferences page
+
+Every signed-in person can open `/account/preferences/` (URL name `account-preferences`)
+from the "Preferences" entry in the area's menu or from the card on the landing page.
+It shows the preferences your project and its installed apps declare for the user
+model, each group as a fieldset, with one Save button. django-mvp declares the first
+group, the person's timezone and language:
+
+- **Timezone** is a select of the timezones Python knows, grouped by region. A person who
+  has not chosen one gets your project's `TIME_ZONE`.
+- **Language** is a select of "Automatic" and the languages in `LANGUAGES`. Automatic
+  leaves language negotiation to Django, as for any visitor. A project that offers a
+  single language does not show this field.
+
+`mvp.views.preferences.AccountPreferencesView` serves it. The page is always about the person who is signed in. It requires sign-in, and nothing
+in the address or the submitted form can make it show or change someone else's
+preferences. Saving valid values returns to the page with a success message, and the
+very next page uses them. An invalid submission saves nothing and marks the field.
+
+The choices take effect through `mvp.middleware.PreferencesMiddleware`, which
+[Getting started](getting-started.md) asks you to list below `AuthenticationMiddleware`.
 
 ## The sidebar in the area
 
