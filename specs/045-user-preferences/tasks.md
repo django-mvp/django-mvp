@@ -14,6 +14,7 @@ switcher's existing component tests.
 - [ ] T001 [US2] The dependency, the mixin and the demo's own user model
 - [ ] T002 [US2] A user model without preferences stops startup with a message naming the mixin
 - [ ] T003 [US2] Startup checks for the app and the middleware, and the installation guide
+- [ ] T012 [US2] Document the startup error for a user model without preferences
 - [ ] T004 [US1] The timezone and language group
 - [ ] T005 [US1] The middleware applies a signed-in person's timezone and language
 - [ ] T006 [US1] The preferences page, its menu entry and its card
@@ -59,6 +60,10 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
   field under another name (US-2 scenario 5, FR-014). `docs/troubleshooting.md` lists both checks.
 - Tests: each check fires on its condition and is silent otherwise, including the middleware
   listed before `AuthenticationMiddleware`.
+
+#### T012 — Document the startup error for a user model without preferences
+
+- `docs/troubleshooting.md` describes the error and names `mvp.preferences.require_preferences_field`, found by the documentation check after Group 1.
 
 ## Phase 2 — User Story 1: A person chooses their timezone and language (P1)
 
