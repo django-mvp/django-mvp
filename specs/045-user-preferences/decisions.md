@@ -33,3 +33,14 @@ validation stay Django's.
 A visitor who is not signed in has no account to store choices on. They keep what Django and the
 shell do today: the browser's language, the language switcher's cookie, and the project's
 timezone.
+
+## D6 — The design review's findings and what was done
+
+- **The landing page is never empty now (high).** The preferences card supersedes FS-028's empty card region. T006 updates the three tests, the docs section and the docstring that assert it.
+- **The person's language is put back after each request (high).** Without `LocaleMiddleware`, nothing else resets the active language per thread. The middleware restores the previous language and sets `Content-Language` itself.
+- **The language view enforces CSRF itself**, with `csrf_protect` and `require_POST`, because Django's `set_language` relies on the project's middleware.
+- **`mvp.E004`'s hint names the mixin**, so an upgrading project learns both steps on its first startup.
+- **The language view stores nothing when the project offers one language**, where the group has no language field.
+- **The timezone choices are built once per process.**
+- **No `locale_of` helper and no unloadable-zone fallback.** The first had one caller, the second could not happen. `language` is `required=False`.
+- **SC-002 is wrong as written** ("no new setting"). Put to Sam at the plan gate: two installation lines are needed.

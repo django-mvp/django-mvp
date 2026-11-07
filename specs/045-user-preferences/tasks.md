@@ -66,12 +66,12 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
 
 #### T004 — The timezone and language group
 
-- `LocalePreferences` registered as `locale` for the user model, and `locale_of(user)`.
+- `LocalePreferences` registered as `locale` for the user model.
 - Tests: timezone choices are the `zoneinfo` names, grouped, defaulting to `TIME_ZONE`; language
   choices are "automatic" plus `LANGUAGES`, defaulting to automatic (FR-005, FR-006, FR-007); with
   one language the field is absent (scenario 7); a value outside the choices does not validate
   (scenario 8); a stored language the project no longer offers reads as automatic (FR-009);
-  `locale_of` reads through `registry.get_preferences`.
+  the timezone choices are built once.
 
 #### T005 — The middleware applies a signed-in person's timezone and language
 
@@ -82,12 +82,16 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
   second client signed in as the same person gets both without choosing again (scenario 4); a
   person who chose nothing gets the project defaults and the browser's negotiated language
   (scenario 5); a visitor gets exactly what they get today (scenario 9); the timezone is
-  deactivated after the response; an unloadable stored zone falls back to the default.
+  deactivated after the response; with `LocaleMiddleware` removed, a visitor's request on the
+  same thread after a signed-in person's gets the default language, not theirs (SEC-001).
 
 #### T006 — The preferences page, its menu entry and its card
 
 - `AccountPreferencesView`, `mvp/account/preferences.html`, the route, the `AccountCenterMenu`
-  entry, the card in `mvp/account/overview.html`. `docs/account-center.md` gains the page.
+  entry, the card in `mvp/account/overview.html`. `docs/account-center.md` gains the page and its
+  "nothing installed" section says the preferences card is always there. The three existing
+  tests asserting an empty card region and the `AccountCenterView` docstring change to match
+  (plan.md, "The page").
 - Tests: the landing page and the menu offer the page (scenario 1); the page requires sign-in and
   only ever shows and saves the signed-in person (FR-002), including a POST that names another
   user's id; saving a timezone and a language redirects back with a success message and the next
@@ -103,7 +107,8 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
 - Tests: a signed-in person's switch changes the stored language and the preferences page shows it
   (scenario 6); a visitor's switch posts to Django's `set_language` and stores nothing; a language
   the project does not offer stores nothing; `next` and the cookie behave as Django's view does;
-  GET is refused.
+  GET is refused; a POST without a CSRF token is refused; in a project offering one language a
+  signed-in person's switch stores nothing and does not fail.
 
 #### T008 — The demo has a person who has chosen
 
@@ -126,8 +131,10 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
 #### T010 — Preferences are read the same way under a field of another name
 
 - In the T002 subprocess harness, a user model whose field is named `options`.
-- Tests: the page saves, `locale_of` reads, the middleware applies, and the test app's group reads,
+- Tests: the page saves, the middleware applies, and the test app's group reads,
   all with no change to their code (scenario 5, FR-011).
+- Note for every task: preferences are always read through `registry.get_preferences`, never
+  through the `preferences` attribute.
 
 #### T011 — The developer guide for declaring and reading preferences, and the changelog
 

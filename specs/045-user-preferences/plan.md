@@ -46,7 +46,9 @@ Django test client. No browser test (Article XIV): nothing here depends on scrip
   model" showing the mixin and a field of another name.
 - `mvp/checks.py`:
   - `mvp.E004`, an error, when `object_preferences` is not installed. Without it nothing imports
-    `mvp/preferences.py` and the page would show no group.
+    `mvp/preferences.py` and the page would show no group. Its hint also names
+    `mvp.models.PreferencesMixin`, so a project upgrading learns both steps from its first startup
+    (SC-004).
   - `mvp.W006`, a warning, when `mvp.middleware.PreferencesMiddleware` is not in `MIDDLEWARE` or
     comes before `django.contrib.auth.middleware.AuthenticationMiddleware`. Without it nothing
     fails, the choices just have no effect.
@@ -87,9 +89,11 @@ class LocalePreferences(forms.Form):
   Django's own language negotiation, even after either changes.
 - Group order on the page is registration order, which follows `INSTALLED_APPS`. The spec asks
   for nothing more.
-- A reader, `locale_of(user)`, returns the timezone name and the language code, or `None` for
-  automatic, through `registry.get_preferences(user)["locale"]`. The middleware and the view use
-  it. A person's stored language the project has since dropped already reads as the default in
+- The timezone choices are built once per process and cached: building them from `zoneinfo`
+  costs about 2 ms, and the form is built on every signed-in request.
+- `language` is `required=False`, so its empty "automatic" choice validates.
+- The middleware reads `registry.get_preferences(user)["locale"]` directly. A person's stored
+  language the project has since dropped already reads as the default in
   django-object-preferences (FR-009).
 
 ### Applying them: `mvp/middleware.py`, `PreferencesMiddleware`
@@ -99,27 +103,37 @@ def __call__(self, request):
     user = getattr(request, "user", None)
     if not (user and user.is_authenticated):
         return self.get_response(request)
-    zone, language = locale_of(user)
-    timezone.activate(zoneinfo.ZoneInfo(zone))
-    if language:
-        translation.activate(language)
+    locale = registry.get_preferences(user)["locale"]
+    previous = translation.get_language()
+    timezone.activate(zoneinfo.ZoneInfo(locale["timezone"]))
+    if locale.get("language"):
+        translation.activate(locale["language"])
         request.LANGUAGE_CODE = translation.get_language()
     try:
-        return self.get_response(request)
+        response = self.get_response(request)
+        response.headers.setdefault("Content-Language", translation.get_language())
+        return response
     finally:
         timezone.deactivate()
+        translation.activate(previous)
 ```
 
 - `LocaleMiddleware` runs before authentication, so it cannot see the person. This runs after
-  authentication and replaces what `LocaleMiddleware` chose. `LocaleMiddleware`'s response step
-  runs after this one returns, so `Content-Language` follows the person's language.
-- A timezone name `zoneinfo` cannot load is skipped, leaving the project's default.
-- The language is not deactivated, the same as `LocaleMiddleware`: each request activates its own.
+  authentication and replaces what `LocaleMiddleware` chose.
+- The language that was active before is put back after the response, and `Content-Language` is
+  set here. A project without `LocaleMiddleware` has nothing else resetting the language per
+  thread, so without this the next request on the same worker would get this person's language
+  (FR-007, US-1 scenario 9).
+- The timezone choices only hold names `zoneinfo` loads, and a stored name it no longer offers
+  reads as the default, so no fallback is needed.
 
 ### The language switcher: `mvp/views/preferences.py`, `set_language`
 
-- `POST` only, at `account/preferences/language/`, name `mvp-set-language`, in `mvp.urls`.
-- For a signed-in person and a `language` the project offers: `change("locale",
+- `POST` only, at `account/preferences/language/`, name `mvp-set-language`, in `mvp.urls`,
+  decorated with `require_POST` and `csrf_protect`: Django's `set_language` relies on the project's
+  CSRF middleware rather than enforcing it.
+- For a signed-in person, a `language` the project offers, and a `locale` group that has a
+  language field (it is removed when the project offers one language): `change("locale",
   language=code)`, then `save()`. Anything else changes no preference.
 - Then returns `django.views.i18n.set_language(request)`, which sets the cookie, follows `next`
   safely, and ignores an unknown language as it does today.
@@ -146,7 +160,13 @@ class AccountPreferencesView(LoginRequiredMixin, PageMixin, PreferencesView):
   its name as the legend, drawn through crispy with the `mvp_forms` pack, and one Save button.
   Messages come from the shell.
 - `AccountCenterMenu` gains an entry, `preferences`, with the `settings` icon.
-- `mvp/account/overview.html` gains a card for the page in its own `account.cards` block.
+- `mvp/account/overview.html` gains a card for the page in its own `account.cards` block. The
+  landing page is therefore never empty any more. That supersedes FS-028 FR-019's empty region,
+  so T006 also updates the three tests that assert it (`tests/test_views/test_account.py`
+  `test_signed_in_request_shows_no_cards`, `test_with_neither_app_installed_the_region_is_empty`,
+  and the single-card unpacking in `test_a_project_template_adds_its_card_to_the_region`), the
+  "What it looks like with nothing installed" section of `docs/account-center.md`, and the
+  `AccountCenterView` docstring.
 
 ### Demo and tests
 
