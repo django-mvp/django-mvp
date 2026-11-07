@@ -3,11 +3,12 @@
 Source: mvp/models.py
 """
 
-from io import StringIO
+import os
+import subprocess
+import sys
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.core.management import call_command
 from django.db import connection
 from django.db.migrations.loader import MigrationLoader
 from object_preferences.fields import PreferencesField
@@ -33,13 +34,17 @@ class TestDemoUserModel:
         assert get_user_model()._meta.label == "users.User"
         assert issubclass(get_user_model(), PreferencesMixin)
 
-    @pytest.mark.django_db
     def test_makemigrations_has_nothing_to_write_for_any_app(self):
-        out = StringIO()
+        result = subprocess.run(
+            [sys.executable, "-m", "django", "makemigrations", "--check", "--dry-run"],
+            capture_output=True,
+            text=True,
+            env={**os.environ, "DJANGO_SETTINGS_MODULE": "tests.settings"},
+            check=False,
+        )
 
-        call_command("makemigrations", "--check", "--dry-run", stdout=out)
-
-        assert "No changes detected" in out.getvalue()
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "No changes detected" in result.stdout
 
     def test_the_demo_users_app_has_one_migration(self):
         loader = MigrationLoader(None, ignore_no_migrations=True)
