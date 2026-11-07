@@ -169,6 +169,9 @@ Anything you build that posts a language choice can post there too.
 The choices take effect through `mvp.middleware.PreferencesMiddleware`, which
 [Getting started](getting-started.md) asks you to list below `AuthenticationMiddleware`.
 
+An installed app adds its own group to the page from its `preferences.py`, as
+[Preferences](developer/preferences.md) describes.
+
 ## The sidebar in the area
 
 The Account Center is a [mounted app](mounted-apps.md), the package's own example of one.
