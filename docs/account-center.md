@@ -145,7 +145,8 @@ Every signed-in person can open `/account/preferences/` (URL name `account-prefe
 from the "Preferences" entry in the area's menu or from the card on the landing page.
 It shows the preferences your project and its installed apps declare for the user
 model, each group as a fieldset, with one Save button. django-mvp declares the first
-group, the person's timezone and language:
+group, the person's timezone and language, as the form `mvp.preferences.LocalePreferences`
+registered under the name `locale`:
 
 - **Timezone** is a select of the timezones Python knows, grouped by region. A person who
   has not chosen one gets your project's `TIME_ZONE`.
