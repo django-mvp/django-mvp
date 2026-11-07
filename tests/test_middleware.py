@@ -6,6 +6,7 @@ Source: mvp/middleware.py
 from datetime import datetime, timezone
 
 import pytest
+from django.conf.urls.i18n import i18n_patterns
 from django.http import HttpResponse
 from django.test import Client
 from django.urls import path
@@ -26,6 +27,9 @@ def clock(request):
 
 
 URLCONF = urlconf_of(path("clock/", clock))
+PREFIXED_URLCONF = urlconf_of(
+    path("plain/", clock), *i18n_patterns(path("clock/", clock))
+)
 
 TOKYO_IN_GERMAN = {"timezone": "Asia/Tokyo", "language": "de"}
 
@@ -98,10 +102,33 @@ class TestPreferencesMiddleware:
         self, chosen, settings
     ):
         settings.MIDDLEWARE = [
-            m for m in settings.MIDDLEWARE if m != "django.middleware.locale.LocaleMiddleware"
+            m
+            for m in settings.MIDDLEWARE
+            if m != "django.middleware.locale.LocaleMiddleware"
         ]
         signed_in(chosen).get("/clock/")
 
         response = Client().get("/clock/")
 
         assert response.content.decode().split()[1] == "en"
+
+
+@pytest.mark.django_db
+class TestPreferencesMiddlewareWithLanguagePrefixes:
+    @pytest.fixture(autouse=True)
+    def prefixed_urlconf(self, settings):
+        settings.ROOT_URLCONF = PREFIXED_URLCONF
+
+    def test_the_language_in_the_address_wins_over_the_stored_one(self, chosen):
+        response = signed_in(chosen).get("/fr/clock/")
+
+        assert response.status_code == 200
+        hour, language, *_ = response.content.decode().split()
+        assert (hour, language) == ("21", "fr")
+        assert response.headers["Content-Language"] == "fr"
+
+    def test_without_a_prefix_the_stored_language_applies(self, chosen):
+        response = signed_in(chosen).get("/plain/")
+
+        assert response.status_code == 200
+        assert response.content.decode().split()[1] == "de"

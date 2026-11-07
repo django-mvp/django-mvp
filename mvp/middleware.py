@@ -17,7 +17,8 @@ class PreferencesMiddleware:
     List it directly below ``AuthenticationMiddleware``. Django's
     ``LocaleMiddleware`` runs before authentication and so cannot know the
     person; this replaces what it chose. A visitor is left alone, and so is a
-    person's language when they have not chosen one.
+    person's language when they have not chosen one or when the address names
+    a language with a prefix (``i18n_patterns``), which the address wins.
 
     The language that was active is put back after the response, and
     ``Content-Language`` is set here, because a project without
@@ -48,7 +49,9 @@ class PreferencesMiddleware:
         locale = registry.get_preferences(user)["locale"]
         previous = translation.get_language()
         timezone.activate(zoneinfo.ZoneInfo(locale["timezone"]))
-        if locale.get("language"):
+        if locale.get("language") and not translation.get_language_from_path(
+            request.path_info
+        ):
             translation.activate(locale["language"])
             request.LANGUAGE_CODE = translation.get_language()
         try:
