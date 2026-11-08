@@ -30,6 +30,7 @@ switcher's existing component tests.
 - [ ] T018 [US2] The README and the package skill's quickstart install preferences
 - [ ] T019 [US2] The new tests pass lint
 - [ ] T020 [US3] The page's group order is described as it is
+- [ ] T021 [US1] The timezone is a searchable Tom Select control
 - [ ] T011 [US3] The developer guide for declaring and reading preferences, and the changelog
 
 ## Order
@@ -183,3 +184,6 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
 
 #### T020 — The page's group order is described as it is
 - Groups follow `INSTALLED_APPS` order. `docs/account-center.md` and `docs/developer/preferences.md` say so instead of saying django-mvp's group comes first.
+
+#### T021 — The timezone is a searchable Tom Select control
+- Asked for at the merge gate (Sam, 2026-11-08). `mvp_forms.widgets.TomSelect` on the timezone field, django-mvp-forms `>=0.9.0`, and the page merges every group form's media. Test: the select carries `data-tom-select` and the page loads the Tom Select script and stylesheet.
