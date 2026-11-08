@@ -191,8 +191,7 @@ nothing else starts until the user model carries the field.
   error and the changelog say exactly what to add.
 - **Swapping the demo's user model** invalidates the development database. It is rebuilt from
   `seed_accounts`.
-- **A 599-option select.** Grouped by region it is usable without a script. A searchable control
-  waits until the shell ships one.
+- **A 599-option select.** Grouped by region and searchable through django-mvp-forms' Tom Select widget.
 - **Language prefixes in URLs (`i18n_patterns`).** `LocaleMiddleware` redirects on the prefix
   before this middleware runs, so in such a project the stored language applies only to pages
   without a prefix. Not addressed, and no current project uses language prefixes.

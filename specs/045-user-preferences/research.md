@@ -102,7 +102,7 @@ activating timezone per request        · 7, new     · searched Django (documen
 activating language per request        · 4, Django  · django.utils.translation.activate, inside the same middleware
 language switch and its cookie         · 4, Django  · django.views.i18n.set_language, called by the wrapper
 saving the switcher's choice           · 7, new     · searched Django, object_preferences: nothing writes a stored preference on set_language
-searchable timezone select             · 3, package · mvp_forms.widgets.TomSelect, not used: the shell does not ship Tom Select (G14), so grouped options in a plain select instead
+searchable timezone select             · 3, package · mvp_forms.widgets.TomSelect, with Tom Select shipped by django-mvp-forms 0.9.0
 startup check                          · 2, repo    · mvp/checks.py, the existing mvp.E/W check pattern
 ```
 

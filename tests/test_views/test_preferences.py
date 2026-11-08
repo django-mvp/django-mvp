@@ -171,3 +171,20 @@ class TestSaving:
         assert response.context["forms"]["locale"].has_error("timezone")
         soup = BeautifulSoup(response.content, "html.parser")
         assert soup.select("[aria-invalid='true']")
+
+
+@pytest.mark.django_db
+class TestTimezoneControl:
+    def test_the_timezone_is_a_searchable_control_whose_assets_the_page_loads(
+        self, signed_in
+    ):
+        response = signed_in.get(reverse(URL_NAME))
+
+        soup = BeautifulSoup(response.content, "html.parser")
+        select = soup.select_one("select[name='locale-timezone']")
+        assert select.has_attr("data-tom-select")
+        scripts = [tag["src"] for tag in soup.find_all("script", src=True)]
+        styles = [tag["href"] for tag in soup.find_all("link", rel="stylesheet")]
+        assert any(src.endswith("mvp_forms/tomselect.js") for src in scripts)
+        assert any("tom-select" in src for src in scripts)
+        assert any("tom-select" in href for href in styles)

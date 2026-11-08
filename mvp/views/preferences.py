@@ -3,10 +3,13 @@
 Source: mvp/preferences.py (the groups it shows), mvp/views/account.py (its route).
 """
 
+from typing import Any
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Model
+from django.forms import Media
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse
 from django.utils.functional import Promise
@@ -80,3 +83,11 @@ class AccountPreferencesView(LoginRequiredMixin, PageMixin, PreferencesView):
             The request's user.
         """
         return self.request.user
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """Add ``media``, every group form's media merged, so each asset loads once."""
+        context = super().get_context_data(**kwargs)
+        context["media"] = sum(
+            (form.media for form in context["forms"].values()), Media()
+        )
+        return context

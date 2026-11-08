@@ -16,6 +16,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
+from mvp_forms.widgets import TomSelect
 from object_preferences.registry import register, registry
 
 
@@ -53,7 +54,7 @@ class LocalePreferences(forms.Form):
     language field is left out.
     """
 
-    timezone = forms.ChoiceField(label=_("Timezone"))
+    timezone = forms.ChoiceField(label=_("Timezone"), widget=TomSelect)
     language = forms.ChoiceField(label=_("Language"), required=False)
 
     def __init__(self, *args, **kwargs):

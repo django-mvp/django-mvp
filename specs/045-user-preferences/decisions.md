@@ -20,13 +20,11 @@ for it. It is left out of scope, and a later change can move it once preferences
 
 **ADR:** none — a scope boundary for this feature, nothing built on it.
 
-## D3 — The timezone select stays a plain select
+## D3 — The timezone is a searchable Tom Select control
 
-The timezone list has 599 entries. mvp-forms has a searchable select widget, but it needs Tom
-Select, which the shell does not ship, and loading it from elsewhere would break G14. The choices
-are grouped by region instead, which keeps the list usable without a script.
+The timezone list has 599 entries, grouped by region. It uses `mvp_forms.widgets.TomSelect`, so a person can type to find their zone. django-mvp-forms 0.9.0 ships the Tom Select library with the widget (Sam, 2026-11-08: django-mvp-forms is a core dependency and should include it), so the page loads it from the form's media with nothing added by the project, and G14 holds. The page merges every group's media so each asset loads once.
 
-**ADR:** none — a widget choice, revisited when the shell ships a searchable select.
+**ADR:** none — a widget choice local to this page.
 
 ## D4 — The language switcher posts to a small view of django-mvp's own
 

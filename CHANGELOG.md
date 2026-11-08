@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The timezone on the preferences page is a searchable Tom Select control. django-mvp-forms is now required at `>=0.9.0`, which ships the Tom Select library with its widgets.
 - A preferences page for signed-in people at `/account/preferences/` (URL name `account-preferences`), reached from the Account Center menu and landing page. It shows every group of preferences registered for the user model, each as a fieldset with one Save button that saves them together. Any installed app adds a group by registering a form for the user model in its own `preferences.py`, and reads a person's values with `registry.get_preferences`. See `docs/developer/preferences.md`.
 - A `locale` group of preferences holding a person's timezone and language, declared by django-mvp as `mvp.preferences.LocalePreferences`. The language switcher saves a signed-in person's choice to it through the `mvp-set-language` URL.
 - `mvp.middleware.PreferencesMiddleware` shows a signed-in person times in their timezone and pages in their language. List it directly below `AuthenticationMiddleware`.

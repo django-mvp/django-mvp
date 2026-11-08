@@ -26,3 +26,11 @@
     </c-mvp.form>
   </c-mvp.page>
 {% endblock account.content %}
+{% block head %}
+  {{ block.super }}
+  {{ media.css }}
+{% endblock head %}
+{% block extra_js %}
+  {{ block.super }}
+  {{ media.js }}
+{% endblock extra_js %}
