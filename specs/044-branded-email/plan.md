@@ -87,7 +87,9 @@ through Django's in-memory backend. No browser test (Article XIV).
   contributes its `--color-*` declarations only when one of its comma-separated selectors is the
   theme on its own: `[data-theme=<name>]`, quoted or not, optionally with `:root` in the same
   compound. A selector naming the theme and then a descendant (`[data-theme=nord] .mvp-sidebar`)
-  never contributes. A `var()` value is skipped silently. The first value found for each property
+  never contributes. A `var()` value takes the first value found for that
+  property in the theme's rules, or its fallback, and one that cannot be resolved is reported as
+  unreadable. The first value found for each property
   wins, so a project's own stylesheet beats the package's. Missing properties fall back to the
   package's theme of the same name, then to the package's `light` or `dark`.
 - Each value is converted with coloraide to sRGB hex, fitted into gamut. A value coloraide cannot

@@ -180,6 +180,108 @@ class TestEmailBrandProjectStylesheets:
         assert EmailBrand.current().light.surface == "#111111"
 
 
+class TestEmailBrandThemeReferences:
+    """Colours given through ``var()``, resolved against the custom properties of the same theme."""
+
+    # A theme pair mapped onto the project's own tokens, in one rule both themes share,
+    # with each theme's tokens in a rule of its own.
+    MAPPED = (
+        '[data-theme="brand"], [data-theme="brand-dark"] {'
+        "  --color-base-100: var(--brand-surface);"
+        "  --color-primary: var(--brand-ink);"
+        "}"
+        '[data-theme="brand"] { --brand-surface: #ffffff; --brand-ink: #24365c; }'
+        '[data-theme="brand-dark"] { --brand-surface: #1b1f27; --brand-ink: #9db4e6; }'
+    )
+
+    @pytest.fixture
+    def brand_themes(self, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "brand")
+        monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "brand-dark")
+
+    def test_a_theme_mapped_onto_its_own_properties_is_read(self, project_css, brand_themes):
+        project_css(self.MAPPED)
+
+        brand = EmailBrand.current()
+
+        assert (brand.light.surface, brand.light.primary) == ("#ffffff", "#24365c")
+        assert (brand.dark.surface, brand.dark.primary) == ("#1b1f27", "#9db4e6")
+
+    def test_a_theme_mapped_onto_its_own_properties_reports_no_problems(self, project_css, brand_themes):
+        project_css(self.MAPPED)
+
+        assert EmailBrand.problems() == []
+
+    def test_a_reference_is_resolved_from_another_stylesheet(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:var(--ink)}", name="mapping.css")
+        project_css("[data-theme=brandx]{--ink:#ff8800}", name="palette.css")
+
+        assert EmailBrand.current().light.primary == "#ff8800"
+
+    def test_a_chain_of_references_is_resolved(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:var(--accent);--accent:var(--ink);--ink:#ff8800}")
+
+        assert EmailBrand.current().light.primary == "#ff8800"
+
+    def test_a_reference_inside_a_colour_function_is_resolved(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:rgb(var(--ink));--ink:255 136 0}")
+
+        assert EmailBrand.current().light.primary == "#ff8800"
+
+    def test_the_fallback_is_used_when_the_property_is_not_defined(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:var(--nowhere, var(--also-nowhere, #ff8800))}")
+
+        assert EmailBrand.current().light.primary == "#ff8800"
+
+    def test_the_defined_property_wins_over_the_fallback(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:var(--ink, #000000);--ink:#ff8800}")
+
+        assert EmailBrand.current().light.primary == "#ff8800"
+
+    def test_the_first_value_found_for_a_referenced_property_wins(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:var(--ink);--ink:#ff8800}[data-theme=brandx]{--ink:#000000}")
+
+        assert EmailBrand.current().light.primary == "#ff8800"
+
+    def test_a_reference_is_resolved_only_within_its_own_theme(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:var(--ink)}[data-theme=other]{--ink:#ff8800}")
+
+        assert EmailBrand.current().light.primary == hex_of(LIGHT["primary"])
+
+    def test_a_project_reference_wins_over_the_packaged_theme_of_the_same_name(self, project_css):
+        project_css("[data-theme=light]{--color-primary:var(--ink);--ink:#ff8800}")
+
+        assert EmailBrand.current().light.primary == "#ff8800"
+
+    def test_an_unresolved_reference_falls_back_and_is_reported_naming_the_property(
+        self, project_css, brandx_theme
+    ):
+        project_css("[data-theme=brandx]{--color-primary:var(--brand-ink);--color-base-100:#112233}")
+
+        brand = EmailBrand.current()
+        problems = EmailBrand.problems()
+
+        assert (brand.light.primary, brand.light.surface) == (hex_of(LIGHT["primary"]), "#112233")
+        assert [problem.id for problem in problems] == ["mvp.W003"]
+        assert "brandx" in str(problems[0])
+        assert "--color-primary" in str(problems[0])
+        assert "--brand-ink" in str(problems[0])
+
+    def test_a_reference_that_loops_back_is_reported(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--color-primary:var(--a);--a:var(--b);--b:var(--a)}")
+
+        brand = EmailBrand.current()
+        problems = EmailBrand.problems()
+
+        assert brand.light.primary == hex_of(LIGHT["primary"])
+        assert [problem.id for problem in problems] == ["mvp.W003"]
+
+    def test_a_theme_named_by_a_rule_is_not_reported_as_undefined(self, project_css, brandx_theme):
+        project_css("[data-theme=brandx]{--brand-ink:#24365c}")
+
+        assert EmailBrand.problems() == []
+
+
 class TestEmailBrandLogos:
     def test_both_packaged_logos_are_given_as_static_urls(self):
         brand = EmailBrand.current()
