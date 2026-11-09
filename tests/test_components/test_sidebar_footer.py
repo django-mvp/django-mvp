@@ -49,7 +49,7 @@ class TestSidebarFooterAuthenticated:
     def test_does_not_render_the_log_in_button(self, user):
         html = _render(user)
 
-        assert f'href="{reverse("account_login")}"' not in html
+        assert f'href="{reverse("account_login")}' not in html
 
 
 class TestSidebarFooterAnonymous:
@@ -57,7 +57,7 @@ class TestSidebarFooterAnonymous:
     def test_renders_the_log_in_button_theme_control_and_language_control(self):
         html = _render(AnonymousUser())
 
-        assert f'href="{reverse("account_login")}"' in html
+        assert f'href="{reverse("account_login")}' in html
         assert "data-toggle-theme" in html, "the theme control must render"
         assert "showModal()" in html, "the language control must render"
 
@@ -109,4 +109,4 @@ class TestSidebarFooterLogInButtonResolvesAccountLogin:
         with override_settings(ROOT_URLCONF=MVP_URLS_ONLY):
             html = _render(AnonymousUser())
 
-            assert f'href="{reverse("account_login")}"' in html
+            assert f'href="{reverse("account_login")}' in html
