@@ -47,30 +47,52 @@ THEME_SELECTOR = re.compile(
 MUTED_AMOUNT = 0.7
 
 
+class UnresolvedReference(ValueError):
+    """A ``var()`` names a custom property the theme gives no value, and has no fallback.
+
+    Attributes:
+        name: The custom property, such as ``--brand-ink``.
+    """
+
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.name = name
+
+
 class ThemeReader:
     """Reads theme colours out of the static stylesheets that define them."""
 
     @classmethod
     def read(
         cls, names: set[str]
-    ) -> tuple[dict[str, dict[str, str]], set[tuple[str, str]]]:
+    ) -> tuple[dict[str, dict[str, str]], dict[tuple[str, str], str | None]]:
         """Read the named themes from every stylesheet the static finders list.
-
-        Stylesheets are read in finder order and the first value found for a
-        property wins, so a project's stylesheet beats the package's. The
-        package's own stylesheets are read last, whatever the finders list.
 
         Args:
             names: The theme names to read.
 
         Returns:
-            For each theme name, its ``THEME_COLOURS`` as sRGB hex strings, keyed
-            without the ``--color-`` prefix, where a property no stylesheet gives
-            a readable value for is absent; and the ``(theme, property)`` pairs
-            some stylesheet gave a value that could not be read as a colour.
+            What ``colours()`` gives for the custom properties ``declarations()``
+            finds for the named themes.
         """
-        themes: dict[str, dict[str, str]] = {name: {} for name in names}
-        unreadable: set[tuple[str, str]] = set()
+        return cls.colours(names, cls.declarations(names))
+
+    @classmethod
+    def declarations(cls, names: set[str]) -> dict[str, dict[str, list[list]]]:
+        """Gather the custom properties the named themes declare, in every stylesheet.
+
+        Stylesheets are read in finder order, so a project's stylesheet comes
+        before the package's. The package's own stylesheets are read last,
+        whatever the finders list.
+
+        Args:
+            names: The theme names to read.
+
+        Returns:
+            For each named theme some rule names on its own, each custom property
+            its rules declare, mapped to the values found for it in order.
+        """
+        found: dict[str, dict[str, list[list]]] = {}
         for path in cls.stylesheets():
             text = Path(path).read_text(encoding="utf-8", errors="replace")
             if "data-theme" not in text:
@@ -80,12 +102,22 @@ class ThemeReader:
                     text, skip_comments=True, skip_whitespace=True
                 )
             ):
-                for name in cls.themes_named(rule.prelude) & names:
-                    found, failed = cls.colours(rule.content)
-                    for key, value in found.items():
-                        themes[name].setdefault(key, value)
-                    unreadable |= {(name, key) for key in failed}
-        return themes, unreadable
+                named = cls.themes_named(rule.prelude) & names
+                if not named:
+                    continue
+                declared = [
+                    (declaration.name, declaration.value)
+                    for declaration in tinycss2.parse_blocks_contents(
+                        rule.content, skip_comments=True, skip_whitespace=True
+                    )
+                    if declaration.type == "declaration"
+                    and declaration.name.startswith("--")
+                ]
+                for name in named:
+                    properties = found.setdefault(name, {})
+                    for prop, value in declared:
+                        properties.setdefault(prop, []).append(value)
+        return found
 
     @staticmethod
     def stylesheets() -> Iterator[str]:
@@ -156,40 +188,128 @@ class ThemeReader:
         )
         return {match.group(2) for match in matches if match}
 
-    @staticmethod
-    def colours(content: list) -> tuple[dict[str, str], set[str]]:
-        """Read the theme properties a rule's block sets to a colour that can be read.
+    @classmethod
+    def colours(
+        cls, names: set[str], declared: dict[str, dict[str, list[list]]]
+    ) -> tuple[dict[str, dict[str, str]], dict[tuple[str, str], str | None]]:
+        """Read each theme's ``THEME_COLOURS`` from the custom properties it declares.
 
-        A value that refers to another property, ``var()``, is skipped without
-        comment. One that is not a colour is skipped and named in the result.
+        The first value found for a colour that can be read wins. A ``var()`` in
+        it takes the first value found for that property in the same theme, or
+        its fallback when the theme gives the property none.
 
         Args:
-            content: The tokens inside a rule's block.
+            names: The theme names to read.
+            declared: What ``declarations()`` found for them.
 
         Returns:
-            Each ``THEME_COLOURS`` property the block sets, as an sRGB hex string;
-            and the properties it sets to a value that could not be read.
+            For each theme name, its ``THEME_COLOURS`` as sRGB hex strings, keyed
+            without the ``--color-`` prefix, where a property no stylesheet gives
+            a readable value for is absent; and the ``(theme, property)`` pairs
+            that were given a value which could not be read before any that
+            could, each mapped to the custom property a ``var()`` in it could
+            not resolve, or ``None`` when the value is not a colour.
         """
-        found: dict[str, str] = {}
-        unreadable: set[str] = set()
-        for declaration in tinycss2.parse_blocks_contents(
-            content, skip_comments=True, skip_whitespace=True
-        ):
-            if declaration.type != "declaration" or not declaration.name.startswith(
-                "--color-"
-            ):
-                continue
-            key = declaration.name.removeprefix("--color-")
-            value = tinycss2.serialize(declaration.value).strip()
-            if key not in THEME_COLOURS or "var(" in value.lower():
-                continue
-            try:
-                found.setdefault(
-                    key, Color(value).convert("srgb").fit().to_string(hex=True)
+        themes: dict[str, dict[str, str]] = {name: {} for name in names}
+        unreadable: dict[tuple[str, str], str | None] = {}
+        for name, properties in declared.items():
+            for key in THEME_COLOURS:
+                prop = f"--color-{key}"
+                for value in properties.get(prop, []):
+                    try:
+                        text = tinycss2.serialize(
+                            cls.substitute(value, properties, {prop})
+                        ).strip()
+                        themes[name][key] = (
+                            Color(text).convert("srgb").fit().to_string(hex=True)
+                        )
+                        break
+                    except UnresolvedReference as missing:
+                        unreadable.setdefault((name, key), missing.name)
+                    except ValueError:
+                        unreadable.setdefault((name, key), None)
+        return themes, unreadable
+
+    @classmethod
+    def substitute(
+        cls, tokens: list, properties: dict[str, list[list]], seen: set[str]
+    ) -> list:
+        """Replace every ``var()`` in a value with what it refers to.
+
+        Args:
+            tokens: The value's tokens.
+            properties: The theme's custom properties, each with its values in order.
+            seen: The properties being resolved already, which a ``var()`` may
+                not refer back to.
+
+        Returns:
+            The value's tokens with no ``var()`` left in them.
+
+        Raises:
+            UnresolvedReference: If a ``var()`` refers to a property the theme
+                gives no value, or one that refers back to itself, and has no
+                fallback.
+            ValueError: If a ``var()`` names no custom property.
+        """
+        result = []
+        for token in tokens:
+            if token.type != "function":
+                result.append(token)
+            elif token.lower_name == "var":
+                result += cls.reference(token.arguments, properties, seen)
+            else:
+                result.append(
+                    tinycss2.ast.FunctionBlock(
+                        token.source_line,
+                        token.source_column,
+                        token.name,
+                        cls.substitute(token.arguments, properties, seen),
+                    )
                 )
-            except ValueError:
-                unreadable.add(key)
-        return found, unreadable
+        return result
+
+    @classmethod
+    def reference(
+        cls, arguments: list, properties: dict[str, list[list]], seen: set[str]
+    ) -> list:
+        """Resolve one ``var()`` from its arguments.
+
+        Args:
+            arguments: The tokens inside the ``var()``.
+            properties: The theme's custom properties, each with its values in order.
+            seen: The properties being resolved already.
+
+        Returns:
+            The tokens the ``var()`` stands for.
+
+        Raises:
+            UnresolvedReference: If the property cannot be resolved and there is no fallback.
+            ValueError: If the ``var()`` names no custom property.
+        """
+        significant = [token for token in arguments if token.type != "whitespace"]
+        if not significant or significant[0].type != "ident":
+            raise ValueError("var() names no custom property")
+        name = significant[0].value
+        if not name.startswith("--"):
+            raise ValueError(f"var({name}) names no custom property")
+        comma = next(
+            (
+                index
+                for index, token in enumerate(arguments)
+                if token.type == "literal" and token.value == ","
+            ),
+            None,
+        )
+        fallback = None if comma is None else arguments[comma + 1 :]
+        if name not in seen and name in properties:
+            try:
+                return cls.substitute(properties[name][0], properties, seen | {name})
+            except UnresolvedReference:
+                if fallback is None:
+                    raise
+        elif fallback is None:
+            raise UnresolvedReference(name)
+        return cls.substitute(fallback, properties, seen)
 
 
 @dataclass(frozen=True)
@@ -287,7 +407,9 @@ class EmailBrand:
         """
         light_name = MVP_CONFIG["theme"]["default"]  # type: ignore[index]
         dark_name = MVP_CONFIG["theme"]["dark"]  # type: ignore[index]
-        themes, unreadable = ThemeReader.read({light_name, dark_name, "light", "dark"})
+        names = {light_name, dark_name, "light", "dark"}
+        declared = ThemeReader.declarations(names)
+        themes, unreadable = ThemeReader.colours(names, declared)
         configured = dict.fromkeys((light_name, dark_name))
         problems = [
             BrandProblem(
@@ -296,16 +418,11 @@ class EmailBrand:
                 'Define the theme in a stylesheet your static files serve, or fix MVP_CONFIG["theme"].',
             )
             for name in configured
-            if not themes[name] and not any(theme == name for theme, _ in unreadable)
+            if name not in declared
         ]
         problems += [
-            BrandProblem(
-                "mvp.W003",
-                f'The theme "{name}" sets --color-{key} to a value that is not a colour, '
-                "so the email uses the package's own colour.",
-                "Write the colour as hex, rgb(), hsl() or oklch().",
-            )
-            for name, key in sorted(unreadable)
+            cls.unreadable_problem(name, key, missing)
+            for (name, key), missing in sorted(unreadable.items())
             if name in configured
         ]
         problems += cls.stale_logo_problems()
@@ -315,6 +432,33 @@ class EmailBrand:
             logo=static(LOGO),
             logo_dark=static(LOGO_DARK) if finders.find(LOGO_DARK) else None,
             found_problems=tuple(problems),
+        )
+
+    @staticmethod
+    def unreadable_problem(name: str, key: str, missing: str | None) -> BrandProblem:
+        """Describe a theme colour the email cannot read.
+
+        Args:
+            name: The theme.
+            key: The colour, without its ``--color-`` prefix.
+            missing: The custom property a ``var()`` in the value could not
+                resolve, or ``None`` when the value is not a colour.
+
+        Returns:
+            The problem, reported under ``mvp.W003``.
+        """
+        if missing is None:
+            return BrandProblem(
+                "mvp.W003",
+                f'The theme "{name}" sets --color-{key} to a value that is not a colour, '
+                "so the email uses the package's own colour.",
+                "Write the colour as hex, rgb(), hsl() or oklch().",
+            )
+        return BrandProblem(
+            "mvp.W003",
+            f'The theme "{name}" sets --color-{key} through {missing}, which has no value in that theme, '
+            "so the email uses the package's own colour.",
+            f"Set {missing} in a rule for the theme, or give the var() a fallback.",
         )
 
     @staticmethod

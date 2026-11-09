@@ -159,15 +159,29 @@ The colours are read from the stylesheets your static file finders list, once pe
    such as `[data-theme=brand]`, `[data-theme="brand"]` or `:root[data-theme=brand]`. A selector
    that goes on to name something inside the theme, such as `[data-theme=brand] .mvp-sidebar`,
    is ignored. Rules inside `@layer` blocks are read.
-3. The first value found for each property wins. A value that refers to another property with
-   `var()` is skipped.
-4. Each colour is converted to a hex value with its out-of-range parts fitted into sRGB, so a
-   theme written in `oklch()` works.
+3. The first value found for each property wins.
+4. A value that refers to another property with `var()` takes that property's value in the same
+   theme. The property can be set in any rule that names the theme, in any of the stylesheets,
+   with the first value found winning here too, and it can refer on to another property in turn.
+   When the theme gives the property no value, the `var()` fallback is used, as in
+   `var(--brand-ink, #24365c)`. A theme written as a palette of your own properties with the
+   theme's colours mapped onto them is read the same as one that writes its colours out:
 
-5. A colour the stylesheets don't give comes from the package's theme of the same name, and
+   ```css
+   [data-theme="brand"], [data-theme="brand-dark"] {
+     --color-base-100: var(--brand-surface);
+     --color-primary: var(--brand-ink);
+   }
+   [data-theme="brand"] { --brand-surface: #ffffff; --brand-ink: #24365c; }
+   [data-theme="brand-dark"] { --brand-surface: #1b1f27; --brand-ink: #9db4e6; }
+   ```
+
+5. Each colour is converted to a hex value with its out-of-range parts fitted into sRGB, so a
+   theme written in `oklch()` works.
+6. A colour the stylesheets don't give comes from the package's theme of the same name, and
    failing that from the package's `light` theme for the light scheme or `dark` theme for the dark
    scheme. A project theme that sets only `--color-primary` gets every other colour from there.
-   A value that isn't a colour is treated the same way.
+   A value that isn't a colour, or whose `var()` can't be resolved, is treated the same way.
 
 These theme colours make up the palette:
 
@@ -186,10 +200,11 @@ These theme colours make up the palette:
 An email always renders, whatever the theme. When a colour can't be used, the project's system
 checks say so when it starts, as warnings that never stop anything:
 
-- `mvp.W002` names a theme in `MVP_CONFIG["theme"]` that no stylesheet defines. The email uses the
-  package's own `light` or `dark` colours in its place.
-- `mvp.W003` names a theme and a property whose value isn't a colour. The email takes that colour
-  from the package.
+- `mvp.W002` names a theme in `MVP_CONFIG["theme"]` that no rule in any stylesheet names on its
+  own. The email uses the package's own `light` or `dark` colours in its place.
+- `mvp.W003` names a theme and a property whose value isn't a colour, or whose `var()` refers to
+  a property the theme gives no value and has no fallback. In that case it names the property
+  the `var()` refers to as well. The email takes that colour from the package.
 - `mvp.W004` says your project has its own `brand/logo.svg`, but the email's PNG logo is still the
   package's. Run `python manage.py mvp_email_logos` (see below) to draw yours. It goes away once
   your static files hold a `brand/email/logo.png` of their own.
@@ -272,7 +287,12 @@ Each palette is a `mvp.email.brand.Palette`, a frozen dataclass with the seven c
 hex strings. `mvp.email.brand.ThemeReader` is what reads a theme's colours out of the static
 stylesheets. `colours, unreadable = ThemeReader.read({"nord"})` is useful for checking what the
 email will see: `colours["nord"]` holds that theme's hex values, keyed without the `--color-`
-prefix, and `unreadable` holds the `(theme, property)` pairs whose value is not a colour.
+prefix, and `unreadable` maps each `(theme, property)` pair that was given a value it could not
+read to the custom property a `var()` in that value could not resolve, or to `None` when the value
+is not a colour. `ThemeReader.declarations()` and `ThemeReader.colours()` are the two halves of
+`read()`: the first gathers every custom property the rules naming a theme declare, and the second
+reads the colours out of them, resolving each `var()` with `ThemeReader.substitute()`, which raises
+`mvp.email.brand.UnresolvedReference` naming a property it cannot resolve.
 `EmailBrand.problems()` returns a list of `mvp.email.brand.BrandProblem`, each with the system
 check `id` it is reported under and a `message`; the start-up checks are built from it.
 
