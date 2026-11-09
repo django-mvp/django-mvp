@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.34.1] - 2026-11-09
+
 ### Fixed
 
 - The branded email reads a theme whose colours are given through `var()`, such as a palette of the project's own custom properties with the theme's colours mapped onto them, across several rules for the same theme. A reference takes the value set for that property in any rule naming the theme, follows a chain of references, and uses the `var()` fallback when the theme gives the property no value. Before, such a colour was skipped and the email used the package's colours, while `mvp.W002` said the theme was not defined by any stylesheet. `mvp.W002` now names only a theme no rule names, and a reference that cannot be resolved is reported under `mvp.W003`, naming the property it refers to.
