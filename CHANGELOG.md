@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The log-in button, `c-mvp.actions.login`, returns a signed-out visitor to the page they pressed it on. Its link carries the current page as `next`, which allauth and the package's development sign-in both follow after signing in. On the sign-in and sign-out pages, and on allauth's sign-up page, the link carries no `next` (#661).
+
 ## [v0.34.1] - 2026-11-09
 
 ### Fixed

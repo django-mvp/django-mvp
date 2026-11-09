@@ -75,7 +75,7 @@ class TestNavbarWidgetNames:
         self, client, monkeypatch, packaged_list
     ):
         monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"], "end", packaged_list)
-        login = f'a[href="{reverse("account_login")}"]'
+        login = f'a[href^="{reverse("account_login")}"]'
 
         found = navbar_end(client).select(f"[data-toggle-theme], {login}")
 

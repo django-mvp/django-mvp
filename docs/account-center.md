@@ -120,8 +120,10 @@ that rejects inactive users, as Django's default `ModelBackend` does.
 
 Behind the two names are `SignInView` and `SignOutView` in `mvp.views.account`,
 subclasses of Django's own `LoginView` and `LogoutView` that point at the packaged
-templates and change almost nothing else. `SignInView` sends you to the Account Center
-after a successful sign-in unless your project set `LOGIN_REDIRECT_URL`, and
+templates and change almost nothing else. `SignInView` returns you to the page named
+by `next` after a successful sign-in, which the shell's log-in button always passes.
+Without one it sends you to the Account Center unless your project set
+`LOGIN_REDIRECT_URL`, and
 `SignOutView` renders a signed-out page instead of redirecting. Unlike
 `AccountCenterView`, neither is exported from `mvp.views`, and neither is meant to be
 subclassed: a project that needs more from its sign-in page wants a real
