@@ -155,7 +155,7 @@ print(json.dumps({{
     "language": after.headers["Content-Language"],
     "page_size": page_size_for(person),
     "locale": dict(registry.get_preferences(person)["locale"]),
-}}))
+}}, default=str))
 """
 
 
