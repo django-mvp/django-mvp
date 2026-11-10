@@ -1,4 +1,4 @@
-{# @description Log-in button; renders only when anonymous and account_login or login reverses. #}
+{# @description Log-in button; renders only when anonymous and account_login or login reverses. Carries the current page as next, except on the sign-in, sign-up and sign-out pages. #}
 {# @prop variant:text | description:"c-button variant. Unset renders the plain button the navbar wants; the sidebar footer asks for primary, the one thing a signed-out visitor should reach for." #}
 {# @prop full:boolean | description:"Stretch to the width of whatever contains it." #}
 {% load i18n %}
@@ -9,9 +9,18 @@
   {% if not login_url %}
     {% url "login" as login_url %}
   {% endif %}
+  {% comment %}
+    Return the visitor to this page after signing in, except from the
+    sign-in, sign-up and sign-out pages, where returning is wrong.
+  {% endcomment %}
+  {% url "account_signup" as signup_url %}
+  {% url "account_logout" as logout_url %}
+  {% if login_url and request and request.path != login_url and request.path != signup_url and request.path != logout_url %}
+    {% firstof request.get_full_path|urlencode as login_next %}
+  {% endif %}
   {% if login_url %}
     <c-button text="{% trans "Log in" %}"
-              href="{{ login_url }}"
+              href="{{ login_url }}{% if login_next %}?next={{ login_next }}{% endif %}"
               size="sm"
               variant="{{ variant }}"
               :block="full" only>

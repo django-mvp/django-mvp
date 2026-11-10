@@ -445,7 +445,7 @@ unmet.
 | `c-mvp.actions.language-switcher` | i18n language dropdown (needs `set_language` URL); renders only when `LocaleMiddleware` is installed **and** `set_language` reverses. Posts to `mvp-set-language` for a signed-in person, which also saves the choice as their preference |
 | `c-mvp.actions.language-switcher-modal` | the same switcher as a modal, better for narrow slots like the sidebar footer where a dropdown would be cramped — the variant the fixed sidebar footer uses (`id`, `size`); same preconditions as the dropdown switcher |
 | `c-mvp.actions.search` | navbar search input; renders an input that is not wired to a form or a view — it submits nothing on its own |
-| `c-mvp.actions.login` | log-in button (needs `login` URL); renders only when anonymous and `account_login` or `login` reverses — used in the navbar and in the fixed sidebar footer (`variant`, `full`) |
+| `c-mvp.actions.login` | log-in button (needs `login` URL); renders only when anonymous and `account_login` or `login` reverses, and carries the current page as `next` so signing in returns the visitor there (not on the sign-in or sign-out page, or allauth's `account_signup` page) — used in the navbar and in the fixed sidebar footer (`variant`, `full`) |
 | `c-mvp.user.sidebar-menu` | account dropdown; part of the fixed sidebar footer. Its default slot lands between the account-centre entry and log out, so extra `<c-menu.item>` children land in the middle of the menu |
 | `c-mvp.user.display.compact` | avatar + name row |
 

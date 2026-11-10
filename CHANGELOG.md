@@ -19,8 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Breaking:** a project's user model now needs `mvp.models.PreferencesMixin`, or a `PreferencesField` under another name if it already has an attribute called `preferences`, followed by `makemigrations`. Add `"object_preferences"` to `INSTALLED_APPS` and `"mvp.middleware.PreferencesMiddleware"` below `AuthenticationMiddleware` in `MIDDLEWARE`. Without the field, startup stops with `ImproperlyConfigured` saying what to add.
 
+## [v0.34.2] - 2026-11-09
+
 ### Fixed
 
+- The log-in button, `c-mvp.actions.login`, returns a signed-out visitor to the page they pressed it on. Its link carries the current page as `next`, which allauth and the package's development sign-in both follow after signing in. On the sign-in and sign-out pages, and on allauth's sign-up page, the link carries no `next` (#661).
+
+## [v0.34.1] - 2026-11-09
+
+### Fixed
+
+- The branded email reads a theme whose colours are given through `var()`, such as a palette of the project's own custom properties with the theme's colours mapped onto them, across several rules for the same theme. A reference takes the value set for that property in any rule naming the theme, follows a chain of references, and uses the `var()` fallback when the theme gives the property no value. Before, such a colour was skipped and the email used the package's colours, while `mvp.W002` said the theme was not defined by any stylesheet. `mvp.W002` now names only a theme no rule names, and a reference that cannot be resolved is reported under `mvp.W003`, naming the property it refers to.
 - A printed table shows all of its columns. Its cells wrap and its text gets smaller until it fits the paper, instead of losing the columns past the right edge, and a row header is no longer cut short with an ellipsis. To leave a column off the printout, name `print:hidden` on its cells (#633).
 
 ## [v0.34.0] - 2026-11-06
