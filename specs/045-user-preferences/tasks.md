@@ -31,6 +31,7 @@ switcher's existing component tests.
 - [ ] T019 [US2] The new tests pass lint
 - [ ] T020 [US3] The page's group order is described as it is
 - [ ] T021 [US1] The timezone is a searchable Tom Select control
+- [ ] T022 [US1] The timezone is django-timezone-field's field with django-mvp-forms' TimeZoneSelect
 - [ ] T011 [US3] The developer guide for declaring and reading preferences, and the changelog
 
 ## Order
@@ -187,3 +188,6 @@ US-2 (Group 1) → US-1 (Groups 2 and 3) → US-3 (Group 4), in the feature work
 
 #### T021 — The timezone is a searchable Tom Select control
 - Asked for at the merge gate (Sam, 2026-11-08). `mvp_forms.widgets.TomSelect` on the timezone field, django-mvp-forms `>=0.9.0`, and the page merges every group form's media. Test: the select carries `data-tom-select` and the page loads the Tom Select script and stylesheet.
+
+#### T022 — The timezone is django-timezone-field's field with django-mvp-forms' TimeZoneSelect
+- Asked for at the merge gate (Sam, 2026-11-10). Replaces django-mvp's own choice list. Needs django-mvp-forms[timezone] 0.10.0 and django-object-preferences 0.3.1, which stores a `ZoneInfo` as its name. Tests: a chosen zone saves and reads back as that `ZoneInfo`, and choosing the default stores nothing.
