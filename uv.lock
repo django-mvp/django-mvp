@@ -806,6 +806,7 @@ dependencies = [
     { name = "django-flex-menus" },
     { name = "django-mvp-forms", extra = ["timezone"] },
     { name = "django-object-preferences" },
+    { name = "django-timezone-field" },
     { name = "mergedeep" },
     { name = "tinycss2" },
 ]
@@ -838,6 +839,7 @@ requires-dist = [
     { name = "django-flex-menus", specifier = ">=0.4.5" },
     { name = "django-mvp-forms", extras = ["timezone"], specifier = ">=0.10.0,<1.0" },
     { name = "django-object-preferences", specifier = ">=0.3.1,<0.4" },
+    { name = "django-timezone-field", specifier = ">=7.2,<8" },
     { name = "mergedeep", specifier = ">=1.3,<2.0" },
     { name = "tinycss2", specifier = ">=1.5.1,<2" },
 ]

@@ -46,6 +46,7 @@ dependencies = [
     "tinycss2>=1.5.1,<2",
     "coloraide>=8.14,<9",
     "django-object-preferences>=0.3.1,<0.4",  # the preferences field on the user model and the page that edits it
+    "django-timezone-field>=7.2,<8",  # the timezone preference's form field
 ]
 # Optional integrations (django-tables2, ...) are NOT extras:
 # they live in guarded modules under mvp.integrations, required only when
@@ -218,6 +219,8 @@ module = [
     "django_tables2.*",
     "object_preferences",
     "object_preferences.*",
+    "timezone_field",
+    "timezone_field.*",
     "tinycss2",
     "tinycss2.*",
 ]
