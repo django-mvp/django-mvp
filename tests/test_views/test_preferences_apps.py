@@ -58,7 +58,7 @@ class TestAnInstalledAppsGroup:
 
         assert response.status_code == 302
         preferences = reread(user)
-        assert preferences["locale"]["timezone"] == "Asia/Tokyo"
+        assert str(preferences["locale"]["timezone"]) == "Asia/Tokyo"
         assert preferences["reminders"]["digest"] == "daily"
         assert preferences["reminders"]["page_size"] == 50
 
@@ -73,7 +73,7 @@ class TestAnInstalledAppsGroup:
         assert response.context["forms"]["reminders"].has_error("page_size")
         assert not response.context["forms"]["locale"].errors
         preferences = reread(user)
-        assert preferences["locale"]["timezone"] == settings.TIME_ZONE
+        assert str(preferences["locale"]["timezone"]) == settings.TIME_ZONE
         assert preferences["reminders"]["digest"] == "weekly"
 
     def test_the_error_is_marked_inside_the_apps_fieldset(self, signed_in):

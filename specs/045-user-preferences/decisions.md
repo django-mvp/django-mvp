@@ -22,7 +22,7 @@ for it. It is left out of scope, and a later change can move it once preferences
 
 ## D3 — The timezone is a searchable Tom Select control
 
-The timezone list has 599 entries, grouped by region. It uses `mvp_forms.widgets.TomSelect`, so a person can type to find their zone. django-mvp-forms 0.9.0 ships the Tom Select library with the widget (Sam, 2026-11-08: django-mvp-forms is a core dependency and should include it), so the page loads it from the form's media with nothing added by the project, and G14 holds. The page merges every group's media so each asset loads once.
+The timezone is django-timezone-field's `TimeZoneFormField` drawn with django-mvp-forms' `TimeZoneSelect` (0.10.0), a searchable Tom Select control with the zones grouped by region (Sam, 2026-11-10: the field belongs in django-mvp-forms, built on django-timezone-field). django-mvp declares no timezone choices of its own. The field cleans to a `ZoneInfo`, which django-object-preferences 0.3.1 stores as the zone's name and reads back as a `ZoneInfo`, so the middleware activates it directly. Tom Select ships with django-mvp-forms (0.9.0), so G14 holds, and the page merges every group's media.
 
 **ADR:** none — a widget choice local to this page.
 

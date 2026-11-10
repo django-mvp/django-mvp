@@ -38,7 +38,9 @@ class TestSeedAccountsPreferences:
     def locale_of(username):
         """What the account's locale group reads as."""
         user = get_user_model().objects.get(username=username)
-        return dict(registry.get_preferences(user)["locale"])
+        locale = dict(registry.get_preferences(user)["locale"])
+        locale["timezone"] = str(locale["timezone"])
+        return locale
 
     def test_the_regular_account_has_chosen_a_timezone_and_language(self, settings):
         call_command("seed_accounts")

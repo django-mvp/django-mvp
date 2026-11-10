@@ -149,7 +149,7 @@ model, each group as a fieldset, with one Save button. The groups follow the ord
 `mvp.preferences.LocalePreferences` registered under the name `locale` and headed "Timezone
 and language". Each fieldset's heading is its group's `verbose_name`:
 
-- **Timezone** is a searchable select of the timezones Python knows, grouped by region: type to find one. A person who
+- **Timezone** is django-timezone-field's `TimeZoneFormField` with django-mvp-forms' `TimeZoneSelect`: a searchable select of the timezones grouped by region, type to find one. It reads as a `zoneinfo.ZoneInfo`. A person who
   has not chosen one gets your project's `TIME_ZONE`.
 - **Language** is a select of "Automatic" and the languages in `LANGUAGES`. Automatic
   leaves language negotiation to Django, as for any visitor. A project that offers a

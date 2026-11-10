@@ -8,16 +8,14 @@ that the user model carries a preferences field, so a project that has not given
 it one stops at startup with a message saying how.
 """
 
-import zoneinfo
-from functools import cache
-
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
-from mvp_forms.widgets import TomSelect
+from mvp_forms.widgets import TimeZoneSelect
 from object_preferences.registry import register, registry
+from timezone_field import TimeZoneFormField
 
 
 def require_preferences_field() -> None:
@@ -54,13 +52,12 @@ class LocalePreferences(forms.Form):
     language field is left out.
     """
 
-    timezone = forms.ChoiceField(label=_("Timezone"), widget=TomSelect)
+    timezone = TimeZoneFormField(label=_("Timezone"), widget=TimeZoneSelect)
     language = forms.ChoiceField(label=_("Language"), required=False)
 
     def __init__(self, *args, **kwargs):
         """Fill in the choices and defaults from the project's settings."""
         super().__init__(*args, **kwargs)
-        self.fields["timezone"].choices = self.timezone_choices()
         self.fields["timezone"].initial = settings.TIME_ZONE
         if len(settings.LANGUAGES) < 2:
             del self.fields["language"]
@@ -70,21 +67,3 @@ class LocalePreferences(forms.Form):
             *settings.LANGUAGES,
         ]
         self.fields["language"].initial = ""
-
-    @staticmethod
-    @cache
-    def timezone_choices() -> list[tuple[str, list[tuple[str, str]]]]:
-        """List the timezones ``zoneinfo`` knows, grouped by region.
-
-        Built from ``zoneinfo`` once per process: it costs a few milliseconds
-        and the form is built on every signed-in request. A name without a
-        region, such as ``UTC``, goes under "Other".
-
-        Returns:
-            Each region's label with its ``(name, name)`` choices, sorted.
-        """
-        regions: dict[str, list[tuple[str, str]]] = {}
-        for name in sorted(zoneinfo.available_timezones()):
-            region = name.split("/", 1)[0] if "/" in name else "Other"
-            regions.setdefault(region, []).append((name, name))
-        return sorted(regions.items(), key=lambda item: (item[0] == "Other", item[0]))

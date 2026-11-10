@@ -3,7 +3,6 @@
 Source: mvp/preferences.py (the ``locale`` group).
 """
 
-import zoneinfo
 from collections.abc import Callable
 
 from django.http import HttpRequest, HttpResponse
@@ -48,7 +47,7 @@ class PreferencesMiddleware:
             return self.get_response(request)
         locale = registry.get_preferences(user)["locale"]
         previous = translation.get_language()
-        timezone.activate(zoneinfo.ZoneInfo(locale["timezone"]))
+        timezone.activate(locale["timezone"])
         if locale.get("language") and not translation.get_language_from_path(
             request.path_info
         ):

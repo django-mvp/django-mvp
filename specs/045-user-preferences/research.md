@@ -87,8 +87,8 @@ developer to do the same.
 ```
 user model field for preferences       · 3, package · object_preferences.fields.PreferencesField
 mixin carrying the field               · 7, new     · searched mvp/, object_preferences: no abstract model ships
-timezone list                          · 4, stdlib  · zoneinfo.available_timezones
-timezone form field                    · 4, Django  · django.forms.ChoiceField with grouped choices
+timezone field and its choices         · 6, package · timezone_field.TimeZoneFormField (django-timezone-field)
+grouped, searchable timezone control   · 3, package · mvp_forms.widgets.TimeZoneSelect (django-mvp-forms 0.10.0)
 language list                          · 4, Django  · settings.LANGUAGES
 storing, validating and saving groups  · 3, package · object_preferences RecordPreferences.get_form / apply / save
 reading without the field's name       · 3, package · object_preferences.registry.registry.get_preferences
@@ -102,7 +102,6 @@ activating timezone per request        · 7, new     · searched Django (documen
 activating language per request        · 4, Django  · django.utils.translation.activate, inside the same middleware
 language switch and its cookie         · 4, Django  · django.views.i18n.set_language, called by the wrapper
 saving the switcher's choice           · 7, new     · searched Django, object_preferences: nothing writes a stored preference on set_language
-searchable timezone select             · 3, package · mvp_forms.widgets.TomSelect, with Tom Select shipped by django-mvp-forms 0.9.0
 startup check                          · 2, repo    · mvp/checks.py, the existing mvp.E/W check pattern
 ```
 

@@ -3,7 +3,7 @@
 Source: mvp/preferences.py
 """
 
-from unittest import mock
+from zoneinfo import ZoneInfo
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -24,33 +24,12 @@ class TestLocalePreferences:
 
         assert group.form_class is LocalePreferences
 
-    def test_timezone_choices_are_zoneinfo_names_grouped_by_region(self):
-        choices = group_form().fields["timezone"].choices
-
-        grouped = {label: dict(options) for label, options in choices if options}
-        assert "Europe" in grouped
-        assert "Europe/Berlin" in grouped["Europe"]
-
     def test_timezone_defaults_to_the_project_timezone(self, settings):
         settings.TIME_ZONE = "Asia/Tokyo"
 
         assert group_form().fields["timezone"].initial == "Asia/Tokyo"
 
-    def test_timezone_choices_are_built_once(self):
-        LocalePreferences.timezone_choices.cache_clear()
-        with mock.patch(
-            "mvp.preferences.zoneinfo.available_timezones",
-            return_value={"Europe/Berlin"},
-        ) as available:
-            group_form()
-            group_form()
-
-        assert available.call_count == 1
-        LocalePreferences.timezone_choices.cache_clear()
-
-    def test_language_choices_are_automatic_then_the_projects_languages(
-        self, settings
-    ):
+    def test_language_choices_are_automatic_then_the_projects_languages(self, settings):
         settings.LANGUAGES = [("en", "English"), ("de", "German")]
 
         field = group_form().fields["language"]
@@ -89,7 +68,7 @@ class TestStoredLocale:
 
         locale = registry.get_preferences(user)["locale"]
 
-        assert locale == {"timezone": "Asia/Tokyo", "language": ""}
+        assert locale == {"timezone": ZoneInfo("Asia/Tokyo"), "language": ""}
 
     def test_a_stored_language_the_project_no_longer_offers_reads_as_automatic(
         self, user, settings
@@ -101,4 +80,26 @@ class TestStoredLocale:
 
         locale = registry.get_preferences(user)["locale"]
 
-        assert locale == {"timezone": "Europe/Berlin", "language": ""}
+        assert locale == {"timezone": ZoneInfo("Europe/Berlin"), "language": ""}
+
+
+@pytest.mark.django_db
+class TestSavedLocale:
+    def test_a_chosen_timezone_saves_and_reads_back_as_that_zone(self, user):
+        preferences = registry.get_preferences(user)
+        preferences.change("locale", timezone="Asia/Tokyo")
+        preferences.save()
+        user.refresh_from_db()
+
+        assert registry.get_preferences(user)["locale"]["timezone"] == ZoneInfo(
+            "Asia/Tokyo"
+        )
+
+    def test_choosing_the_default_timezone_stores_nothing(self, user, settings):
+        settings.TIME_ZONE = "Europe/Berlin"
+        preferences = registry.get_preferences(user)
+        preferences.change("locale", timezone="Europe/Berlin")
+        preferences.save()
+        user.refresh_from_db()
+
+        assert "timezone" not in preferences.stored.get("locale", {})

@@ -22,9 +22,14 @@ PAGE = "account-preferences"
 
 
 def stored(person):
-    """What ``person``'s locale group reads as after a fresh read from the database."""
+    """What ``person``'s locale group reads as after a fresh read from the database.
+
+    The timezone reads as a ``ZoneInfo``; it is given here by its name.
+    """
     person.refresh_from_db()
-    return dict(registry.get_preferences(person)["locale"])
+    locale = dict(registry.get_preferences(person)["locale"])
+    locale["timezone"] = str(locale["timezone"])
+    return locale
 
 
 @pytest.fixture(autouse=True)
