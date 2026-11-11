@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from ..menus import AccountCenterMenu
 from ..mounted import MountedApp
 from .extra import MVPTemplateView
+from .preferences import AccountPreferencesView
 
 
 class AccountCenterView(LoginRequiredMixin, MVPTemplateView):
@@ -24,8 +25,9 @@ class AccountCenterView(LoginRequiredMixin, MVPTemplateView):
     the way any other page built on this package declares one — rather than
     resolving a trail from the menu.
 
-    Its template, ``mvp/account/overview.html``, declares an empty
-    ``{% block account.cards %}``. An installed app contributes a card by
+    Its template, ``mvp/account/overview.html``, declares an
+    ``{% block account.cards %}`` that holds the card for the preferences page,
+    so the landing page is never empty. An installed app contributes a card by
     shipping its own copy of that template, extending the same name, and
     adding to the block through ``{{ block.super }}`` — Django resolves a
     same-name ``{% extends %}`` to the next template in the loader path, so
@@ -48,7 +50,14 @@ class AccountCenterApp(MountedApp):
     name = _("Account Center")
     icon = "account_center"
     menu = AccountCenterMenu
-    urls = [path("", AccountCenterView.as_view(), name="account-center")]
+    urls = [
+        path("", AccountCenterView.as_view(), name="account-center"),
+        path(
+            "preferences/",
+            AccountPreferencesView.as_view(),
+            name="account-preferences",
+        ),
+    ]
     landing = "account-center"
 
 

@@ -27,6 +27,7 @@ configuration through Django settings, customization through template overrides.
 | [Utility Classes](utility-classes.md) | Every Tailwind utility and daisyUI component the packaged stylesheet ships pre-built |
 | [Installable app](installable-app.md) | Letting people install the project as an app: the setting, the root include, the packaged worker and the warnings |
 | [Email](developer/email.md) | Giving an HTML email the project's look: the theme colours and logo it is drawn in, the base template and pieces, overriding a package's email, the tags for the site's address, and checking emails with Mailpit |
+| [Preferences](developer/preferences.md) | Adding an app's own group of preferences to the Account Center's preferences page, reading a person's values through the registry, and why never through the attribute name |
 | [Integrations](integrations.md) | Optional third-party integrations (django-tables2, django-filter, htmx) |
 | [Troubleshooting](troubleshooting.md) | Common symptoms, their causes, and the fix |
 

@@ -89,12 +89,25 @@ INSTALLED_APPS = [
     "django_cotton",
     "easy_icons",
     "flex_menu",
+    "object_preferences",  # installed with django-mvp; stores each person's preferences
     "mvp",
     "daisy_cotton",     # installed with django-mvp; keep it below "mvp"
     "crispy_forms",
     "mvp_forms",
 ]
 SITE_ID = 1
+
+MIDDLEWARE = [
+    # ...
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "mvp.middleware.PreferencesMiddleware",   # below authentication; applies each person's timezone and language
+    # ...
+]
+
+# accounts/models.py: the user model carries each person's preferences
+#   from mvp.models import PreferencesMixin
+#   class User(PreferencesMixin, AbstractUser): ...
+# (or an object_preferences.fields.PreferencesField under another name)
 
 TEMPLATES = [{
     "BACKEND": "django.template.backends.django.DjangoTemplates",

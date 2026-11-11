@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The timezone on the preferences page is django-timezone-field's `TimeZoneFormField`, drawn by django-mvp-forms' searchable `TimeZoneSelect`. django-mvp now requires `django-mvp-forms[timezone]>=0.10.0` and `django-object-preferences>=0.3.1`, and a person's timezone preference reads as a `zoneinfo.ZoneInfo`.
+- A preferences page for signed-in people at `/account/preferences/` (URL name `account-preferences`), reached from the Account Center menu and landing page. It shows every group of preferences registered for the user model, each as a fieldset with one Save button that saves them together. Any installed app adds a group by registering a form for the user model in its own `preferences.py`, and reads a person's values with `registry.get_preferences`. See `docs/developer/preferences.md`.
+- A `locale` group of preferences holding a person's timezone and language, declared by django-mvp as `mvp.preferences.LocalePreferences`. The language switcher saves a signed-in person's choice to it through the `mvp-set-language` URL.
+- `mvp.middleware.PreferencesMiddleware` shows a signed-in person times in their timezone and pages in their language. List it directly below `AuthenticationMiddleware`.
+- `mvp.models.PreferencesMixin` adds the field that stores a person's preferences to a user model.
+
+### Changed
+
+- **Breaking:** a project's user model now needs `mvp.models.PreferencesMixin`, or a `PreferencesField` under another name if it already has an attribute called `preferences`, followed by `makemigrations`. Add `"object_preferences"` to `INSTALLED_APPS` and `"mvp.middleware.PreferencesMiddleware"` below `AuthenticationMiddleware` in `MIDDLEWARE`. Without the field, startup stops with `ImproperlyConfigured` saying what to add.
+
 ## [v0.34.2] - 2026-11-09
 
 ### Fixed

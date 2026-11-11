@@ -135,6 +135,7 @@ INSTALLED_APPS = [
     "django_cotton",
     "easy_icons",
     "flex_menu",
+    "object_preferences",  # stores each person's preferences, installed with django-mvp
     "mvp",
     "daisy_cotton",     # installed with django-mvp, listed below "mvp"
     "crispy_forms",
@@ -151,8 +152,31 @@ reason: both ship an `icon` component, and the one in `mvp` must be found first.
 
 See [Getting Started](https://github.com/django-mvp/django-mvp/blob/main/docs/getting-started.md) for the rule in full.
 
+django-mvp stores each person's preferences, such as their timezone and language, on your
+user model. Add the mixin, then run `python manage.py makemigrations`:
+
+```python
+# accounts/models.py
+from django.contrib.auth.models import AbstractUser
+from mvp.models import PreferencesMixin
+
+
+class User(PreferencesMixin, AbstractUser):
+    pass
+```
+
+A user model that already has an attribute called `preferences` can carry an
+`object_preferences.fields.PreferencesField` under another name instead.
+
 ```python
 # settings.py, continued
+
+MIDDLEWARE = [
+    ...
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "mvp.middleware.PreferencesMiddleware",   # applies each person's timezone and language
+    ...
+]
 
 TEMPLATES = [{
     ...

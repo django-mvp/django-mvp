@@ -335,7 +335,11 @@ Two i18n language pickers ship as widgets — use whichever fits the slot:
   the sidebar footer ships with by default, for that reason.
 
 Both post to Django's `set_language` view and preserve the current path, so they are
-interchangeable. Placing either in the navbar is a `MVP_CONFIG` setting (above); placing
+interchangeable. For a signed-in person they post to django-mvp's `mvp-set-language` view
+instead (`/account/preferences/language/`), which stores the language they pick as their
+[preference](account-center.md#the-preferences-page) and then hands the request to
+Django's `set_language`, so the cookie and the `next` redirect behave the same. A visitor's
+switcher is unchanged and stores nothing. Placing either in the navbar is a `MVP_CONFIG` setting (above); placing
 one in the sidebar footer instead of the packaged one means filling the
 `app.sidebar.footer` block — see [Sidebar footer](#sidebar-footer).
 

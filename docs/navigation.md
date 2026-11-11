@@ -7,7 +7,8 @@ django-mvp renders three menus from Python definitions, using
 - **`MobileFooterMenu`** — the bottom dock on small screens (pre-populated with a
   sidebar toggle).
 - **`AccountCenterMenu`** — the [Account Center](account-center.md)'s own navigation,
-  drawn in the sidebar on its pages. Ships with the entry for its own landing page; extend it
+  drawn in the sidebar on its pages. Ships with the entries for its landing page and the
+  preferences page; extend it
   the same way as `AppMenu`.
 
 A package that runs inside another django-mvp project brings a menu of its own too, drawn in
@@ -30,7 +31,7 @@ from mvp.menus import AppMenu, MobileFooterMenu, MenuCollapse, MenuGroup
 | `MenuCollapse` | `mvp.menus` | `MenuItem` subclass. An expandable group. Sets `extra_context["collapsible"] = True` for you. |
 | `AppMenu` | `mvp.menus` | The sidebar menu instance. Ships empty. |
 | `MobileFooterMenu` | `mvp.menus` | The mobile dock menu instance. Ships with the sidebar-toggle item. |
-| `AccountCenterMenu` | `mvp.menus` | The Account Center's own navigation. Ships with the entry for its own landing page. |
+| `AccountCenterMenu` | `mvp.menus` | The Account Center's own navigation. Ships with the entries for its landing page and the preferences page. |
 
 `MenuItem`, `MenuGroup` and `MenuCollapse` share one constructor:
 

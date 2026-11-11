@@ -32,6 +32,11 @@ INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_mounted"]
 # its email the project's look with the package's code unchanged.
 INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_email"]
 
+# An installed app that adds its own preference group to the user model
+# (FS-045, tests/testapp_preferences/): proves the group appears on the
+# preferences page and saves with the others with no wiring in django-mvp.
+INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_preferences"]
+
 # django-mvp layout config the test suite asserts on. Defined here — NOT read
 # from demo/settings.py — so visual tweaks to the demo don't ripple into tests.
 # See tests/test_components/test_layout_config.py.

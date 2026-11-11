@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "demo",
     "demo.account_showcase",
     "demo.library",
+    "demo.users",
     "mvp",
     "daisy_cotton",
     # Page blocks the landing page is built from. Below mvp and daisy_cotton,
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     "mvp_forms",
     "flex_menu",
     "django_cotton",
+    "object_preferences",
     "django_filters",
     "django_browser_reload",
     "django_watchfiles",
@@ -56,6 +58,8 @@ except ImportError:
 
 SITE_ID = 1
 
+AUTH_USER_MODEL = "users.User"
+
 # The landing page shows a live page of this site inside a phone frame.
 X_FRAME_OPTIONS = "SAMEORIGIN"
 
@@ -67,6 +71,7 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",  # MUST be here
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "mvp.middleware.PreferencesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.common.CommonMiddleware",
