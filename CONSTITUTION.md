@@ -22,7 +22,9 @@ new.
 ### Article III — Anti-Abstraction
 
 No wrapper layers, base classes, or future-proofing indirection without a present, concrete second
-use. Prefer duplication over the wrong abstraction.
+use. Prefer duplication over the wrong abstraction. A second use also counts as present when it is
+in another approved specification built in the same batch, such as several features specified
+together from one prototype.
 
 ### Article IV — Integration-First
 
@@ -270,4 +272,4 @@ that need ignore rules first. Do not cite it as an enforced standard until it ru
 
 ---
 
-**Version**: 5.3.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-11-06
+**Version**: 5.3.1 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-11-11
