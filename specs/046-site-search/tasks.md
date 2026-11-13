@@ -5,7 +5,7 @@
 
 Every task follows Article I's test-first cycle. A task is done when its tests pass, the tree is
 green and the work is committed. Documentation for a public name lands in the task that introduces
-it, in `docs/search.md`. Tests live under `tests/test_search/`, browser tests in
+it, in `docs/developer/search.md`. Tests live under `tests/test_search/`, browser tests in
 `tests/test_search/test_search_e2e.py`.
 
 ## Checklist
@@ -35,7 +35,7 @@ Delivers FR-001–FR-011, FR-023, SC-002, SC-003, SC-005, SC-006.
 
 **Files**: `pyproject.toml`, `uv.lock`, `mvp/search/__init__.py`, `mvp/search/kinds.py`,
 `mvp/search/registry.py`, `tests/test_search/__init__.py`, `tests/test_search/conftest.py`, `tests/test_search/test_kinds.py`,
-`tests/test_search/test_registry.py`, `docs/search.md`
+`tests/test_search/test_registry.py`, `docs/developer/search.md`
 
 Add `modelsearch (>=1.3.2,<2)` to the runtime dependencies (`uv add`). `Result`, `Group` with
 `more`, `Kind` with `group()`, `FunctionKind`, `register()` (a kind instance, or a function with
@@ -43,12 +43,12 @@ name, label, icon and description), a duplicate name raising `ImproperlyConfigur
 `registered()` in registration order, all on one `SearchRegistry` instance with module-level
 wrappers (Article X). Registry isolation is a shared fixture in `tests/test_search/conftest.py`,
 used by every search test except the demo's. Start
-`docs/search.md` with registering a function kind. `deptry` green.
+`docs/developer/search.md` with registering a function kind. `deptry` green.
 
 #### T002 — The search across kinds: settings, order, limits and the query
 
 **Files**: `mvp/config.py`, `mvp/search/registry.py`, `mvp/search/search.py`,
-`mvp/search/__init__.py`, `tests/test_search/test_search.py`, `docs/search.md`,
+`mvp/search/__init__.py`, `tests/test_search/test_search.py`, `docs/developer/search.md`,
 `docs/configuration.md`
 
 `MVP_CONFIG["search"] = {"kinds": []}`. `active()` per the plan. `search(request, query, limit)`:
@@ -64,7 +64,7 @@ own `more_url` used when it gives one, an error from a kind not caught. Spec US1
 **Files**: `mvp/search/kinds.py`, `mvp/search/__init__.py`, `tests/test_search/models.py` or a
 test app under `tests/testapp_search/`, `tests/settings.py`, `demo/settings.py`, `tests/factories.py`, `tests/test_search/conftest.py`,
 `tests/test_search/test_model_kind.py`,
-`docs/search.md`
+`docs/developer/search.md`
 
 A test app with an indexed model (`SearchField`s, an `AutocompleteField` on the title, a
 `FilterField` on the primary key) and a visibility rule on an unindexed field. `ModelKind` per the
@@ -81,7 +81,7 @@ command and result as evidence: US1 scenario 11, SC-005.
 #### T004 — The start-up checks for kinds and settings
 
 **Files**: `mvp/search/checks.py`, `mvp/apps.py`, `tests/test_search/test_checks.py`,
-`docs/search.md`
+`docs/developer/search.md`
 
 `mvp.E004`, `mvp.E006`, `mvp.E007`, `mvp.E008` per the plan, each a pure function over its inputs
 tested directly, with a model declaring `FilterField("pk")` expected to get `mvp.E007`, registered in `MvpConfig.ready()`. Scenario 7.
@@ -100,7 +100,7 @@ Delivers FR-012–FR-022, FR-024, FR-025, SC-001, SC-004.
 `mvp/templates/mvp/search/panel.html`, `mvp/templates/mvp/search/hints.html`,
 `mvp/templates/mvp/search/results.html`, `mvp/templates/cotton/mvp/search/result.html`,
 `tests/urls_search.py`, `tests/test_search/test_views.py`, `tests/test_search/test_checks.py`,
-`docs/search.md`
+`docs/developer/search.md`
 
 Ported from the prototype's `search_panel.html`, `search_hints.html` and `search.html`. The
 partial: hints for an empty query, groups with totals and the rest, empty groups left out, the
@@ -143,12 +143,12 @@ Scenarios 2, 3, 6–9 and 16 of US2, SC-004. The bundle rebuilt.
 #### T008 — The demo's kinds and the documentation pass
 
 **Files**: `demo/models.py`, `demo/search.py`, `demo/apps.py`, `demo/settings.py`, `demo/urls.py`,
-`tests/test_demo/test_search_demo.py`, `docs/search.md`, `docs/index.md`, `README.md`,
+`tests/test_demo/test_search_demo.py`, `docs/developer/search.md`, `docs/index.md`, `README.md`,
 `CHANGELOG.md`, `CONTEXT.md`
 
 `ProductKind`, `ArticleKind` (drafts staff-only) and a function kind over the component pages,
 registered in the demo's `ready()`, leaving `INSTALLED_APPS` as T003 set it, the search mounted at `search/`, `mvp.actions.search` in the
 navbar. A test that the demo's search finds a product and a component page from one query
-(SC-001). `docs/search.md` complete and in the table of contents, the README feature list,
+(SC-001). `docs/developer/search.md` complete and in the table of contents, the README feature list,
 CONTEXT glossary entries for kind, result and group, the CHANGELOG entry with the breaking change
 to `c-mvp.actions.search`.

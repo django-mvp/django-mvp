@@ -24,7 +24,7 @@ request and returns results with a total. A model kind is the ready-made way to 
 modelsearch, and a function kind is everything else. The documentation search then needs no
 special case, and a package can ship a kind the way it ships a mounted app.
 
-**ADR:** none — the shape of the kind API, documented in docs/search.md
+**ADR:** none — the shape of the kind API, documented in docs/developer/search.md
 
 ## D3: Each kind decides what a request may see
 
@@ -32,7 +32,7 @@ The issue says each source decides what the request may see. A model kind takes 
 derived from the request and searches within it, so a record the request may not open is never
 listed and never counted. A count that included hidden records would itself leak that they exist.
 
-**ADR:** none — a requirement of the kind API, documented in docs/search.md
+**ADR:** none — a requirement of the kind API, documented in docs/developer/search.md
 
 ## D4: No ranking across kinds
 
@@ -57,7 +57,7 @@ A setting naming a kind nobody registered is a typo the developer wants to hear 
 start-up, rather than as a search that silently covers less. A search placed with no kinds would
 show a field that can never find anything. Both are system check errors.
 
-**ADR:** none — system checks, documented in docs/search.md
+**ADR:** none — system checks, documented in docs/developer/search.md
 
 ## D7: The navbar's search component opens the site search
 
@@ -124,7 +124,7 @@ Using it always would stop a record being found by its body. The model kind runs
 first and, when that finds nothing and the model has completion fields, runs completion on the
 same query. A partly typed last word then still finds a record by its title (FR-009).
 
-**ADR:** none — a behaviour of the model kind, documented in docs/search.md
+**ADR:** none — a behaviour of the model kind, documented in docs/developer/search.md
 
 ## D14: Kinds are registered from `AppConfig.ready()`, never autodiscovered
 
@@ -133,7 +133,7 @@ Autodiscovering a `search` module in every installed app would import modules th
 for other reasons, such as django-mvp-sphinx's `mvp_sphinx.search`. A package ships a kind class
 and the host registers an instance of it, as it mounts a mounted app.
 
-**ADR:** none — follows the existing mounted-app pattern, documented in docs/search.md
+**ADR:** none — follows the existing mounted-app pattern, documented in docs/developer/search.md
 
 ## D15: PostgreSQL is checked by hand, SQLite by the suite
 
@@ -150,9 +150,9 @@ Every reader sees every active kind's label and description in the hints, and it
 count on the results page, including a kind whose records that reader may never open. Records are
 scoped by the request (D3), so this discloses only that a kind exists. A kind that hides itself
 from a request would be a change to the specification, and nothing in the request asks for one.
-`docs/search.md` says a kind's label is public.
+`docs/developer/search.md` says a kind's label is public.
 
-**ADR:** none — local to this feature, documented in docs/search.md
+**ADR:** none — local to this feature, documented in docs/developer/search.md
 
 ## D17: Design review outcome
 
@@ -163,4 +163,3 @@ lost its default, so a kind cannot list every record by omission. The narrow but
 fixtures and smoke test are planned for. The disclosure of kind names is accepted as D16.
 
 **ADR:** none — a record of this feature's design review
-

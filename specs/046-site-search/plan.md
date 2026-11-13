@@ -31,7 +31,7 @@ runtime dependency.
 | III Anti-abstraction | yes | `Kind` has three present uses: function kinds, `ModelKind`, a package's shipped kind (django-mvp-sphinx's, approved alongside) |
 | IV Integration-first | yes | the registry, `Group` and the views are written and tested before the components |
 | V Security | yes | each kind scopes to the request (D3, D12). Every part of a result is escaped by the template layer. The query is length-capped |
-| VI Documentation | yes | `docs/search.md`, configuration, components, CONTEXT, README, CHANGELOG, in the tasks that introduce each name |
+| VI Documentation | yes | `docs/developer/search.md`, configuration, components, CONTEXT, README, CHANGELOG, in the tasks that introduce each name |
 | VII Dependencies | yes | modelsearch justified in D11 and its ADR. `deptry` green |
 | VIII i18n | yes | every label, hint and message translatable |
 | XI Components are the public API | yes | new `c-mvp.search.*` components. `c-mvp.actions.search` changes, recorded as breaking |
