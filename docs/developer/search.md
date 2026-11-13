@@ -185,11 +185,17 @@ on.
    kind. Its results come twenty to a page. A `kind` no active kind has is
    ignored.
 
+The results page is `mvp.search.views.SearchView`, a shell page whose title is
+"Search", so a project can subclass it to change the title or the template. Both
+pages read the query with `mvp.search.views.clean_query(request)`, which strips
+it and cuts it to 100 characters exactly as `search()` does.
+
 The pages work for anonymous visitors. Each kind decides from the request what
 the visitor may see, so a signed-out visitor sees only what the kind lets a
 signed-out request see.
 
-The partial is at `panel/`, under the same prefix. It shows up to four results
+The partial is the function view `mvp.search.views.search_panel`, at `panel/`
+under the same prefix. It shows up to four results
 a group, leaves out kinds that found nothing, and for an empty query lists
 every active kind with its description. A group with more results links to the
 kind's own `more_url(query)` when it gives one, and otherwise to the results
