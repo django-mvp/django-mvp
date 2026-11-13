@@ -3,9 +3,13 @@
 Source: mvp/search/kinds.py
 """
 
+import re
+
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from django.db import connection
 from django.test import RequestFactory
+from django.test.utils import CaptureQueriesContext
 
 from mvp.search.model_kind import ModelKind
 from tests.factories import NoteFactory
@@ -97,6 +101,27 @@ class TestModelKindMatching:
         assert len(group.results) == 2
         assert group.total == 3
         assert group.more == 1
+
+
+@pytest.mark.django_db
+class TestModelKindQueries:
+    def test_a_group_counts_and_slices_and_never_loads_every_match(self, request_):
+        for n in range(30):
+            NoteFactory(title=f"Heat {n}")
+
+        with CaptureQueriesContext(connection) as captured:
+            group = NoteKind().group("heat", request_, 4)
+
+        statements = [query["sql"].upper() for query in captured.captured_queries]
+        searches = [sql for sql in statements if "MATCH" in sql]
+        counts = [sql for sql in searches if sql.startswith("SELECT COUNT(")]
+        limited = [
+            sql for sql in searches if re.search(r"LIMIT \d+( OFFSET \d+)?$", sql)
+        ]
+        assert group.total == 30
+        assert len(group.results) == 4
+        assert len(counts) == 1
+        assert len(counts) + len(limited) == len(searches)
 
 
 @pytest.mark.django_db

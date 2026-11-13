@@ -68,7 +68,7 @@ class ModelKind(Kind):
         backend = get_search_backend()
         found = backend.search(query, queryset)
         indexed: Any = self.model
-        if not found and indexed.get_autocomplete_search_fields():
+        if not found.count() and indexed.get_autocomplete_search_fields():
             found = backend.autocomplete(query, queryset)
         return found
 

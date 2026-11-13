@@ -129,3 +129,29 @@ class TestFunctionKind:
 
         assert isinstance(kind.label, Promise)
         assert isinstance(kind.description, Promise)
+
+
+class TestKindGroupCounting:
+    def test_group_counts_a_sequence_that_can_count_without_measuring_it(self, rf):
+        class Countable(list):
+            def __len__(self):
+                raise AssertionError("the whole sequence was measured")
+
+            def count(self):
+                return 7
+
+        class Counting(Kind):
+            name = "counting"
+            label = "Counting"
+            icon = "x"
+
+            def find(self, query, request):
+                return Countable(range(7))
+
+            def result(self, item):
+                return Result(title=str(item), url="/", where="")
+
+        group = Counting().group("q", rf.get("/"), 2)
+
+        assert group.total == 7
+        assert len(group.results) == 2

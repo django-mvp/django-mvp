@@ -10,6 +10,7 @@ from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
 from mvp.search import registry
+from mvp.search.kinds import Kind
 from mvp.search.registry import normalise_query
 from mvp.views import MVPTemplateView
 
@@ -59,29 +60,50 @@ class SearchView(MVPTemplateView):
     template_name = "mvp/search/results.html"
     page_title = _("Search")
 
+    def chip(self, kind: Kind, query: str) -> tuple[Kind, int]:
+        """Count what one kind finds, for its narrowing link.
+
+        Args:
+            kind: The kind to count.
+            query: The cleaned query.
+
+        Returns:
+            The kind and how many results it found.
+        """
+        return kind, kind.group(query, self.request, RESULTS_LIMIT).total
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Add the query, the narrowing links and the results to show."""
         context = super().get_context_data(**kwargs)
         query = clean_query(self.request)
         active = registry.default_registry.active()
-        groups = registry.default_registry.search(self.request, query, RESULTS_LIMIT)
         narrowed = next(
             (kind for kind in active if kind.name == self.request.GET.get("kind")),
             None,
         )
+        if narrowed is None or not query:
+            groups = registry.default_registry.search(
+                self.request, query, RESULTS_LIMIT
+            )
+            chips = [(group.kind, group.total) for group in groups]
+            paginator = None
+        else:
+            paginator = Paginator(narrowed.find(query, self.request), PAGE_SIZE)
+            chips = [
+                (kind, paginator.count) if kind is narrowed else self.chip(kind, query)
+                for kind in active
+            ]
         context.update(
             q=query,
             kinds=active,
             kind=narrowed,
-            chips=[(group.kind, group.total) for group in groups],
-            total=sum(group.total for group in groups),
+            chips=chips,
+            total=sum(count for _kind, count in chips),
         )
         if narrowed is None:
             context["groups"] = [group for group in groups if group.total]
-        elif query:
-            page = Paginator(narrowed.find(query, self.request), PAGE_SIZE).get_page(
-                self.request.GET.get("page")
-            )
+        elif paginator is not None:
+            page = paginator.get_page(self.request.GET.get("page"))
             context["page_obj"] = page
             context["results"] = [narrowed.result(item) for item in page.object_list]
         return context

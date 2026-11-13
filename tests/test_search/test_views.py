@@ -197,6 +197,21 @@ class TestSearchView:
 
         assert [count for kind, count in response.context["chips"]] == [9, 0, 1]
 
+    def test_a_narrowed_page_searches_its_kind_once(self, client, search_registry):
+        class Finding(CountedKind):
+            finds = 0
+
+            def find(self, query, request):
+                type(self).finds += 1
+                return super().find(query, request)
+
+        search_registry.register(Finding("pages", 45))
+        search_registry.register(CountedKind("notes", 3))
+
+        client.get(reverse("mvp-search"), {"q": "heat", "kind": "pages"})
+
+        assert Finding.finds == 1
+
     def test_an_unknown_kind_is_treated_as_none(self, client, kinds):
         response = client.get(reverse("mvp-search"), {"q": "heat", "kind": "nope"})
 

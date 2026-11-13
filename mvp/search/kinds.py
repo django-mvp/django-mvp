@@ -11,6 +11,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from django.core.paginator import Paginator
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
 
@@ -83,7 +84,8 @@ class Kind:
             request: The request the search is for. Decide what it may see from it.
 
         Returns:
-            A sliceable, countable sequence, best match first.
+            A sliceable sequence, best match first. One with a ``count()``
+            method is counted by it, and never measured with ``len()``.
 
         Raises:
             NotImplementedError: Always, until a subclass defines it.
@@ -124,10 +126,11 @@ class Kind:
             The group, holding at most ``limit`` results and the full total.
         """
         found = self.find(query, request)
+        total = Paginator(found, limit).count
         return Group(
             kind=self,
-            results=[self.result(item) for item in found[:limit]],
-            total=len(found),
+            results=[self.result(item) for item in found[:limit]] if total else [],
+            total=total,
             more_url=self.more_url(query),
         )
 
