@@ -19,21 +19,25 @@ class DemoConfig(AppConfig):
 
         from django.utils.translation import gettext_lazy as _
 
-        from mvp.search import register
+        from mvp.search import register, registered
 
         from .search import ArticleKind, ProductKind, find_components
 
         with contextlib.suppress(ImportError):
             from . import menus  # noqa: F401
 
-        register(ProductKind())
-        register(ArticleKind())
-        register(
-            find_components,
-            name="components",
-            label=_("Components"),
-            icon="grid",
-            description=_("Documentation pages for the components"),
-        )
+        # Tests that reload the app registry run ready() again in one process.
+        taken = {kind.name for kind in registered()}
+        for kind in (ProductKind(), ArticleKind()):
+            if kind.name not in taken:
+                register(kind)
+        if "components" not in taken:
+            register(
+                find_components,
+                name="components",
+                label=_("Components"),
+                icon="grid",
+                description=_("Documentation pages for the components"),
+            )
 
     verbose_name = "Demo"
