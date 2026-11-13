@@ -13,9 +13,9 @@
         {% endfor %}
       </ul>
       {% if group.more %}
-        <a class="mvp-search-more" data-mvp-search-hit href="{% if group.more_url %}{{ group.more_url }}{% else %}{% url 'mvp-search' %}?q={{ q|urlencode }}&amp;kind={{ group.kind.name|urlencode }}{% endif %}">{% blocktrans count counter=group.more with label=group.kind.label %}One more in {{ label }}{% plural %}{{ counter }} more in {{ label }}{% endblocktrans %} →</a>
+        <a class="mvp-search-more" role="option" data-mvp-search-hit href="{% if group.more_url %}{{ group.more_url }}{% else %}{% url 'mvp-search' %}?q={{ q|urlencode }}&amp;kind={{ group.kind.name|urlencode }}{% endif %}">{% blocktrans count counter=group.more with label=group.kind.label %}One more in {{ label }}{% plural %}{{ counter }} more in {{ label }}{% endblocktrans %} →</a>
       {% endif %}
     </section>
   {% endfor %}
-  <a class="mvp-search-all" data-mvp-search-hit href="{% url 'mvp-search' %}?q={{ q|urlencode }}">{% blocktrans %}See every result for “{{ q }}”{% endblocktrans %}</a>
+  <a class="mvp-search-all" role="option" data-mvp-search-hit href="{% url 'mvp-search' %}?q={{ q|urlencode }}">{% blocktrans %}See every result for “{{ q }}”{% endblocktrans %}</a>
 {% endif %}
