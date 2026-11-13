@@ -175,3 +175,13 @@ panel, its styles or its script. The test is left as it is, and the failure is r
 pull request rather than worked around.
 
 **ADR:** none — a note on an existing test's timing, local to this feature's verification
+
+## D19: The review fixes were verified directly
+
+The session that made the three review fixes ended before it wrote its report, after committing
+all three and recording them. Each fix was then checked directly against its finding: the counting
+test was run against the old `len()` code and both new tests failed, the narrowed results page
+counts each other kind without fetching its rows, and the documentation changes were read against
+the findings.
+
+**ADR:** none — a record of this feature's verification

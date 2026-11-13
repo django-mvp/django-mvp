@@ -70,7 +70,7 @@ class SearchView(MVPTemplateView):
         Returns:
             The kind and how many results it found.
         """
-        return kind, kind.group(query, self.request, RESULTS_LIMIT).total
+        return kind, Paginator(kind.find(query, self.request), PAGE_SIZE).count
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Add the query, the narrowing links and the results to show."""
@@ -98,7 +98,7 @@ class SearchView(MVPTemplateView):
             kinds=active,
             kind=narrowed,
             chips=chips,
-            total=sum(count for _kind, count in chips),
+            total=sum(count for kind, count in chips),
         )
         if narrowed is None:
             context["groups"] = [group for group in groups if group.total]
