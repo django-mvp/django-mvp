@@ -142,10 +142,7 @@ DEP002 = [
     "django-easy-icons",
     "django-crispy-forms",
     "django-mvp-forms",
-    "modelsearch",
 ]
-# modelsearch: the search's model kind imports it, and is added after the
-#   registry; until then nothing in the package imports it.
 # django-crispy-forms, django-mvp-forms: reached through {% load %} and
 #   INSTALLED_APPS rather than a Python import.
 # invoke: dev task runner, only imported by tasks.py.
@@ -221,6 +218,8 @@ module = [
     "django_tables2.*",
     "tinycss2",
     "tinycss2.*",
+    "modelsearch",
+    "modelsearch.*",
 ]
 ignore_missing_imports = true
 

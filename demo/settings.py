@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django_filters",
     "django_browser_reload",
     "django_watchfiles",
+    "modelsearch",
 ]
 
 try:

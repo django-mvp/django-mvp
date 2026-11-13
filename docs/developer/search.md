@@ -87,6 +87,79 @@ class PeopleKind(Kind):
 register(PeopleKind())
 ```
 
+## Search a model
+
+A model kind searches the records of one model that
+[django-modelsearch](https://github.com/django-modelsearch/django-modelsearch)
+indexes. It decides what each request may see, so a record a visitor may not
+open is neither listed nor counted.
+
+1. Index the model. Add `SearchField`s for the text to search, an
+   `AutocompleteField` for any field that should be found from a partly typed
+   word, and a `FilterField` on the primary key. The primary key field must be
+   named by its real name, `"id"` for an automatic key. `FilterField("pk")` is
+   not recognised.
+
+    ```python
+    # notes/models.py
+    from django.db import models
+    from modelsearch import index
+
+
+    class Note(index.Indexed, models.Model):
+        title = models.CharField(max_length=100)
+        body = models.TextField(blank=True)
+        public = models.BooleanField(default=True)
+
+        search_fields = [
+            index.SearchField("title"),
+            index.SearchField("body"),
+            index.AutocompleteField("title"),
+            index.FilterField("id"),
+        ]
+    ```
+
+2. Add `modelsearch` to `INSTALLED_APPS` and run `migrate`, so the index has a
+   table.
+
+3. Subclass `ModelKind`, set `model` and define `get_queryset(request)`. It has
+   no default: a model kind without it raises `ImproperlyConfigured`, so no kind
+   searches records nobody decided a request may see. The queryset may filter on
+   any field, indexed or not.
+
+    ```python
+    # notes/search.py
+    from django.utils.translation import gettext_lazy as _
+    from mvp.search import ModelKind
+
+    from .models import Note
+
+
+    class NoteKind(ModelKind):
+        name = "notes"
+        label = _("Notes")
+        icon = "file-text"
+        model = Note
+
+        def get_queryset(self, request):
+            return Note.objects.filter(public=True)
+    ```
+
+4. Register an instance from `AppConfig.ready`, as for a function kind.
+
+A model kind searches whole words first. When that finds nothing and the model
+has an `AutocompleteField`, it searches again by completion, so `hea` finds
+"Heat flow". Double quotes are removed from the query before it is searched.
+
+Each result is titled `str(obj)`, linked to `obj.get_absolute_url()`, labelled
+with the model's `verbose_name` and has no passage. Override `title(obj)`,
+`url(obj)`, `where(obj)`, `passage(obj)` or `more_url(query)` to change any of
+them.
+
+A kind's `label` and `description` are shown to every visitor, including one
+who may open none of its records. Records are scoped by the request, so this
+discloses only that the kind exists.
+
 ## Where kinds are kept
 
 Registered kinds live in one `SearchRegistry`, held in
