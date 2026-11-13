@@ -86,7 +86,7 @@ class TestSearchDialog:
         assert field["hx-target"] == f"#{results['id']}"
         assert field["hx-sync"] == "this:replace"
 
-    def test_results_list_holds_the_hints_at_first(self, search_registry):
+    def test_results_list_holds_the_hints_at_first(self):
         results = draw().select_one("#mvp-search [role=listbox]")
 
         assert results.select_one(".mvp-search-hints") is not None

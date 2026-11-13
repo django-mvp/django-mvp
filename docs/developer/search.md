@@ -188,7 +188,9 @@ on.
 The results page is `mvp.search.views.SearchView`, a shell page whose title is
 "Search", so a project can subclass it to change the title or the template. Both
 pages read the query with `mvp.search.views.clean_query(request)`, which strips
-it and cuts it to 100 characters exactly as `search()` does.
+it and cuts it to 100 characters exactly as `search()` does. Both call
+`mvp.search.registry.normalise_query(text)`, which you can call yourself to clean
+a query typed somewhere else the same way.
 
 The pages work for anonymous visitors. Each kind decides from the request what
 the visitor may see, so a signed-out visitor sees only what the kind lets a

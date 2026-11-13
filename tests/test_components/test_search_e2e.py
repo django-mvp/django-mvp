@@ -14,7 +14,9 @@ import pytest
 from playwright.sync_api import expect
 
 from mvp.config import MVP_CONFIG
+from mvp.search import registry as registry_module
 from mvp.search.kinds import Result
+from mvp.search.registry import SearchRegistry
 from tests.conftest import requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
@@ -45,8 +47,10 @@ def vegetables(query, request):
 
 
 @pytest.fixture(autouse=True)
-def search_site(settings, search_registry, monkeypatch):
+def search_site(settings, monkeypatch):
     """Serve the search at ``search/`` with the widget in the navbar."""
+    search_registry = SearchRegistry()
+    monkeypatch.setattr(registry_module, "default_registry", search_registry)
     settings.ROOT_URLCONF = "tests.urls_search"
     navbar = MVP_CONFIG["layout"]["navbar"]
     monkeypatch.setitem(navbar, "end", [*navbar["end"], "mvp.actions.search"])
