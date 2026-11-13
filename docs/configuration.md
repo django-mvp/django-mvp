@@ -60,6 +60,7 @@ site overrides the project setting for that one tag only.
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `layout.navbar.class` | CSS classes | `"mvp-header-bg"` | The header's background, at every width; see [Header and dock background](layout.md#header-and-dock-background) |
 | `layout.dock.class` | CSS classes | `"mvp-dock-bg"` | The mobile dock's background |
+| `search.kinds` | list of kind names | `[]` | The registered search kinds to search, in the order their groups are shown. Empty searches every registered kind, in registration order; see [Search](developer/search.md#choose-which-kinds-are-searched) |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
 | `page_title.layout` | layout name, or a dict of layout names by page type | `{"page": "default", "form": "default", "detail": "default", "delete": "default", "list": "inline", "table": "compact"}` | The layout every page's title is drawn in; see [`page_title.layout`](#page_titlelayout) |
 | `icon_stylesheet` | URL, static file path or `None` | Bootstrap Icons 1.13.1 on jsDelivr | The stylesheet that draws the icon set; see [Where the icons come from](icons.md#where-the-icons-come-from) |
@@ -82,7 +83,7 @@ MVP_CONFIG = {
     "theme": {"choices": ["light", "dark", "dracula"]},
     "layout": {
         "sidebar": {"title": "Acme"},
-        "navbar": {"end": ["mvp.actions.search", "mvp.actions.login"]},
+        "navbar": {"end": ["mvp.actions.theme-controller", "mvp.actions.login"]},
     },
 }
 ```
@@ -223,7 +224,7 @@ Bundled widgets:
 | `mvp.actions.language-switcher` | Language dropdown; renders nothing without i18n and a `set_language` URL |
 | `mvp.actions.language-switcher-modal` | Same choices in a modal grid, better for touch and narrow slots |
 | `mvp.actions.login` | Log-in button; renders nothing for an authenticated visitor |
-| `mvp.actions.search` | Presentation only: a search icon styled as a button beside an input with no name, no form and no handler. It submits nothing — wire up your own |
+| `mvp.actions.search` | The site search: a search field on a wide screen, a button on a narrow one, and the dialog both open. Ctrl K (⌘ K on a Mac) opens it from anywhere. Needs `path("search/", include("mvp.search.urls"))` mounted; see [Search](developer/search.md) |
 
 ## `layout.navbar`
 

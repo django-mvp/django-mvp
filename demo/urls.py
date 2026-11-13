@@ -35,6 +35,7 @@ urlpatterns = [
     path("", DemoHomeView.as_view(), name="home"),
     path("admin/", admin.site.urls),
     path("", include("mvp.urls")),
+    path("search/", include("mvp.search.urls")),
     mount("library/", library),
     path("layout/", views.layout_demo, name="layout"),
     path("layout/sidebar/", views.layout_sidebar_demo, name="layout-sidebar"),

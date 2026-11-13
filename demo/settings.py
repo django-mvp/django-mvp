@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django_filters",
     "django_browser_reload",
     "django_watchfiles",
+    "modelsearch",
 ]
 
 try:
@@ -166,9 +167,11 @@ MVP_CONFIG = {
             "synthwave",
         ],
     },
+    "search": {"kinds": ["products", "articles", "components"]},
     "layout": {
         "navbar": {
             "end": [
+                "mvp.actions.search",
                 "mvp.actions.theme-controller",
                 "mvp.actions.language-switcher",
                 "mvp.actions.login",

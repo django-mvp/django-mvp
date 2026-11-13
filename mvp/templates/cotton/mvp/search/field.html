@@ -1,0 +1,16 @@
+{# @description The site search drawn like a search field, for a wide screen. It opens the search dialog, and so does Ctrl K. #}
+{% load i18n %}
+{% firstof mvp_config.site_name request.site.name as site %}
+<button type="button"
+        commandfor="mvp-search"
+        command="show-modal"
+        data-mvp-search-open
+        aria-label="{% if site %}{% blocktrans %}Search {{ site }}{% endblocktrans %}{% else %}{% trans "Search this site" %}{% endif %}"
+        aria-keyshortcuts="Control+K Meta+K"
+        class="mvp-search-field mvp-desktop-only btn rounded-full font-normal justify-start gap-2 text-base-content/70">
+  <c-icon name="search" aria-hidden="true" only />
+  <span class="grow text-start">{% if site %}{% blocktrans %}Search {{ site }}{% endblocktrans %}{% else %}{% trans "Search this site" %}{% endif %}</span>
+  <span class="inline-flex gap-1" aria-hidden="true">
+    <kbd class="kbd kbd-sm" data-mvp-search-modifier>Ctrl</kbd><kbd class="kbd kbd-sm">K</kbd>
+  </span>
+</button>
