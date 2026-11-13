@@ -140,6 +140,8 @@ with focus kept in the field, Enter opens the highlighted result and otherwise t
 one Esc with text in the field closes and returns focus, a newer answer is the one shown.
 Scenarios 2, 3, 6–9 and 16 of US2, SC-004. The bundle rebuilt.
 
+### Group 5
+
 #### T008 — The demo's kinds and the documentation pass
 
 **Files**: `demo/models.py`, `demo/search.py`, `demo/apps.py`, `demo/settings.py`, `demo/urls.py`,
