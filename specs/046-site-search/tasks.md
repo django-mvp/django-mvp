@@ -178,3 +178,7 @@ The worked override in `docs/configuration.md`, the kind-class example's imports
 pointing at the old page path, the description of the old navbar widget, the order the groups
 follow, and the component row naming the mount it needs. A results page narrowed to a kind that
 found nothing says so.
+
+#### T012 [US2] — The narrowed results page counts the other kinds without fetching them
+
+Each other kind's count for its narrowing link comes from `count()` alone.
