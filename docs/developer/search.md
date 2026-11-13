@@ -87,6 +87,14 @@ class PeopleKind(Kind):
 register(PeopleKind())
 ```
 
+## Where kinds are kept
+
+Registered kinds live in one `SearchRegistry`, held in
+`mvp.search.registry.default_registry`. `register()`, `registered()` and
+`search()` act on it. `registered()` returns the kinds in registration order.
+A function registered this way is wrapped in a `FunctionKind`, which you can
+also build yourself and register as an instance.
+
 ## What comes back
 
 A kind's answer is a `Group`: the kind, the `results` to show, the `total` the

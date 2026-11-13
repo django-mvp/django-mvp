@@ -112,7 +112,22 @@ def register(
     icon: str | None = None,
     description: Any = "",
 ) -> Kind:
-    """Register a kind with the site's registry. See :meth:`SearchRegistry.register`."""
+    """Register a kind with the site's registry.
+
+    Args:
+        kind_or_function: A kind instance, or a function to wrap as one.
+        name: The kind's identifier. Required for a function.
+        label: The kind's human name. Required for a function.
+        icon: The icon name for the kind's results. Required for a function.
+        description: An optional sentence about what the kind finds.
+
+    Returns:
+        The registered kind.
+
+    Raises:
+        ImproperlyConfigured: A kind is already registered under the name, or a
+            function was given without a name, label and icon.
+    """
     return default_registry.register(
         kind_or_function,
         name=name,
@@ -123,5 +138,9 @@ def register(
 
 
 def registered() -> list[Kind]:
-    """Return the site's registered kinds. See :meth:`SearchRegistry.registered`."""
+    """Return the site's registered kinds.
+
+    Returns:
+        Every registered kind, in registration order.
+    """
     return default_registry.registered()

@@ -17,6 +17,7 @@ configuration through Django settings, customization through template overrides.
 | [Layout](layout.md) | The app shell — template blocks, breadcrumbs, per-page overrides, full-height pages |
 | [Components](components.md) | The Cotton component library reference |
 | [Navigation](navigation.md) | Sidebar and mobile-dock menus via django-flex-menus |
+| [Search](developer/search.md) | One search across the kinds of result a site has: registering a kind, choosing which are searched, running a search from Python |
 | [Icons](icons.md) | How a name resolves, what the packaged set defines, and using a different one |
 | [Mounted apps](mounted-apps.md) | Running one django-mvp app inside another project: declaring, mounting, the host's menu entry, and what changes on the app's pages |
 | [Account Center](account-center.md) | The account area any installed app can add a page to |

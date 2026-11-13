@@ -60,7 +60,7 @@ site overrides the project setting for that one tag only.
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `layout.navbar.class` | CSS classes | `"mvp-header-bg"` | The header's background, at every width; see [Header and dock background](layout.md#header-and-dock-background) |
 | `layout.dock.class` | CSS classes | `"mvp-dock-bg"` | The mobile dock's background |
-| `search.kinds` | list of kind names | `[]` | The registered search kinds to search, in the order their groups are shown. Empty searches every registered kind, in registration order; see [Search](search.md#choose-which-kinds-are-searched) |
+| `search.kinds` | list of kind names | `[]` | The registered search kinds to search, in the order their groups are shown. Empty searches every registered kind, in registration order; see [Search](developer/search.md#choose-which-kinds-are-searched) |
 | `table.wrap` | bool | `False` | Project-wide default for whether table cell text wraps |
 | `page_title.layout` | layout name, or a dict of layout names by page type | `{"page": "default", "form": "default", "detail": "default", "delete": "default", "list": "inline", "table": "compact"}` | The layout every page's title is drawn in; see [`page_title.layout`](#page_titlelayout) |
 | `icon_stylesheet` | URL, static file path or `None` | Bootstrap Icons 1.13.1 on jsDelivr | The stylesheet that draws the icon set; see [Where the icons come from](icons.md#where-the-icons-come-from) |
