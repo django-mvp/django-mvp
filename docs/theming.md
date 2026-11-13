@@ -66,6 +66,10 @@ the page to see the whole theme at once. The stylesheet is plain CSS, so nothing
 Set `default` and `dark` together. The toggle switches between exactly those two names, so
 changing one alone leaves it moving between a theme you chose and one you did not.
 
+A site with one theme sets `dark` to the same name as `default` and leaves `choices` empty, or
+sets `choices` to that one name. `<c-mvp.actions.theme-controller />` then renders nothing, in the
+navbar and in the sidebar footer alike, because there is no other theme to switch to.
+
 A visitor who has already used your site has their choice stored in `localStorage`, and that
 is read before `default`. Upgrading the package does not move them, by design, because a stored
 value is a choice someone made. They reach the new pair by using the switcher.
