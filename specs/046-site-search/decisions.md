@@ -143,3 +143,24 @@ every backend. A PostgreSQL service in CI for one feature would cost every pull 
 start.
 
 **ADR:** none — local to this feature's verification
+
+## D16: A kind's label and description are public
+
+Every reader sees every active kind's label and description in the hints, and its name with a
+count on the results page, including a kind whose records that reader may never open. Records are
+scoped by the request (D3), so this discloses only that a kind exists. A kind that hides itself
+from a request would be a change to the specification, and nothing in the request asks for one.
+`docs/search.md` says a kind's label is public.
+
+**ADR:** none — local to this feature, documented in docs/search.md
+
+## D17: Design review outcome
+
+One verified high finding, a query holding a double quote crashing the SQLite search, is fixed in
+the plan: the model kind removes double quotes before searching. The model kind's visibility method
+lost its default, so a kind cannot list every record by omission. The narrow button follows
+`mvp-mobile-only`, the registry is one class, the PostgreSQL run is a task, and the test settings,
+fixtures and smoke test are planned for. The disclosure of kind names is accepted as D16.
+
+**ADR:** none — a record of this feature's design review
+

@@ -55,12 +55,18 @@ runtime dependency.
 - `FunctionKind(function, name, label, icon, description="")`: what `register()` wraps a plain
   function in. The function takes `(query, request)` and returns a list of `Result`.
 - `ModelKind(Kind)`: class attribute `model`. `get_queryset(request)` returns the records the
-  request may see, defaulting to the model's default manager. `find()` searches
+  request may see, and has no default: a model kind that does not define it raises
+  `ImproperlyConfigured` naming the kind (SEC-002). `find()` removes every `"` from the query first, because modelsearch's SQLite
+  backend passes it unescaped into an FTS5 `MATCH` and raises (SEC-001), then searches
   `model._default_manager.filter(pk__in=get_queryset(request).values("pk"))` through
   `modelsearch.backends.get_search_backend()`, whole-word first, completion when that finds nothing
   and the model has completion fields (D12, D13). `title(obj)` is `str(obj)`, `url(obj)` is
   `get_absolute_url()`, `where(obj)` is the model's `verbose_name`, `passage(obj)` is `""`. A
   subclass overrides any of them. The developer's model needs no special manager.
+- `SearchRegistry`: one class holding the kinds in registration order, with the methods
+  `register`, `registered`, `active` and `search` below, and one module-level instance.
+  `mvp.search.register` and `mvp.search.search` are thin wrappers over it (Article X). Tests swap
+  the instance.
 - `register(kind_or_function, *, name=None, label=None, icon=None, description="")`: registers a
   `Kind` instance under its name, or wraps a function. A second registration under one name
   replaces nothing and raises `ImproperlyConfigured`. `registered()` lists kinds in registration
@@ -71,8 +77,9 @@ runtime dependency.
   returns no groups. Nothing ranks across kinds (D4). An error raised by a kind propagates (D8).
 - Checks, registered with the `urls` tag: `mvp.E004` a setting names an unregistered kind,
   `mvp.E005` the search's addresses are mounted but no kind is active, `mvp.E006` a model kind's
-  model is not indexed by modelsearch, `mvp.E007` its model lacks a `FilterField` on the primary
-  key, `mvp.E008` a model kind is registered and `modelsearch` is not in `INSTALLED_APPS`,
+  model is not indexed by modelsearch, `mvp.E007` its model lacks a `FilterField` whose `get_attname(model)` equals
+  `model._meta.pk.attname` (`index.FilterField("id")`, never `"pk"`, which modelsearch does not
+  match), `mvp.E008` a model kind is registered and `modelsearch` is not in `INSTALLED_APPS`,
   `mvp.E009` `mvp.actions.search` is in `layout.navbar.end` and the search's addresses are not
   mounted.
 - `mvp/search/urls.py`: `""` → `SearchView` (`mvp-search`), `"panel/"` → `search_panel`
@@ -88,7 +95,7 @@ runtime dependency.
 ### Templates and components (ported, `planning-notes.md` note 3)
 
 - `c-mvp.actions.search`: the widget. Draws `c-mvp.search.field` (wide, `mvp-desktop-only`),
-  `c-mvp.search.button` (narrow, `mvp-dock-only`) and `c-mvp.search.dialog`.
+  `c-mvp.search.button` (narrow, `mvp-mobile-only`) and `c-mvp.search.dialog`.
 - `c-mvp.search.field`: the pill with the Ctrl K hint, `aria-keyshortcuts`, opens `#mvp-search`.
 - `c-mvp.search.button`: the icon button, opens `#mvp-search`.
 - `c-mvp.search.dialog`: daisy-cotton's `c-modal` at the top, id `mvp-search`, a `role="search"`
@@ -120,5 +127,5 @@ US1 first, then US2. Four groups (`tasks.md`), each one dispatch on this worktre
 - modelsearch's SQLite backend needs its FTS table created by its migration. The suite's test
   database runs migrations, and the demo's dev database needs `migrate` and
   `rebuild_modelsearch_index` once.
-- `mvp-desktop-only` and `mvp-dock-only` follow the sidebar breakpoint. With the breakpoint at
-  `never`, the field is never drawn and the button always is. That is the intended reading.
+- `mvp-desktop-only` and `mvp-mobile-only` follow the sidebar breakpoint. Under `never` only the
+  field is drawn, at every width, because `mvp-mobile-only` stands down there (ARCH-001).
