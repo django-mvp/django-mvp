@@ -166,13 +166,15 @@ fixtures and smoke test are planned for. The disclosure of kind names is accepte
 
 ## D18: The side drawer's slide test is timing-sensitive under a loaded full run
 
-`tests/test_components/test_page_side_e2e.py::TestSideDrawerSlide` samples the drawer 200
-milliseconds into its slide and expects it to be part-way. In a full parallel run of this branch,
-which adds a dozen browser tests, the sample sometimes lands after the slide has finished, so the
-drawer reads as already open. The test passes on its own, after the search's browser tests in one
-process, and six times in a row in its own parallel run. Nothing in the search touches the side
-panel, its styles or its script. The test is left as it is, and the failure is reported with the
-pull request rather than worked around.
+`tests/test_components/test_page_side_e2e.py::TestSideDrawerSlide` clicks the drawer's button,
+waits 200 milliseconds and expects the 300 millisecond slide to be part-way. In a full parallel run
+of this branch the sample sometimes lands after the slide has finished, so the drawer reads as
+already open. Its test page is the demo's, which now draws the search in its navbar: with the
+widget removed from the demo's navbar the full run passed, and with it the full run failed four
+times out of four. The test passes on its own, after the search's browser tests in one process,
+and in full runs of main. Nothing in the search changes the drawer, its styles or its script, and
+the drawer still slides. The test's fixed 200 millisecond sample is what breaks under load, and
+it is left as it is for the maintainer's call rather than loosened here.
 
 **ADR:** none — a note on an existing test's timing, local to this feature's verification
 
