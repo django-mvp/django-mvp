@@ -14,7 +14,7 @@ team and Wagtail depends on it. django-watson fits the shape of the issue best b
 release since January 2023. django-haystack needs a search server for every project.
 `django.contrib.postgres.search` is PostgreSQL only.
 
-**ADR:** to be graduated at convergence, with D11
+**ADR:** docs/adr/0042-modelsearch-is-the-supported-search-package.md
 
 ## D2: A kind is anything that answers a query for a request
 
@@ -103,7 +103,7 @@ model kind does. A guarded module would add an import guard, a second documentat
 error a developer meets the first time they write a model kind. ADR 0033 made the same call for
 django-filter.
 
-**ADR:** to be graduated at convergence
+**ADR:** docs/adr/0042-modelsearch-is-the-supported-search-package.md
 
 ## D12: A model kind narrows by primary key
 
@@ -115,7 +115,7 @@ every visibility rule. A system check reports a model kind whose model lacks it,
 indexed, or a model kind registered without `modelsearch` installed. Checked on SQLite and
 PostgreSQL (`research.md`, note 6).
 
-**ADR:** to be graduated at convergence
+**ADR:** docs/adr/0043-a-model-kind-narrows-by-primary-key.md
 
 ## D13: Completion is the fallback, whole-word search the default
 
