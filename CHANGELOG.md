@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The theme control, `c-mvp.actions.theme-controller`, renders nothing when only one theme is reachable: `MVP_CONFIG["theme"]["dark"]` names the same theme as `default` and `choices` is empty, or `choices` names only `default`. Before, the sidebar footer and the navbar showed a toggle that switched the page to the theme it was already on.
+
 ## [v0.34.2] - 2026-11-09
 
 ### Fixed
