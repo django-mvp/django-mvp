@@ -53,6 +53,9 @@ the box. **Things should just work.**
 - **Views that do the boring parts** — list pages with admin-style search, whitelisted
   ordering and pagination; form pages rendered with crispy-forms; delete
   flows with related-object summaries and type-to-confirm; styled error pages.
+- **One site search** — a navbar field and dialog, opened with Ctrl K, that searches
+  every kind of result a project registers (its models, its pages, a package's
+  content) and shows one group per kind. Each kind decides what a visitor may see.
 - **Menus in Python** — sidebar and mobile-dock navigation via
   [django-flex-menus](https://github.com/SamuelJennings/django-flex-menus), with active
   states, icons and badges handled for you.

@@ -204,6 +204,48 @@ kind's own `more_url(query)` when it gives one, and otherwise to the results
 page narrowed to that kind. The results page lists the narrowing link too, and
 adds the kind's own address beside it.
 
+## Place the search widget
+
+The widget is the bundled navbar action `mvp.actions.search`: a search field on
+a wide screen, a button on a narrow one, and the dialog both open. Ctrl K (⌘ K
+on a Mac) opens the dialog from anywhere.
+
+1. Mount the search's pages, as described above. The widget fetches its results
+   from them.
+
+2. Add the widget to `layout.navbar.end`.
+
+    ```python
+    # settings.py
+    MVP_CONFIG = {
+        "layout": {
+            "navbar": {"end": ["mvp.actions.search", "mvp.actions.login"]},
+        },
+    }
+    ```
+
+Naming the widget without mounting the pages is reported as `mvp.E009`. The
+widget replaced the earlier `c-mvp.actions.search` button, which linked to a
+page of your own: it now opens this search, so a project that placed it before
+needs the pages mounted.
+
+## Ship a kind in a package
+
+A package that has searchable content registers its own kind, so a project gets
+the search by installing it.
+
+1. Register the kind from the package's `AppConfig.ready`, as for a function
+   kind. Give `name` a prefix the package owns, because names are unique across
+   every installed package.
+
+2. Tell the project's developers to add the name to `search.kinds` if they
+   limit the kinds. A project that leaves the setting empty searches the
+   package's kind with no further step.
+
+3. For a model kind, document that the project needs `modelsearch` in
+   `INSTALLED_APPS` and a run of `migrate`. A model kind registered without it is
+   reported as `mvp.E008`.
+
 ## Where kinds are kept
 
 Registered kinds live in one `SearchRegistry`, held in
@@ -267,3 +309,20 @@ it. Each error says which kind or name is at fault.
 | `mvp.E007` | The model has no `FilterField` on its primary key | Add `index.FilterField("id")`, naming the key by its real field name. `FilterField("pk")` does not count |
 | `mvp.E008` | A model kind is registered and `modelsearch` is not installed | Add `modelsearch` to `INSTALLED_APPS` and run `migrate` |
 | `mvp.E009` | `mvp.actions.search` is in `layout.navbar.end` and the search's addresses are not mounted | Mount them with `path("search/", include("mvp.search.urls"))` |
+
+## The demo
+
+The demo registers three kinds in `demo/apps.py`: `ProductKind` and
+`ArticleKind`, which search models indexed with `modelsearch`, and a function
+kind over the component pages. Draft articles are listed only for staff. The
+demo mounts the pages at `search/`, puts the widget in its navbar and sets
+`search.kinds` to order the groups. Run `migrate` once, then
+`rebuild_modelsearch_index` to index the records already in the database.
+
+## Why a kind decides what a request sees
+
+Each kind scopes its own records and nothing is filtered afterwards. A record a
+visitor may not open is then never listed, never counted and never linked, which
+a filter applied to a page of results could not promise. That is also why a
+model kind has no default `get_queryset`: a kind that searched every record by
+default would show a visitor whatever its author forgot to hide.
