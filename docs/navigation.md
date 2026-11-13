@@ -142,9 +142,12 @@ heading is drawn without the line:
 
 ```python
 MenuGroup(
-    name="levels",
-    extra_context={"label": "Levels", "divider": False},
-    children=[...],
+    name="reports",
+    extra_context={"label": "Reports", "divider": False},
+    children=[
+        MenuItem(name="sales", view_name="reports:sales",
+                 extra_context={"label": "Sales"}),
+    ],
 )
 ```
 
