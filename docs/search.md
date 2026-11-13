@@ -95,3 +95,36 @@ address the kind gives for its own full list, or `None`.
 
 Results are never ranked across kinds. Each kind keeps its own order, and the
 groups follow the order of registration.
+
+## Choose which kinds are searched
+
+By default a search asks every registered kind, in the order they were
+registered. To search only some, or to change the order the groups come back
+in, name the kinds in `MVP_CONFIG`.
+
+1. Set `search.kinds` to the names, in the order you want the groups.
+
+    ```python
+    # settings.py
+    MVP_CONFIG = {
+        "search": {"kinds": ["people", "pages"]},
+    }
+    ```
+
+A kind left out is never asked. A name no kind is registered under is skipped.
+An empty list, the default, uses every registered kind.
+
+## Run a search from Python
+
+`mvp.search.search(request, query, limit)` returns one `Group` per active kind.
+
+```python
+from mvp.search import search
+
+groups = search(request, "invoice", 4)
+```
+
+The query is stripped and cut to 100 characters before any kind sees it, and a
+query that is empty or only spaces returns no groups. `limit` is the most
+results in each group. An error raised inside a kind is not caught, so a broken
+kind shows up as an error rather than a quietly empty group.

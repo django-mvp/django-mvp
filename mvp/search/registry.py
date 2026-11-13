@@ -8,7 +8,10 @@ from typing import Any
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
-from mvp.search.kinds import FunctionKind, Kind, Result
+from mvp.config import MVP_CONFIG
+from mvp.search.kinds import FunctionKind, Group, Kind, Result
+
+QUERY_MAX = 100
 
 
 class SearchRegistry:
@@ -63,6 +66,39 @@ class SearchRegistry:
     def registered(self) -> list[Kind]:
         """Return every registered kind, in registration order."""
         return list(self.kinds.values())
+
+    def active(self) -> list[Kind]:
+        """Return the kinds a search uses.
+
+        Returns:
+            The kinds ``MVP_CONFIG["search"]["kinds"]`` names, in that order, or
+            every registered kind when the setting is empty. A name no kind is
+            registered under is skipped.
+        """
+        names = MVP_CONFIG["search"]["kinds"]  # type: ignore[index]
+        if not names:
+            return self.registered()
+        return [self.kinds[name] for name in names if name in self.kinds]
+
+    def search(self, request: HttpRequest, query: str, limit: int) -> list[Group]:
+        """Search every active kind for a query.
+
+        The query is stripped and cut to ``QUERY_MAX`` characters before any
+        kind sees it. Nothing is ranked across kinds.
+
+        Args:
+            request: The request the search is for.
+            query: What the visitor typed.
+            limit: The most results to put in each group.
+
+        Returns:
+            One group per active kind, in order, or an empty list when the query
+            is empty. An error raised by a kind is not caught.
+        """
+        query = query.strip()[:QUERY_MAX].strip()
+        if not query:
+            return []
+        return [kind.group(query, request, limit) for kind in self.active()]
 
 
 default_registry = SearchRegistry()

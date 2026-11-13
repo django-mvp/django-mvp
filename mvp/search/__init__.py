@@ -6,5 +6,14 @@ docs/search.md.
 
 from mvp.search.kinds import FunctionKind, Group, Kind, Result
 from mvp.search.registry import register, registered
+from mvp.search.search import search
 
-__all__ = ["FunctionKind", "Group", "Kind", "Result", "register", "registered"]
+__all__ = [
+    "FunctionKind",
+    "Group",
+    "Kind",
+    "Result",
+    "register",
+    "registered",
+    "search",
+]
