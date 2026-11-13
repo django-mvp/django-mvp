@@ -209,3 +209,15 @@ The query is stripped and cut to 100 characters before any kind sees it, and a
 query that is empty or only spaces returns no groups. `limit` is the most
 results in each group. An error raised inside a kind is not caught, so a broken
 kind shows up as an error rather than a quietly empty group.
+
+## Fix a start-up check error
+
+`manage.py check` reports a mistake in the search setup before a visitor meets
+it. Each error says which kind or name is at fault.
+
+| Error | Cause | Fix |
+| --- | --- | --- |
+| `mvp.E004` | `search.kinds` names a kind nothing registers | Register the kind from `AppConfig.ready`, or remove the name |
+| `mvp.E006` | A model kind's model is not indexed | Make the model inherit `index.Indexed` and give it `search_fields` |
+| `mvp.E007` | The model has no `FilterField` on its primary key | Add `index.FilterField("id")`, naming the key by its real field name. `FilterField("pk")` does not count |
+| `mvp.E008` | A model kind is registered and `modelsearch` is not installed | Add `modelsearch` to `INSTALLED_APPS` and run `migrate` |
