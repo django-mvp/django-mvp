@@ -23,6 +23,20 @@ from mvp.search.kinds import FunctionKind
 from mvp.search.model_kind import ModelKind
 from tests.testapp_search.models import Note, PlainNote
 
+# The demo mounts the search and puts its widget in the navbar. These tests
+# describe a host that has done neither, so they start from one.
+pytestmark = pytest.mark.urls("tests.urls_unmounted")
+
+
+@pytest.fixture(autouse=True)
+def navbar_without_the_search_widget(monkeypatch):
+    navbar = MVP_CONFIG["layout"]["navbar"]
+    monkeypatch.setitem(
+        navbar,
+        "end",
+        [name for name in navbar["end"] if name != "mvp.actions.search"],
+    )
+
 
 class NoteKind(ModelKind):
     name = "notes"

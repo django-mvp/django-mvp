@@ -6,6 +6,7 @@ Source: demo/search.py, demo/apps.py, demo/urls.py
 import pytest
 from django.urls import reverse
 
+from mvp.search.checks import check_search
 from tests.factories import ArticleFactory, ProductFactory
 
 
@@ -65,3 +66,8 @@ class TestDemoSearchKinds:
         content = search("quarterly").content.decode()
 
         assert reverse("article-detail", kwargs={"pk": article.pk}) in content
+
+
+class TestDemoSearchSetup:
+    def test_the_demos_settings_report_nothing(self):
+        assert check_search(None) == []
