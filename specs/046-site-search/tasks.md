@@ -154,3 +154,27 @@ navbar. A test that the demo's search finds a product and a component page from 
 (SC-001). `docs/developer/search.md` complete and in the table of contents, the README feature list,
 CONTEXT glossary entries for kind, result and group, the CHANGELOG entry with the breaking change
 to `c-mvp.actions.search`.
+
+---
+
+## Review fixes
+
+#### T009 [US1] — A kind counts and slices without loading every match
+
+`Kind.group` takes the total and the slice the way Django's `Paginator` does, with `count()` when
+the sequence has one. `ModelKind.find` tests `count()` before falling back to completion. The
+narrowed results page searches its kind once. A test pins the query count and fails on the old
+`len()`.
+
+#### T010 [US2] — The dialog's results follow the listbox pattern
+
+Each group in the panel is `role="group"` labelled by its heading, the list markup is
+presentational, and every result and link is an option. A test reads that structure from the
+rendered panel.
+
+#### T011 [US2] — Documentation and the empty narrowed kind
+
+The worked override in `docs/configuration.md`, the kind-class example's imports, two comments
+pointing at the old page path, the description of the old navbar widget, the order the groups
+follow, and the component row naming the mount it needs. A results page narrowed to a kind that
+found nothing says so.
