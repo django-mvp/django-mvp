@@ -12,7 +12,7 @@
   </a>
 {% else %}
   <a href="{{ result.url }}" class="mvp-search-result">
-    <span class="mvp-search-result-icon"><c-icon name="{{ icon }}" aria-hidden="true" only /></span>
+    {% if icon %}<span class="mvp-search-result-icon"><c-icon name="{{ icon }}" aria-hidden="true" only /></span>{% endif %}
     <span class="mvp-search-result-text">
       <span class="mvp-search-hit-title">{{ result.title }}</span>
       <span class="mvp-search-hit-where">{{ result.where }}</span>
