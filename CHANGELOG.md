@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.35.2] - 2026-11-13
+
 ### Added
 
 - A sidebar `MenuGroup` can leave out the divider line above its heading with `"divider": False` in its `extra_context`, for a sidebar whose headings already set the groups apart. A group that does not set it keeps the line. See `docs/navigation.md`.
