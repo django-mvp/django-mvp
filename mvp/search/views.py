@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
 from mvp.search import registry
-from mvp.search.registry import QUERY_MAX
+from mvp.search.registry import normalise_query
 from mvp.views import MVPTemplateView
 
 PANEL_LIMIT = 4
@@ -27,7 +27,7 @@ def clean_query(request: HttpRequest) -> str:
     Returns:
         The query, stripped and cut to the longest the search allows.
     """
-    return request.GET.get("q", "").strip()[:QUERY_MAX].strip()
+    return normalise_query(request.GET.get("q", ""))
 
 
 def search_panel(request: HttpRequest) -> HttpResponse:

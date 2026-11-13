@@ -220,7 +220,7 @@ Bundled widgets:
 | `mvp.actions.language-switcher` | Language dropdown; renders nothing without i18n and a `set_language` URL |
 | `mvp.actions.language-switcher-modal` | Same choices in a modal grid, better for touch and narrow slots |
 | `mvp.actions.login` | Log-in button; renders nothing for an authenticated visitor |
-| `mvp.actions.search` | Presentation only: a search icon styled as a button beside an input with no name, no form and no handler. It submits nothing — wire up your own |
+| `mvp.actions.search` | The site search: a search field on a wide screen, a button on a narrow one, and the dialog both open. Ctrl K (⌘ K on a Mac) opens it from anywhere. Needs `path("search/", include("mvp.search.urls"))` mounted; see [Search](developer/search.md) |
 
 ## `layout.navbar`
 

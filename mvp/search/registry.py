@@ -14,6 +14,18 @@ from mvp.search.kinds import FunctionKind, Group, Kind, Result
 QUERY_MAX = 100
 
 
+def normalise_query(query: str) -> str:
+    """Clean what a visitor typed the way every search does.
+
+    Args:
+        query: The raw text.
+
+    Returns:
+        The text stripped and cut to ``QUERY_MAX`` characters.
+    """
+    return query.strip()[:QUERY_MAX].strip()
+
+
 class SearchRegistry:
     """The kinds registered for a site, in the order they were registered."""
 
@@ -95,7 +107,7 @@ class SearchRegistry:
             One group per active kind, in order, or an empty list when the query
             is empty. An error raised by a kind is not caught.
         """
-        query = query.strip()[:QUERY_MAX].strip()
+        query = normalise_query(query)
         if not query:
             return []
         return [kind.group(query, request, limit) for kind in self.active()]

@@ -305,7 +305,7 @@ c-mvp.actions.theme-controller
 c-mvp.actions.theme-cycle — one button: light, dark, then automatic (follows the device)
 c-mvp.actions.language-switcher
 c-mvp.actions.language-switcher-modal — the language choices in a dialog, for narrow slots
-c-mvp.actions.search
+c-mvp.actions.search    — the site search: a field or a button, and its dialog
 c-mvp.actions.login     — navbar log-in button, renders only when anonymous
 ```
 
