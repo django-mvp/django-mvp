@@ -182,3 +182,9 @@ found nothing says so.
 #### T012 [US2] — The narrowed results page counts the other kinds without fetching them
 
 Each other kind's count for its narrowing link comes from `count()` alone.
+
+#### T013 [US2] — The dialog card takes the agreed look
+
+The search's styles sit outside the components layer, because daisyUI draws `.modal-top` and
+`.input` in its utilities layer and would otherwise override them. The card is centred with
+rounded top corners, inset by half a rem on a phone, and the field has only a rule beneath it.
