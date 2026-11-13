@@ -125,6 +125,7 @@ fails with a traceback, rather than leaving a silently empty menu.
 | `label` | display text |
 | `icon` | [easy-icons](getting-started.md#configure-icons) icon name |
 | `badge` | badge text next to the label |
+| `divider` | `MenuGroup` only. `False` leaves out the divider line drawn above the group's heading. |
 
 `view_name` (a `MenuItem` constructor argument, not `extra_context`) is resolved with
 `reverse()`; pass `url` instead for external or hard-coded links. `label` defaults to
@@ -134,6 +135,21 @@ These three keys aren't read the same way everywhere. An item with a URL draws a
 three. A `MenuCollapse` draws its `label` and `icon`, and a `MenuGroup` heading draws its
 `label` alone. Neither draws a `badge`. In the mobile dock, `icon` and `label` render
 but `badge` does not.
+
+A `MenuGroup` draws a divider line above its heading, which sets it apart from the items
+before it. Where the headings alone set the groups apart, pass `"divider": False` and the
+heading is drawn without the line:
+
+```python
+MenuGroup(
+    name="reports",
+    extra_context={"label": "Reports", "divider": False},
+    children=[
+        MenuItem(name="sales", view_name="reports:sales",
+                 extra_context={"label": "Sales"}),
+    ],
+)
+```
 
 ## Active state
 
