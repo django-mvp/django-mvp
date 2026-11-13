@@ -317,7 +317,7 @@ c-mvp.actions.theme-controller
 c-mvp.actions.theme-cycle — one button: light, dark, then automatic (follows the device)
 c-mvp.actions.language-switcher
 c-mvp.actions.language-switcher-modal — the language choices in a dialog, for narrow slots
-c-mvp.actions.search    — the site search: a field or a button, and its dialog. Opens the search and needs `mvp.search.urls` mounted; it no longer links to a page of the project's own
+c-mvp.actions.search    — the site search: a field or a button, and its dialog. Opens the search and needs `mvp.search.urls` mounted; it used to draw an input wired to nothing
 c-mvp.search.field      — the search field with its Ctrl K hint, shown on wide screens
 c-mvp.search.button     — the search button, shown on narrow screens
 c-mvp.search.dialog     — the dialog: a combobox input and a listbox of results

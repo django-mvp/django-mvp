@@ -83,7 +83,7 @@ MVP_CONFIG = {
     "theme": {"choices": ["light", "dark", "dracula"]},
     "layout": {
         "sidebar": {"title": "Acme"},
-        "navbar": {"end": ["mvp.actions.search", "mvp.actions.login"]},
+        "navbar": {"end": ["mvp.actions.theme-controller", "mvp.actions.login"]},
     },
 }
 ```

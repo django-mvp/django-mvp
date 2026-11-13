@@ -15,7 +15,7 @@
           <a class="mvp-search-chip" href="{% querystring kind=chip_kind.name page=None %}"{% if kind == chip_kind %} aria-current="true"{% endif %}>{{ chip_kind.label }} <span class="mvp-search-chip-count">{{ count }}</span></a>
         {% endfor %}
       </div>
-      {% if not total %}
+      {% if not total or kind and not results %}
         <div role="status">
           <p class="font-semibold">{% blocktrans %}Nothing found for “{{ q }}”{% endblocktrans %}</p>
           <p class="text-base-content/70">{% trans "Try a different word, or part of a title." %}</p>

@@ -69,7 +69,9 @@ sequence. Override `result(item)` to turn each item into a `Result`, and
 `more_url(query)` to say where all of the kind's results can be seen.
 
 ```python
-from mvp.search import Kind, register
+from django.utils.translation import gettext_lazy as _
+
+from mvp.search import Kind, Result, register
 
 
 class PeopleKind(Kind):
@@ -225,9 +227,9 @@ on a Mac) opens the dialog from anywhere.
     ```
 
 Naming the widget without mounting the pages is reported as `mvp.E009`. The
-widget replaced the earlier `c-mvp.actions.search` button, which linked to a
-page of your own: it now opens this search, so a project that placed it before
-needs the pages mounted.
+widget replaced the earlier `c-mvp.actions.search`, which drew an input wired to
+nothing: it now opens this search, so a project that placed it before needs the
+pages mounted.
 
 ## Ship a kind in a package
 
@@ -261,7 +263,7 @@ kind found, `more` (how many are not shown) and `more_url`. `more_url` is the
 address the kind gives for its own full list, or `None`.
 
 Results are never ranked across kinds. Each kind keeps its own order, and the
-groups follow the order of registration.
+groups follow `search.kinds`, or registration order when it is empty.
 
 ## Choose which kinds are searched
 

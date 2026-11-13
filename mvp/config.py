@@ -119,7 +119,7 @@ MVP_CONFIG = {
     "search": {
         # Names of the registered search kinds to search, in the order their
         # groups are shown. Empty (the default) searches every registered kind,
-        # in the order they were registered. See docs/search.md.
+        # in the order they were registered. See docs/developer/search.md.
         "kinds": [],
     },
     "table": {

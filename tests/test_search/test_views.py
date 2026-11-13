@@ -264,6 +264,13 @@ class TestSearchView:
         assert 'role="status"' in response.text
         assert [count for kind, count in response.context["chips"]] == [0, 0]
 
+    def test_a_narrowed_kind_that_found_nothing_says_so(self, client, kinds):
+        response = client.get(reverse("mvp-search"), {"q": "heat", "kind": "people"})
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        assert [tag for tag in soup.select("[role=status]") if "heat" in tag.text]
+        assert hit_links(response, "pages") == []
+
     def test_no_query_lists_the_kinds_and_searches_nothing(self, client, kinds):
         response = client.get(reverse("mvp-search"))
 
