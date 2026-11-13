@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.urls import reverse
+from modelsearch import index
 
 
 class Category(models.Model):
@@ -33,7 +34,7 @@ class Category(models.Model):
         return reverse("category-detail", kwargs={"slug": self.slug})
 
 
-class Product(models.Model):
+class Product(index.Indexed, models.Model):
     """Product model for demonstrating various list and detail views."""
 
     STATUS_CHOICES = [
@@ -89,6 +90,14 @@ class Product(models.Model):
     sku = models.CharField(max_length=50, unique=True, null=True, blank=True)
     barcode = models.CharField(max_length=100, null=True, blank=True)
 
+    search_fields = [
+        index.SearchField("name"),
+        index.SearchField("short_description"),
+        index.SearchField("description"),
+        index.AutocompleteField("name"),
+        index.FilterField("id"),
+    ]
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [
@@ -120,7 +129,7 @@ class Product(models.Model):
         return "in_stock"
 
 
-class Article(models.Model):
+class Article(index.Indexed, models.Model):
     """Article model for blog/content demonstrations."""
 
     STATUS_CHOICES = [
@@ -146,6 +155,14 @@ class Article(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     tags = models.CharField(max_length=200, blank=True)
+
+    search_fields = [
+        index.SearchField("title"),
+        index.SearchField("excerpt"),
+        index.SearchField("content"),
+        index.AutocompleteField("title"),
+        index.FilterField("id"),
+    ]
 
     class Meta:
         ordering = ["-published_at", "-created_at"]

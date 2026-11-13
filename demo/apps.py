@@ -14,10 +14,26 @@ class DemoConfig(AppConfig):
     name = "demo"
 
     def ready(self):
-        """Import menu definitions so they register with AppMenu once apps are loaded."""
+        """Import the menu definitions and register the search kinds."""
         import contextlib
+
+        from django.utils.translation import gettext_lazy as _
+
+        from mvp.search import register
+
+        from .search import ArticleKind, ProductKind, find_components
 
         with contextlib.suppress(ImportError):
             from . import menus  # noqa: F401
+
+        register(ProductKind())
+        register(ArticleKind())
+        register(
+            find_components,
+            name="components",
+            label=_("Components"),
+            icon="grid",
+            description=_("Documentation pages for the components"),
+        )
 
     verbose_name = "Demo"
