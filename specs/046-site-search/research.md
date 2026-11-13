@@ -119,3 +119,82 @@ Run on 2026-11-13 in throwaway environments.
 | The installed daisy-cotton's `c-modal` takes a `placement` of `top`, as the prototype's dialog uses | Holds: `placement` accepts top, middle, bottom, start and end. |
 | `c-mvp.actions.search` exists and is the inert navbar input the issue describes | Holds: it draws an input with no name, no form and no handler, and `docs/configuration.md` says so. |
 | django-mvp-sphinx's documentation search answers a query on its own | Holds: `mvp_sphinx.search.DocsSearch(build).results(query)` returns each hit's title, path, anchor and passage, and the prototype used it as one group. |
+
+## Planning notes, answered
+
+1. **A proper survey, and a package that suits every project.** Adopted: the survey above, and
+   modelsearch (D1).
+2. **The package provides components and the host places them.** Adopted. `c-mvp.actions.search`
+   is the navbar widget a project lists in `MVP_CONFIG["layout"]["navbar"]["end"]`, and it is made
+   of three components a project can also place on their own: the wide field, the narrow button
+   and the dialog (D7).
+3. **Port the prototype's look.** Adopted. Each prototype piece lands as the table in
+   `planning-notes.md` says, with the prototype's own class names renamed under `mvp-search-` and
+   its project colours replaced by the theme's base colours. The two result rows become one
+   component, `c-mvp.search.result`, with a `compact` form. The small capitals labels become one
+   rule, `mvp-search-label`. Where the port differs on purpose is listed under "Differs from the
+   prototype" below.
+4. **django-mvp-sphinx's side.** Not adopted here, by design: that package offers its kind in its
+   own change. This feature's function kind is what it plugs into, and the demo proves the same
+   shape with its component pages.
+5. **Dependency or integration.** Adopted as a plain runtime dependency (D11). modelsearch is pure
+   Python, its only other requirement is `django-tasks`, which is pure Python too, and it needs no
+   search server: its database backend uses the project's own SQLite or PostgreSQL. A project that
+   registers no model kind never lists `modelsearch` in `INSTALLED_APPS` and gets no tables from
+   it.
+6. **Visibility querysets and `FilterField`.** Adopted: the model kind narrows by primary key
+   (D12). It searches `model.objects.filter(pk__in=<visibility queryset>.values("pk"))`, so a
+   developer indexes one `FilterField` on the primary key, whatever their permissions filter on.
+   Checked on SQLite and PostgreSQL 17 with Django 6.1: a visibility queryset filtering on an
+   unindexed foreign key, put through the primary-key subquery, counted and sliced the three
+   visible records of seven, for both `search` and `autocomplete`. Without the primary key's
+   `FilterField` the same query raises `FilterFieldError`, so a system check reports a model kind
+   whose model lacks it.
+7. **As-you-type matching.** Adopted: whole-word search first, completion when it finds nothing
+   and the model has completion fields (D13). Completion searches only `AutocompleteField`s, which
+   are titles by modelsearch's own advice, so it is the fallback, not the default.
+8. **Where kinds are registered.** Adopted: `mvp.search.register()`, called from a project's
+   `AppConfig.ready()`, the place Django documents for registration. No module is autodiscovered,
+   because installed packages already ship modules called `search` (django-mvp-sphinx's
+   `mvp_sphinx.search` is one) and importing them for a side effect would be a trap. A package
+   ships a kind class and never registers it.
+9. **The navbar's existing search.** Adopted as D7: `c-mvp.actions.search` keeps its name and
+   becomes the site search's widget. Listed as breaking in the CHANGELOG, because it now needs the
+   search's addresses mounted.
+10. **The dialog's request.** Adopted: htmx is already in the shipped bundle
+    (`assets/js/index.js`), so the field uses `hx-get` with `hx-sync="this:replace"`, which drops a
+    request still running when a newer one starts (spec US2, scenario 6). The keyboard handling is a
+    new module in `assets/js/`, built into `mvp/static/js/django-mvp.js`.
+11. **The results page's address.** Adopted: the search's addresses are `mvp.search.urls`, mounted
+    by the project (`path("search/", include("mvp.search.urls"))`), with the URL names
+    `mvp-search` and `mvp-search-panel`. The components reverse those names. A system check
+    reports the widget placed in the navbar without the addresses mounted.
+
+## What already exists
+
+| Piece | Where the search stopped |
+|---|---|
+| Full-text search, indexing, completion | a maintained package: modelsearch |
+| Fetching the dialog's results as the reader types, dropping stale ones | the shipped bundle: htmx's `hx-get`, `hx-trigger` and `hx-sync` |
+| The dialog itself, opening and closing, focus return on close | the browser: `<dialog>` with `showModal()`, opened by `command="show-modal"`; daisy-cotton's `c-modal` with `placement="top"` |
+| The keyboard shortcuts, the highlight, one Esc | new code: `assets/js/search.js`, ported from the prototype |
+| The results page inside the shell | this repo: `MVPTemplateView` and `page_view.html` |
+| Paging through one kind | Django's `Paginator` and this repo's `c-mvp.pagination` |
+| Narrowing links that keep the query | Django's `{% querystring %}` tag |
+| Wide-only and narrow-only drawing | this repo: `mvp-desktop-only` and `mvp-dock-only` in `mvp/tailwind/base.css` |
+| A navbar widget placed by setting | this repo: `MVP_CONFIG["layout"]["navbar"]["end"]` |
+| Start-up checks | Django's system check framework, registered in `mvp/apps.py` |
+| The kind registry, `Result`, `Group`, the model kind, the views | new code under `mvp/search/` |
+
+## Differs from the prototype
+
+- The field's placeholder and the dialog's label say "Search" and the site's name, not a list of
+  one project's kinds. The hints before typing list the registered kinds, so they carry the same
+  information. A project wanting the prototype's sentence overrides the template.
+- The kinds' icons, labels and descriptions are the demo's, not the prototype's.
+- The results page is a shell page, with the title drawn by the page title, so its heading and
+  spacing follow the package's page layout rather than the prototype's own page styles. The chips,
+  groups and result rows are the prototype's.
+- Narrowing to one kind pages through it (D5). The prototype listed all of them at once.
+- The prototype's link from one kind's group on to a filtered browse page is the kind's own
+  address for the rest (FR-010), shown in place of the "see all" link rather than as an extra line.

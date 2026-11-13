@@ -14,8 +14,7 @@ team and Wagtail depends on it. django-watson fits the shape of the issue best b
 release since January 2023. django-haystack needs a search server for every project.
 `django.contrib.postgres.search` is PostgreSQL only.
 
-**ADR:** to be written at planning, when it is settled whether modelsearch is a dependency of the
-package or a guarded integration.
+**ADR:** to be graduated at convergence, with D11
 
 ## D2: A kind is anything that answers a query for a request
 
@@ -25,11 +24,15 @@ request and returns results with a total. A model kind is the ready-made way to 
 modelsearch, and a function kind is everything else. The documentation search then needs no
 special case, and a package can ship a kind the way it ships a mounted app.
 
+**ADR:** none — the shape of the kind API, documented in docs/search.md
+
 ## D3: Each kind decides what a request may see
 
 The issue says each source decides what the request may see. A model kind takes a queryset
 derived from the request and searches within it, so a record the request may not open is never
 listed and never counted. A count that included hidden records would itself leak that they exist.
+
+**ADR:** none — a requirement of the kind API, documented in docs/search.md
 
 ## D4: No ranking across kinds
 
@@ -38,17 +41,23 @@ a database's full-text search and a documentation index, which do not exist, and
 design has no place to show it. The groups follow the settings' order and each kind keeps its own
 order. The prototype's hand-over left this to this specification and expected the same answer.
 
+**ADR:** none — local to this feature's presentation
+
 ## D5: Narrowing to one kind pages through all of it
 
 In the prototype, narrowing to one kind listed every result at once. A research-data portal can
 hold tens of thousands of matching records, so the narrowed page uses the package's existing
 pagination instead.
 
+**ADR:** none — local to this feature's results page
+
 ## D6: A misconfigured search fails at start-up
 
 A setting naming a kind nobody registered is a typo the developer wants to hear about once, at
 start-up, rather than as a search that silently covers less. A search placed with no kinds would
 show a field that can never find anything. Both are system check errors.
+
+**ADR:** none — system checks, documented in docs/search.md
 
 ## D7: The navbar's search component opens the site search
 
@@ -57,12 +66,16 @@ field that does nothing would be a trap, so the navbar's search becomes the way 
 Whether the component keeps its name or is replaced, with a breaking entry in the CHANGELOG, is
 planning's to decide.
 
+**ADR:** none — a component change recorded in the CHANGELOG
+
 ## D8: A kind that fails is not hidden
 
 A kind that raises while searching could be skipped so the other groups still show. That would
 hide a broken source from the developer in production, where nobody reads the page closely. The
 error goes to Django's error handling like any other view error. A source that is merely empty,
 such as a documentation build not yet made, returns no results, which is its own business.
+
+**ADR:** none — local to this feature
 
 ## D9: Kinds carry an optional description, and results carry no colour
 
@@ -71,8 +84,62 @@ them"), so a kind has an optional description. The prototype also tinted one kin
 the record's own colour. That is one project's look, so it is left to that project's override of
 the result component, not added to the result.
 
+**ADR:** none — local to this feature
+
 ## D10: A query is shortened, not refused
 
 A very long query is cut to a limit before it is searched, as the prototype's field limited it.
 Refusing it would show an error for something a reader did by pasting. The limit itself is
 planning's.
+
+**ADR:** none — local to this feature
+
+## D11: modelsearch is a runtime dependency, not a guarded integration
+
+A guarded integration would spare a site whose only kind is a documentation index one install.
+That install is small and harmless: modelsearch is pure Python, needs only `django-tasks`, and
+creates no tables unless a project lists it in `INSTALLED_APPS`, which only a project with a
+model kind does. A guarded module would add an import guard, a second documentation path and an
+error a developer meets the first time they write a model kind. ADR 0033 made the same call for
+django-filter.
+
+**ADR:** to be graduated at convergence
+
+## D12: A model kind narrows by primary key
+
+modelsearch searches a narrowed queryset only when every field it filters on is indexed as a
+`FilterField`, and a visibility queryset from a permission package filters on fields the
+developer may not even know about. The model kind therefore searches
+`model.objects.filter(pk__in=visible.values("pk"))`: one `FilterField` on the primary key covers
+every visibility rule. A system check reports a model kind whose model lacks it, or is not
+indexed, or a model kind registered without `modelsearch` installed. Checked on SQLite and
+PostgreSQL (`research.md`, note 6).
+
+**ADR:** to be graduated at convergence
+
+## D13: Completion is the fallback, whole-word search the default
+
+modelsearch's completion searches only the fields marked `AutocompleteField` and does not stem.
+Using it always would stop a record being found by its body. The model kind runs whole-word search
+first and, when that finds nothing and the model has completion fields, runs completion on the
+same query. A partly typed last word then still finds a record by its title (FR-009).
+
+**ADR:** none — a behaviour of the model kind, documented in docs/search.md
+
+## D14: Kinds are registered from `AppConfig.ready()`, never autodiscovered
+
+`mvp.search.register()` is called where Django documents registration, in an app's `ready()`.
+Autodiscovering a `search` module in every installed app would import modules that already exist
+for other reasons, such as django-mvp-sphinx's `mvp_sphinx.search`. A package ships a kind class
+and the host registers an instance of it, as it mounts a mounted app.
+
+**ADR:** none — follows the existing mounted-app pattern, documented in docs/search.md
+
+## D15: PostgreSQL is checked by hand, SQLite by the suite
+
+The test suite runs on SQLite, as the package's CI does. The model kind's queries are run against
+PostgreSQL by hand at convergence and recorded in the pull request, and modelsearch's own CI runs
+every backend. A PostgreSQL service in CI for one feature would cost every pull request a database
+start.
+
+**ADR:** none — local to this feature's verification
