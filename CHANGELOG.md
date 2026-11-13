@@ -9,12 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- A site search. Register the kinds of result a project has, with `mvp.search.register` from `AppConfig.ready`, as a function, a `Kind` subclass or a `ModelKind` over a model indexed with `django-modelsearch`, then mount `path("search/", include("mvp.search.urls"))`. `mvp.actions.search` puts a search field and a dialog in the navbar, opened with Ctrl K, and a results page lists one group per kind. Each kind decides from the request what a visitor may see, and `MVP_CONFIG["search"]["kinds"]` chooses and orders the kinds searched. `manage.py check` reports a mistaken setup as `mvp.E004` to `mvp.E009`. The package now depends on `django-modelsearch`. See `docs/developer/search.md`.
+- A site search. Register the kinds of result a project has, with `mvp.search.register` from `AppConfig.ready`, as a function, a `Kind` subclass or a `ModelKind` over a model indexed with `modelsearch`, then mount `path("search/", include("mvp.search.urls"))`. `mvp.actions.search` puts a search field and a dialog in the navbar, opened with Ctrl K, and a results page lists one group per kind. Each kind decides from the request what a visitor may see, and `MVP_CONFIG["search"]["kinds"]` chooses and orders the kinds searched. `manage.py check` reports a mistaken setup as `mvp.E004` to `mvp.E009`. The package now depends on `modelsearch`. See `docs/developer/search.md`.
 - The demo searches its products, its articles and its component pages, and shows draft articles only to staff.
 
 ### Changed
 
-- **Breaking:** `c-mvp.actions.search` opens the site search instead of linking to a page of the project's own, and needs `path("search/", include("mvp.search.urls"))` mounted. A project that lists `mvp.actions.search` in `layout.navbar.end` without mounting the pages gets the system check `mvp.E009`. Mount the pages, or remove the widget.
+- **Breaking:** `c-mvp.actions.search` opens the site search instead of drawing an input wired to nothing, and needs `path("search/", include("mvp.search.urls"))` mounted. A project that lists `mvp.actions.search` in `layout.navbar.end` without mounting the pages gets the system check `mvp.E009`. Mount the pages, or remove the widget.
+
+## [v0.34.3] - 2026-11-13
+
+### Fixed
+
+- The theme control, `c-mvp.actions.theme-controller`, renders nothing when only one theme is reachable: `MVP_CONFIG["theme"]["dark"]` names the same theme as `default` and `choices` is empty, or `choices` names only `default`. Before, the sidebar footer and the navbar showed a toggle that switched the page to the theme it was already on.
 
 ## [v0.34.2] - 2026-11-09
 

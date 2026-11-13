@@ -1,11 +1,14 @@
 {% extends "mvp/landing.html" %}
+{% load static %}
 {% comment %}
   The hero as a landing page composes it: a background image, a height taken
   from the viewport, a title and subtitle for its centred content, and the
-  brand logo above them.
+  brand logo above them. The image is a static file the test server serves,
+  because the browser tests wait for the page's load event and an image from
+  another host holds that event for as long as the host takes to answer.
 {% endcomment %}
 {% block page.hero %}
-  <c-mvp.section.hero title="A banner" subtitle="With a line under it." bg-image="https://picsum.photos/id/237/800/1200" height="80vh">
+  <c-mvp.section.hero title="A banner" subtitle="With a line under it." bg-image="{% static 'dac_bg_white.svg' %}" height="80vh">
     <c-slot name="top">
       <c-mvp.brand.logo max-height="100px" />
     </c-slot>

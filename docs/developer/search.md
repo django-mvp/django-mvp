@@ -90,7 +90,7 @@ register(PeopleKind())
 ## Search a model
 
 A model kind searches the records of one model that
-[django-modelsearch](https://github.com/django-modelsearch/django-modelsearch)
+[modelsearch](https://github.com/wagtail/django-modelsearch)
 indexes. It decides what each request may see, so a record a visitor may not
 open is neither listed nor counted.
 
