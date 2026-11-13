@@ -1,0 +1,10 @@
+"""One search across the kinds of result a site has.
+
+Register a kind with :func:`register`, from ``AppConfig.ready``. See
+docs/search.md.
+"""
+
+from mvp.search.kinds import FunctionKind, Group, Kind, Result
+from mvp.search.registry import register, registered
+
+__all__ = ["FunctionKind", "Group", "Kind", "Result", "register", "registered"]
