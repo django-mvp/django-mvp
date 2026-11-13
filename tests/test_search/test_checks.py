@@ -14,7 +14,8 @@ from mvp.search.checks import (
     unindexed_model_messages,
     unregistered_kind_messages,
 )
-from mvp.search.kinds import FunctionKind, ModelKind
+from mvp.search.kinds import FunctionKind
+from mvp.search.model_kind import ModelKind
 from tests.testapp_search.models import Note, PlainNote
 
 

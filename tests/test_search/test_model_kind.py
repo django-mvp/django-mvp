@@ -7,7 +7,7 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 
-from mvp.search.kinds import ModelKind
+from mvp.search.model_kind import ModelKind
 from tests.factories import NoteFactory
 from tests.testapp_search.models import Note
 

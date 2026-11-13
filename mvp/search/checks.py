@@ -10,7 +10,8 @@ from modelsearch import index
 
 from mvp.config import MVP_CONFIG
 from mvp.search import registry
-from mvp.search.kinds import Kind, ModelKind
+from mvp.search.kinds import Kind
+from mvp.search.model_kind import ModelKind
 
 
 def model_kinds(kinds: Sequence[Kind]) -> list[ModelKind]:
