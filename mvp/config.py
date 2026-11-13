@@ -116,6 +116,12 @@ MVP_CONFIG = {
             "table": "compact",
         },
     },
+    "search": {
+        # Names of the registered search kinds to search, in the order their
+        # groups are shown. Empty (the default) searches every registered kind,
+        # in the order they were registered. See docs/developer/search.md.
+        "kinds": [],
+    },
     "table": {
         # Whether a column's text wraps onto more than one line when the
         # column names neither the "mvp-col-wrap" nor "mvp-col-nowrap" class

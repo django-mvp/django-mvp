@@ -19,8 +19,10 @@ class MvpConfig(AppConfig):
             check_page_title_layout,
         )
         from .mounted import check_mounted_apps
+        from .search.checks import check_search
 
         checks.register(check_mounted_apps, checks.Tags.urls)
         checks.register(check_daisy_cotton_app)
         checks.register(check_page_title_layout)
         checks.register(check_email_brand)
+        checks.register(check_search, checks.Tags.urls)

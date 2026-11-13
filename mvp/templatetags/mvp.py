@@ -715,3 +715,11 @@ def page_querystring(context: template.Context, page, param: str = "page") -> st
     query = context["request"].GET.copy()
     query[param or "page"] = page
     return f"?{query.urlencode()}"
+
+
+@register.simple_tag
+def search_kinds():
+    """Return the kinds the site search uses, for the dialog's opening hints."""
+    from ..search import registry
+
+    return registry.default_registry.active()

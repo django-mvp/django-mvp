@@ -21,6 +21,7 @@ from demo.models import (
     ShipmentLine,
     Task,
 )
+from tests.testapp_search.models import Note
 
 
 class CategoryFactory(DjangoModelFactory):
@@ -100,3 +101,12 @@ class ProjectNoteFactory(DjangoModelFactory):
 
     project = factory.SubFactory(ProjectFactory)
     text = factory.Sequence(lambda n: f"Note {n}")
+
+
+class NoteFactory(DjangoModelFactory):
+    class Meta:
+        model = Note
+
+    title = factory.Sequence(lambda n: f"Note {n}")
+    body = ""
+    public = True

@@ -1,0 +1,55 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.content %}
+  <div class="mvp-search-page">
+    <form method="get" action="{% url 'mvp-search' %}" role="search" class="mvp-search-form">
+      <label class="sr-only" for="mvp-search-q">{% trans "Search" %}</label>
+      <c-icon name="search" aria-hidden="true" only />
+      <input id="mvp-search-q" type="search" name="q" value="{{ q }}" maxlength="100" class="input input-lg w-full">
+      {% if kind %}<input type="hidden" name="kind" value="{{ kind.name }}">{% endif %}
+    </form>
+    {% if q %}
+      <div class="mvp-search-chips" role="group" aria-label="{% trans 'What to show' %}">
+        <a class="mvp-search-chip" href="{% querystring kind=None page=None %}"{% if not kind %} aria-current="true"{% endif %}>{% trans "Everything" %} <span class="mvp-search-chip-count">{{ total }}</span></a>
+        {% for chip_kind, count in chips %}
+          <a class="mvp-search-chip" href="{% querystring kind=chip_kind.name page=None %}"{% if kind == chip_kind %} aria-current="true"{% endif %}>{{ chip_kind.label }} <span class="mvp-search-chip-count">{{ count }}</span></a>
+        {% endfor %}
+      </div>
+      {% if not total or kind and not results %}
+        <div role="status">
+          <p class="font-semibold">{% blocktrans %}Nothing found for “{{ q }}”{% endblocktrans %}</p>
+          <p class="text-base-content/70">{% trans "Try a different word, or part of a title." %}</p>
+        </div>
+      {% elif kind %}
+        <section class="mvp-search-group-page" aria-labelledby="mvp-search-r-{{ kind.name }}">
+          <h2 id="mvp-search-r-{{ kind.name }}" class="mvp-search-group-title"><c-icon name="{{ kind.icon }}" aria-hidden="true" only /> {{ kind.label }}</h2>
+          <ul class="mvp-search-result-list">
+            {% for result in results %}
+              <li><c-mvp.search.result :result="result" :icon="kind.icon" only /></li>
+            {% endfor %}
+          </ul>
+          <c-mvp.pagination :page_obj="page_obj" />
+        </section>
+      {% else %}
+        {% for group in groups %}
+          <section class="mvp-search-group-page" aria-labelledby="mvp-search-r-{{ group.kind.name }}">
+            <div class="mvp-search-group-head">
+              <h2 id="mvp-search-r-{{ group.kind.name }}" class="mvp-search-group-title"><c-icon name="{{ group.kind.icon }}" aria-hidden="true" only /> {{ group.kind.label }}</h2>
+              {% if group.more %}<a class="link" href="{% querystring kind=group.kind.name page=None %}">{% blocktrans count counter=group.total %}See the one result{% plural %}See all {{ counter }}{% endblocktrans %}</a>{% endif %}
+            </div>
+            <ul class="mvp-search-result-list">
+              {% for result in group.results %}
+                <li><c-mvp.search.result :result="result" :icon="group.kind.icon" only /></li>
+              {% endfor %}
+            </ul>
+            {% if group.more and group.more_url %}
+              <p class="mt-2"><a class="link" href="{{ group.more_url }}">{% blocktrans with label=group.kind.label %}More in {{ label }}{% endblocktrans %} →</a></p>
+            {% endif %}
+          </section>
+        {% endfor %}
+      {% endif %}
+    {% else %}
+      {% include "mvp/search/hints.html" %}
+    {% endif %}
+  </div>
+{% endblock page.content %}

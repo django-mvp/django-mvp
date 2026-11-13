@@ -32,6 +32,18 @@ A guarded Python module under `mvp.integrations` that builds on exactly one opti
 
 **Existing integrations:** `django_tables` (django-tables2). django-filter is not one: it is a dependency of the package, because every list page's search, sort and filters come from a filterset (ADR 0033).
 
+### Kind
+
+One sort of thing the site search can find, such as products, pages or people. A kind answers a query for one request and returns what it found; it decides what that request may see. Registered with `mvp.search.register` from `AppConfig.ready`, as a `Kind` subclass, a `ModelKind` over a model `modelsearch` indexes, or a plain function. Its `label` and `description` are shown to every visitor.
+
+### Result
+
+One thing a kind found: a title, an address, a short line saying where it comes from and an optional passage. `mvp.search.Result`.
+
+### Group
+
+What one kind found for one query: the kind, the results to show, the total found and the address of the kind's full list. The search shows one group per active kind and never ranks across groups. `mvp.search.Group`.
+
 ### Filterset
 
 The developer's django-filter class for one model's list, set on a list view as `filterset_class` (or generated from `filterset_fields`). It declares every way the list can be narrowed or ordered: the search (`mvp.filters.SearchFilter`), the sort (`mvp.filters.SortFilter`) and every filter. A list view has no other place to declare search or sort.
@@ -305,7 +317,11 @@ c-mvp.actions.theme-controller
 c-mvp.actions.theme-cycle — one button: light, dark, then automatic (follows the device)
 c-mvp.actions.language-switcher
 c-mvp.actions.language-switcher-modal — the language choices in a dialog, for narrow slots
-c-mvp.actions.search
+c-mvp.actions.search    — the site search: a field or a button, and its dialog. Opens the search and needs `mvp.search.urls` mounted; it used to draw an input wired to nothing
+c-mvp.search.field      — the search field with its Ctrl K hint, shown on wide screens
+c-mvp.search.button     — the search button, shown on narrow screens
+c-mvp.search.dialog     — the dialog: a combobox input and a listbox of results
+c-mvp.search.result     — one result row
 c-mvp.actions.login     — navbar log-in button, renders only when anonymous
 ```
 

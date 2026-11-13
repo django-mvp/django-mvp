@@ -27,6 +27,7 @@ import { registerLayoutStore } from "./layout.js";
 import { registerPageSide } from "./page_side.js";
 import { registerPageSideColumn } from "./page_side_column.js";
 import { startRail } from "./rail.js";
+import { startSearch } from "./search.js";
 import { startThemeColor } from "./theme_color.js";
 import { startThemeCycle } from "./theme_cycle.js";
 
@@ -55,6 +56,10 @@ startHeaderHeight();
 
 // Keeps the icon rail's tooltips and fly-outs beside their item. See rail.js.
 startRail();
+
+// Opens the site search from the keyboard and moves through its results. See
+// assets/js/search.js.
+startSearch();
 
 // theme-change can't notice controls added after it runs, and a boosted
 // navigation swaps the body for identical markup with no listeners: the

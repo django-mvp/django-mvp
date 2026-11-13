@@ -1,0 +1,21 @@
+{% load i18n %}{% if not q %}{% include "mvp/search/hints.html" %}{% elif not groups %}
+<div class="mvp-search-empty" role="status">
+  <p class="font-semibold">{% blocktrans %}Nothing found for “{{ q }}”{% endblocktrans %}</p>
+  <p class="text-sm text-base-content/70">{% trans "Try a different word, or part of a title." %}</p>
+</div>
+{% else %}
+  {% for group in groups %}
+    <section class="mvp-search-group" role="group" aria-labelledby="mvp-search-g-{{ group.kind.name }}">
+      <h3 id="mvp-search-g-{{ group.kind.name }}" class="mvp-search-label" role="presentation"><c-icon name="{{ group.kind.icon }}" aria-hidden="true" only /> {{ group.kind.label }} <span class="mvp-search-total">{{ group.total }}</span></h3>
+      <ul role="presentation">
+        {% for result in group.results %}
+          <li role="presentation"><c-mvp.search.result :result="result" compact only /></li>
+        {% endfor %}
+      </ul>
+      {% if group.more %}
+        <a class="mvp-search-more" role="option" data-mvp-search-hit href="{% if group.more_url %}{{ group.more_url }}{% else %}{% url 'mvp-search' %}?q={{ q|urlencode }}&amp;kind={{ group.kind.name|urlencode }}{% endif %}">{% blocktrans count counter=group.more with label=group.kind.label %}One more in {{ label }}{% plural %}{{ counter }} more in {{ label }}{% endblocktrans %} →</a>
+      {% endif %}
+    </section>
+  {% endfor %}
+  <a class="mvp-search-all" role="option" data-mvp-search-hit href="{% url 'mvp-search' %}?q={{ q|urlencode }}">{% blocktrans %}See every result for “{{ q }}”{% endblocktrans %}</a>
+{% endif %}

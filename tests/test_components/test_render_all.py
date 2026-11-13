@@ -29,6 +29,11 @@ SKIP = {
 TEMPLATES = sorted(
     p.relative_to(COTTON_DIR).as_posix() for p in COTTON_DIR.rglob("*.html")
 )
+# The search components that reverse addresses the default URLconf does not mount.
+SEARCH_TEMPLATES = ["mvp/actions/search.html", "mvp/search/dialog.html"]
+
+# Those two are rendered by TestSearchComponentRenderSmoke instead.
+TEMPLATES = [t for t in TEMPLATES if t not in SEARCH_TEMPLATES]
 
 
 class TestComponentRenderSmoke:
@@ -58,3 +63,19 @@ class TestComponentRenderSmoke:
         # A default written as a template tag reaches the page as source when
         # its library is not loaded where the default is compiled.
         assert "{%" not in html
+
+
+@pytest.mark.urls("tests.urls_search")
+@pytest.mark.django_db
+class TestSearchComponentRenderSmoke:
+    """The search components render where the search's addresses are mounted."""
+
+    @pytest.mark.parametrize("relpath", SEARCH_TEMPLATES)
+    def test_component_template_renders(self, relpath):
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+
+        html = render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
+
+        assert "{%" not in html
+        assert 'id="mvp-search"' in html
