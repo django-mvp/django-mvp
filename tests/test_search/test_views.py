@@ -7,6 +7,7 @@ import html
 import re
 
 import pytest
+from bs4 import BeautifulSoup
 from django.urls import reverse
 
 from mvp.search.kinds import Kind, Result
@@ -140,6 +141,41 @@ class TestSearchPanel:
         response = client.get(reverse("mvp-search-panel"), {"q": "<script>x</script>"})
 
         assert "<script>x</script>" not in response.text
+
+
+class TestSearchPanelListbox:
+    @pytest.fixture
+    def panel(self, client, kinds):
+        response = client.get(reverse("mvp-search-panel"), {"q": "heat"})
+        return BeautifulSoup(response.text, "html.parser")
+
+    def test_each_group_is_a_group_named_by_its_heading(self, panel):
+        groups = panel.select("section")
+
+        assert len(groups) == 2
+        for group in groups:
+            assert group["role"] == "group"
+            assert group.select_one(f"#{group['aria-labelledby']}") is not None
+
+    def test_the_lists_inside_a_group_are_presentational(self, panel):
+        items = panel.select("ul, li")
+
+        assert items
+        assert all(item.get("role") == "presentation" for item in items)
+
+    def test_every_link_is_an_option(self, panel):
+        links = panel.select("a[href]")
+
+        assert len(links) == 7
+        assert all(link.get("role") == "option" for link in links)
+
+    def test_the_more_and_every_result_links_are_options(self, panel):
+        more = panel.select_one(".mvp-search-more")
+        everything = panel.select_one(".mvp-search-all")
+
+        assert more["role"] == everything["role"] == "option"
+        assert more.has_attr("data-mvp-search-hit")
+        assert everything.has_attr("data-mvp-search-hit")
 
 
 class TestSearchView:

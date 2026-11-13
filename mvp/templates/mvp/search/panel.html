@@ -5,11 +5,11 @@
 </div>
 {% else %}
   {% for group in groups %}
-    <section class="mvp-search-group" aria-labelledby="mvp-search-g-{{ group.kind.name }}">
-      <h3 id="mvp-search-g-{{ group.kind.name }}" class="mvp-search-label"><c-icon name="{{ group.kind.icon }}" aria-hidden="true" only /> {{ group.kind.label }} <span class="mvp-search-total">{{ group.total }}</span></h3>
-      <ul>
+    <section class="mvp-search-group" role="group" aria-labelledby="mvp-search-g-{{ group.kind.name }}">
+      <h3 id="mvp-search-g-{{ group.kind.name }}" class="mvp-search-label" role="presentation"><c-icon name="{{ group.kind.icon }}" aria-hidden="true" only /> {{ group.kind.label }} <span class="mvp-search-total">{{ group.total }}</span></h3>
+      <ul role="presentation">
         {% for result in group.results %}
-          <li><c-mvp.search.result :result="result" compact only /></li>
+          <li role="presentation"><c-mvp.search.result :result="result" compact only /></li>
         {% endfor %}
       </ul>
       {% if group.more %}
