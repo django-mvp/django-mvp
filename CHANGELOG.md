@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.35.1] - 2026-11-13
+
 ### Fixed
 
 - The site search's results page fits a phone screen when the kind it is narrowed to has several pages of results. It drew the full row of numbered page links at every width, which pushed the page wider than a 390px screen. It now ends with the same pager as a list page: the numbered links from medium width, and Previous, the page count and Next below it.
