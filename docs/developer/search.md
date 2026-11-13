@@ -160,6 +160,42 @@ A kind's `label` and `description` are shown to every visitor, including one
 who may open none of its records. Records are scoped by the request, so this
 discloses only that the kind exists.
 
+## Mount the search's pages
+
+The search has two pages: the results page and a partial the search dialog
+fetches as the reader types. Mounting them is how a project turns the search
+on.
+
+1. Include the search's addresses in the project's URLconf.
+
+    ```python
+    # urls.py
+    from django.urls import include, path
+
+    urlpatterns = [
+        path("search/", include("mvp.search.urls")),
+    ]
+    ```
+
+2. Open `/search/?q=heat`. Every active kind is a link above the results with
+   how many it found, kinds that found nothing included. Each kind that found
+   something shows its first six results and a link to the rest.
+
+3. Follow a kind's link, or add `kind=<name>` to the address, to see only that
+   kind. Its results come twenty to a page. A `kind` no active kind has is
+   ignored.
+
+The pages work for anonymous visitors. Each kind decides from the request what
+the visitor may see, so a signed-out visitor sees only what the kind lets a
+signed-out request see.
+
+The partial is at `panel/`, under the same prefix. It shows up to four results
+a group, leaves out kinds that found nothing, and for an empty query lists
+every active kind with its description. A group with more results links to the
+kind's own `more_url(query)` when it gives one, and otherwise to the results
+page narrowed to that kind. The results page lists the narrowing link too, and
+adds the kind's own address beside it.
+
 ## Where kinds are kept
 
 Registered kinds live in one `SearchRegistry`, held in
@@ -218,6 +254,8 @@ it. Each error says which kind or name is at fault.
 | Error | Cause | Fix |
 | --- | --- | --- |
 | `mvp.E004` | `search.kinds` names a kind nothing registers | Register the kind from `AppConfig.ready`, or remove the name |
+| `mvp.E005` | The search's addresses are mounted and no kind is active | Register a kind, and check `search.kinds` names one |
 | `mvp.E006` | A model kind's model is not indexed | Make the model inherit `index.Indexed` and give it `search_fields` |
 | `mvp.E007` | The model has no `FilterField` on its primary key | Add `index.FilterField("id")`, naming the key by its real field name. `FilterField("pk")` does not count |
 | `mvp.E008` | A model kind is registered and `modelsearch` is not installed | Add `modelsearch` to `INSTALLED_APPS` and run `migrate` |
+| `mvp.E009` | `mvp.actions.search` is in `layout.navbar.end` and the search's addresses are not mounted | Mount them with `path("search/", include("mvp.search.urls"))` |

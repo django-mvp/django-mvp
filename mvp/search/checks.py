@@ -6,6 +6,7 @@ from typing import Any
 from django.apps import apps
 from django.core import checks
 from django.core.checks import CheckMessage
+from django.urls import NoReverseMatch, reverse
 from modelsearch import index
 
 from mvp.config import MVP_CONFIG
@@ -130,6 +131,69 @@ def missing_modelsearch_messages(
     ]
 
 
+def search_is_mounted() -> bool:
+    """Tell whether the search's addresses are mounted in the project's URLs.
+
+    Returns:
+        ``True`` when ``reverse("mvp-search")`` succeeds.
+    """
+    try:
+        reverse("mvp-search")
+    except NoReverseMatch:
+        return False
+    return True
+
+
+def no_active_kind_messages(
+    active: Sequence[Kind], mounted: bool
+) -> list[CheckMessage]:
+    """Judge whether a mounted search has anything to search.
+
+    Args:
+        active: The kinds the search uses.
+        mounted: Whether the search's addresses are mounted.
+
+    Returns:
+        One ``mvp.E005`` error when the addresses are mounted and no kind is
+        active, and nothing otherwise.
+    """
+    if not mounted or active:
+        return []
+    return [
+        checks.Error(
+            "The search is mounted, but no search kind is active.",
+            hint="Register a kind from AppConfig.ready, and check "
+            'MVP_CONFIG["search"]["kinds"] names one.',
+            id="mvp.E005",
+        )
+    ]
+
+
+def unmounted_widget_messages(
+    navbar_end: Collection[str], mounted: bool
+) -> list[CheckMessage]:
+    """Judge whether the navbar's search widget has addresses to talk to.
+
+    Args:
+        navbar_end: The actions ``layout.navbar.end`` lists.
+        mounted: Whether the search's addresses are mounted.
+
+    Returns:
+        One ``mvp.E009`` error when ``mvp.actions.search`` is in the navbar and
+        the addresses are not mounted, and nothing otherwise.
+    """
+    if mounted or "mvp.actions.search" not in navbar_end:
+        return []
+    return [
+        checks.Error(
+            'MVP_CONFIG["layout"]["navbar"]["end"] lists "mvp.actions.search", '
+            "but the search's addresses are not mounted.",
+            hint='Add path("search/", include("mvp.search.urls")) to the URLconf.',
+            id="mvp.E009",
+        )
+    ]
+
+
 def check_search(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
     """Tell the project when its search kinds or setting are wrong.
 
@@ -138,10 +202,11 @@ def check_search(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
         **kwargs: Anything else Django passes a check. Unused.
 
     Returns:
-        The messages from the four checks above for the registered kinds and the
-        installed apps.
+        The messages from the checks above for the registered kinds, the
+        installed apps and the mounted addresses.
     """
     kinds = registry.default_registry.registered()
+    mounted = search_is_mounted()
     return [
         *unregistered_kind_messages(
             MVP_CONFIG["search"]["kinds"],  # type: ignore[index]
@@ -151,5 +216,10 @@ def check_search(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
         *missing_pk_filter_messages(kinds),
         *missing_modelsearch_messages(
             kinds, [config.name for config in apps.get_app_configs()]
+        ),
+        *no_active_kind_messages(registry.default_registry.active(), mounted),
+        *unmounted_widget_messages(
+            MVP_CONFIG["layout"]["navbar"]["end"],  # type: ignore[index]
+            mounted,
         ),
     ]

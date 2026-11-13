@@ -3,15 +3,20 @@
 Source: mvp/search/checks.py
 """
 
+import pytest
 from django.core import checks
 from django.core.checks.registry import registry
 from modelsearch import index
 
+from mvp.config import MVP_CONFIG
 from mvp.search.checks import (
     check_search,
     missing_modelsearch_messages,
     missing_pk_filter_messages,
+    no_active_kind_messages,
+    search_is_mounted,
     unindexed_model_messages,
+    unmounted_widget_messages,
     unregistered_kind_messages,
 )
 from mvp.search.kinds import FunctionKind
@@ -114,6 +119,43 @@ class TestMissingModelsearchMessages:
         assert missing_modelsearch_messages([function_kind()], ["mvp"]) == []
 
 
+class TestNoActiveKindMessages:
+    def test_a_mounted_search_with_no_active_kind_is_error_e005(self):
+        messages = no_active_kind_messages([], mounted=True)
+
+        assert [message.id for message in messages] == ["mvp.E005"]
+        assert isinstance(messages[0], checks.Error)
+
+    def test_a_kind_or_unmounted_addresses_pass(self):
+        assert no_active_kind_messages([function_kind()], mounted=True) == []
+        assert no_active_kind_messages([], mounted=False) == []
+
+
+class TestUnmountedWidgetMessages:
+    def test_the_widget_without_the_addresses_is_error_e009(self):
+        messages = unmounted_widget_messages(
+            ["mvp.actions.search", "mvp.actions.theme-controller"], mounted=False
+        )
+
+        assert [message.id for message in messages] == ["mvp.E009"]
+        assert isinstance(messages[0], checks.Error)
+
+    def test_the_widget_with_the_addresses_passes(self):
+        assert unmounted_widget_messages(["mvp.actions.search"], mounted=True) == []
+
+    def test_no_widget_passes_whether_or_not_the_addresses_are_mounted(self):
+        assert unmounted_widget_messages(["mvp.actions.theme"], mounted=False) == []
+
+
+class TestSearchIsMounted:
+    def test_it_is_false_where_the_addresses_are_not_mounted(self):
+        assert search_is_mounted() is False
+
+    @pytest.mark.urls("tests.urls_search")
+    def test_it_is_true_where_they_are(self):
+        assert search_is_mounted() is True
+
+
 class TestSearchCheck:
     def test_the_check_is_registered_with_the_urls_tag(self):
         assert check_search in registry.registered_checks
@@ -138,3 +180,19 @@ class TestSearchCheck:
         monkeypatch.setitem(MVP_CONFIG["search"], "kinds", ["ghost"])
 
         assert [message.id for message in check_search(None)] == ["mvp.E004"]
+
+    @pytest.mark.urls("tests.urls_search")
+    def test_mounted_addresses_with_no_kind_are_reported(self):
+        assert [message.id for message in check_search(None)] == ["mvp.E005"]
+
+    @pytest.mark.urls("tests.urls_search")
+    def test_mounted_addresses_with_a_kind_report_nothing(self, search_registry):
+        search_registry.register(function_kind())
+
+        assert check_search(None) == []
+
+    def test_the_widget_without_the_addresses_is_reported(self, monkeypatch):
+        navbar = MVP_CONFIG["layout"]["navbar"]
+        monkeypatch.setitem(navbar, "end", [*navbar["end"], "mvp.actions.search"])
+
+        assert [message.id for message in check_search(None)] == ["mvp.E009"]
