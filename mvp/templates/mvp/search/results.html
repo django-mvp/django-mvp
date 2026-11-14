@@ -28,7 +28,7 @@
               <li><c-mvp.search.result :result="result" :icon="kind.icon" only /></li>
             {% endfor %}
           </ul>
-          <c-mvp.pagination :page_obj="page_obj" />
+          <c-mvp.page.list.footer :page_obj="page_obj" />
         </section>
       {% else %}
         {% for group in groups %}

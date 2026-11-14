@@ -9,7 +9,7 @@
     {% endfor %}
   </c-menu.submenu>
 {% else %}
-  <li></li>
+  {% if divider is not False %}<li></li>{% endif %}
   <c-menu.title text="{{ label }}" class="uppercase" only />
   {% for child in children %}
     {% render_item child renderer=renderer %}

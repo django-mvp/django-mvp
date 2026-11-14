@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.35.2] - 2026-11-13
+
+### Added
+
+- A sidebar `MenuGroup` can leave out the divider line above its heading with `"divider": False` in its `extra_context`, for a sidebar whose headings already set the groups apart. A group that does not set it keeps the line. See `docs/navigation.md`.
+
+## [v0.35.1] - 2026-11-13
+
+### Fixed
+
+- The site search's results page fits a phone screen when the kind it is narrowed to has several pages of results. It drew the full row of numbered page links at every width, which pushed the page wider than a 390px screen. It now ends with the same pager as a list page: the numbered links from medium width, and Previous, the page count and Next below it.
+
 ## [v0.35.0] - 2026-11-13
 
 ### Added
