@@ -110,9 +110,7 @@ class TestModalSlots:
         assert heading.find("i") is not None
 
     def test_actions_sit_at_the_end_of_the_heading_row(self, render_modal):
-        soup = render_modal(
-            slots='<c-slot name="actions"><b id="slot">x</b></c-slot>'
-        )
+        soup = render_modal(slots='<c-slot name="actions"><b id="slot">x</b></c-slot>')
 
         heading_row = soup.select_one(".modal-box h2").parent
         assert heading_row.select_one("#slot") is not None
@@ -131,8 +129,6 @@ class TestModalSlots:
         assert soup.select_one(".modal-action") is None
 
     def test_the_body_is_not_drawn_in_the_action_row(self, render_modal):
-        soup = render_modal(
-            slots='<c-slot name="footer"><b id="slot">x</b></c-slot>'
-        )
+        soup = render_modal(slots='<c-slot name="footer"><b id="slot">x</b></c-slot>')
 
         assert soup.select_one(".modal-action #body") is None

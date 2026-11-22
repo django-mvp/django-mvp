@@ -36,9 +36,9 @@ from pathlib import Path
 
 import pytest
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.contrib import messages
 from django.contrib.messages.storage.base import Message
+from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 

@@ -177,9 +177,7 @@ class TestMessageAction:
 
         assert soup.select_one(".toast > [role='alert'] button[aria-label]")
 
-    def test_a_message_without_an_action_keeps_its_auto_dismiss(
-        self, render_messages
-    ):
+    def test_a_message_without_an_action_keeps_its_auto_dismiss(self, render_messages):
         soup = render_messages(messages.SUCCESS, attrs="dismissible :delay=3000")
 
         alert = soup.select_one(".toast > [role='alert']")
