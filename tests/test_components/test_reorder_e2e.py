@@ -827,6 +827,8 @@ class TestCancellingADrag:
         page.keyboard.press("Escape")
         page.mouse.up()
         assert settled(page, ["a", "b", "c"]) == ["a", "b", "c"]
+        # The rows slide back over 180 ms; measure them only once they have stopped.
+        page.wait_for_timeout(400)
         drag(page, "b", "c")
 
         assert settled(page, ["a", "c", "b"]) == ["a", "c", "b"]
@@ -1486,8 +1488,8 @@ class TestListInADialog:
 
         page.keyboard.press("Escape")
 
+        assert settled(page, ["a", "b", "c"]) == ["a", "b", "c"]
         assert page.evaluate("document.getElementById('box').open") is False
-        assert values(page) == ["a", "b", "c"]
 
     def test_a_row_added_inside_the_dialog_does_not_stop_the_order_returning(
         self, page, live_server
