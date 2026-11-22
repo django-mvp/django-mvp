@@ -64,6 +64,9 @@ PAGE = """
     <input id="typing-field" type="text" aria-label="Note">
   </c-mvp.sheet.view>
 </c-mvp.sheet>
+<c-mvp.sheet id="quoted" title="Quoted">
+  <c-mvp.sheet.view name="it's"><p>Quoted</p></c-mvp.sheet.view>
+</c-mvp.sheet>
 <c-mvp.sheet id="tall" title="Tall">
   {% for row in rows %}<p>Row {{ row }}</p>{% endfor %}
 </c-mvp.sheet>
@@ -72,6 +75,8 @@ PAGE = """
         @click="$dispatch('mvp-sheet-open', { id: 'starts-full' })">Full</button>
 <c-mvp.sheet.trigger for="missing" id="orphan" href="/missing-page/" label="Gone" />
 <c-mvp.sheet.trigger for="before" id="not-a-sheet" href="/not-a-sheet-page/" label="Link" />
+<button type="button" id="open-orders-event" x-data
+        @click="$dispatch('mvp-sheet-open', { id: 'orders', view: 'confirm' })">Orders event</button>
 <button type="button" id="open-tall" x-data @click="$dispatch('mvp-sheet-open', { id: 'tall' })">Tall</button>
 <button type="button" id="open-typing" x-data @click="$dispatch('mvp-sheet-open', { id: 'typing' })">Typing</button>
 {% for row in filler %}<p>Page {{ row }}</p>{% endfor %}
@@ -338,7 +343,29 @@ class TestFocusReturn:
         assert active_id(page) == "before"
 
 
+class TestFocusReturnWithoutAnOpener:
+    @BOTH_WIDTHS
+    def test_a_sheet_opened_by_the_event_hands_focus_on_to_the_element_that_had_it(
+        self, page, live_server, viewport
+    ):
+        open_page(page, live_server, viewport)
+        page.focus("#open-orders-event")
+        page.keyboard.press("Enter")
+        assert open_sheets(page) == ["orders"]
+        page.click("#open-other-plain")
+        assert open_sheets(page) == ["other"]
+
+        page.keyboard.press("Escape")
+
+        expect(page.locator("#open-orders-event")).to_be_focused()
+
+
 class TestViews:
+    def test_a_view_whose_name_holds_a_quote_shows(self, phone):
+        dispatch(phone, id="quoted", view="it's")
+
+        assert shown_views(phone, "quoted") == ["it's"]
+
     def test_a_view_switches_to_another_and_back_while_the_sheet_stays_open(
         self, page, live_server
     ):
@@ -920,6 +947,22 @@ class TestDraggingBetweenHeights:
         assert open_sheets(phone) == ["tall"]
         assert height_of(phone, "tall") == "rest"
         assert settled["top"] == pytest.approx(rest["top"], abs=2)
+
+    def test_a_flick_down_after_dragging_up_toward_full_ends_at_rest_and_open(
+        self, phone
+    ):
+        open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, 80, steps=12, step_ms=40)
+        phone.finger.trace(x, 80, 80, steps=5, step_ms=20)
+        phone.finger.trace(x, 80, 160, steps=2, step_ms=10)
+        phone.finger.up(after_ms=10)
+
+        rest_box(phone, "tall")
+        assert open_sheets(phone) == ["tall"]
+        assert height_of(phone, "tall") == "rest"
 
     def test_a_drag_down_from_full_past_rest_closes_it(self, phone):
         open_sheet(phone, "tall")

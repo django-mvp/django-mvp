@@ -2,4 +2,4 @@
 {# @prop name:text | required | description:"The view's name, such as confirm or rename." #}
 {# @slot <p>What the panel holds.</p> — What the panel holds, such as a question or a form. #}
 <c-vars name />
-<div data-mvp-sheet-view="{{ name }}" x-show="view === '{{ name }}'" x-cloak>{{ slot }}</div>
+<div data-mvp-sheet-view="{{ name }}" x-show="view === $el.dataset.mvpSheetView" x-cloak>{{ slot }}</div>

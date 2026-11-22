@@ -100,7 +100,11 @@ function sheet() {
         (element) => element.dataset.mvpSheetView,
       );
       this.view = names.includes(view) ? view : firstViewName(this.$el);
-      this.returnTo = (returns && document.getElementById(returns)) || opener || null;
+      this.returnTo =
+        (returns && document.getElementById(returns)) ||
+        opener ||
+        document.activeElement ||
+        null;
       openers.set(this.$el, this.returnTo);
       if (!this.$el.open) {
         this.$el.showModal();
@@ -261,7 +265,6 @@ function sheet() {
         restTop: bottom - sizes.rest,
         fullTop: bottom - (hasFull ? sizes.full : sizes.rest),
         hasFull,
-        from: hasFull ? current : "rest",
         startTop: bottom - box.offsetHeight,
       };
     },
@@ -349,22 +352,20 @@ function sheet() {
       this.settle(drag, this.target(drag), drag.top);
     },
 
-    // The nearest of full, rest and closed by the top edge, or one step from where the drag
-    // began when it was fast enough to be a flick.
+    // The nearest of full, rest and closed by the top edge, or one step from the nearer of
+    // full and rest when it was fast enough to be a flick.
     target(drag) {
       const steps = drag.hasFull ? ["full", "rest", "closed"] : ["rest", "closed"];
       const velocity = velocityOf(drag.samples);
+      const nearerFull = drag.hasFull && drag.top < (drag.fullTop + drag.restTop) / 2;
       if (Math.abs(velocity) >= FLICK_VELOCITY) {
-        const step = steps.indexOf(drag.from) + Math.sign(velocity);
+        const step = steps.indexOf(nearerFull ? "full" : "rest") + Math.sign(velocity);
         return steps[Math.min(Math.max(step, 0), steps.length - 1)];
       }
       if (drag.top >= drag.restTop + drag.restHeight * CLOSE_FRACTION) {
         return "closed";
       }
-      if (drag.hasFull && drag.top < (drag.fullTop + drag.restTop) / 2) {
-        return "full";
-      }
-      return "rest";
+      return nearerFull ? "full" : "rest";
     },
 
     // Slide the box from `top` to `name`, then make that the state. Reduced motion skips the slide.
@@ -377,13 +378,14 @@ function sheet() {
         end.shift = geometry.edge - (geometry.bottom - start.height);
       }
       this.commit = () => {
-        this.animation?.cancel();
-        this.animation = null;
         this.commit = null;
         if (name === "closed") {
+          // The slide keeps the box off screen while the dialog fades; afterClose clears it.
           this.$el.close();
           return;
         }
+        this.animation?.cancel();
+        this.animation = null;
         this.setHeight(name);
         this.clearGesture();
       };

@@ -183,7 +183,6 @@ class TestSheetView:
         view = soup.select_one("[data-mvp-sheet-view=confirm]")
         assert view.has_attr("x-show")
         assert "view" in view["x-show"]
-        assert "confirm" in view["x-show"]
         assert view.select_one("#ask") is not None
 
 
