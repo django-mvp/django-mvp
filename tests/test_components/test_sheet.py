@@ -44,6 +44,21 @@ class TestSheetDialog:
 
         assert len(soup.select("dialog h2")) == 1
 
+    def test_the_title_and_the_line_under_it_sit_in_a_div(self, render_sheet):
+        soup = render_sheet(attrs='lead="Three open"')
+
+        names = soup.select_one(".mvp-sheet-names")
+        assert names.name == "div"
+        assert names.select_one("h2") is not None
+
+    def test_a_fixed_sheets_grab_bar_is_not_a_button(self, render_sheet):
+        soup = render_sheet(attrs="fixed")
+
+        grab = soup.select_one("[data-mvp-sheet-grab]")
+        assert grab.name != "button"
+        assert grab["aria-hidden"] == "true"
+        assert not grab.has_attr("tabindex")
+
     def test_the_grab_bar_is_a_button_with_a_name(self, render_sheet):
         soup = render_sheet()
 
@@ -186,7 +201,10 @@ class TestSheetView:
         assert view.select_one("#ask") is not None
 
 
-TRIGGER = '<c-mvp.sheet.trigger for="more" label="Orders" {attrs}>{slot}</c-mvp.sheet.trigger>'
+TRIGGER = (
+    '<c-mvp.sheet.trigger for="more" label="Orders" {attrs}>'
+    "{slot}</c-mvp.sheet.trigger>"
+)
 
 
 @pytest.fixture

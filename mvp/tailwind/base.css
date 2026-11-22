@@ -1725,11 +1725,9 @@ html {
   min-width: 0;
 }
 
-/* Sheet (FS-047): a dialog that rises from the foot of a phone's screen and
-   sits centred from the sm breakpoint up. The box is a column: the grab bar and
-   head stay put, the body scrolls, the foot clears the home indicator.
-   --mvp-sheet-rest is the tallest a sheet gets at rest, --mvp-sheet-full its
-   height when full. The script sets data-height on the dialog. */
+/* Sheet (FS-047): a dialog that rises from the foot of a phone's screen and sits
+   centred from the sm breakpoint up. The script sets data-height on the dialog
+   and --mvp-sheet-keyboard while an on-screen keyboard is up. */
 .mvp-sheet {
   --mvp-sheet-rest: 50dvh;
   --mvp-sheet-full: calc(100dvh - 2.5rem - env(safe-area-inset-top));

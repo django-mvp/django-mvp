@@ -60,7 +60,8 @@ COMPONENTS = [
         "sheet",
         "Sheet",
         "layout",
-        "A dialog that rises from the foot of a phone's screen and is centred on a wider one.",
+        "A dialog that rises from the foot of a phone's screen and is centred on a "
+        "wider one.",
     ),
     ComponentDoc(
         "placeholder",

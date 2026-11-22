@@ -97,7 +97,8 @@ When the second sheet closes, focus goes to:
 
 - the element named in the trigger's `returns`, if there is one;
 - otherwise the element that opened the first sheet, because the trigger inside the
-  first sheet is no longer showing and cannot take focus;
+  first sheet is no longer showing and cannot take focus. A sheet opened by dispatching
+  the event counts as opened by the element that had focus at that moment;
 - for a trigger outside every sheet, the trigger itself.
 
 ## Choose a height
@@ -115,7 +116,8 @@ page behind stays in view.
 On a phone, the grab bar at the top of the sheet:
 
 - is a button that switches between the two heights, and says which one it is at to
-  assistive technology;
+  assistive technology (on a `fixed` sheet it is hidden from assistive technology and is
+  not a button);
 - can be dragged, as can the head, and so can a flick: a drag up makes the sheet
   taller, and a drag down makes it shorter and then closes it;
 - offers no change of height on a `fixed` sheet, though dragging it down still closes it.

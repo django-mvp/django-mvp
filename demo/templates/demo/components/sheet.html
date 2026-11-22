@@ -14,25 +14,26 @@
       </c-mvp.sheet.view>
       <c-mvp.sheet.view name="confirm">
         <c-mvp.text tight>Delete this plan? This cannot be undone.</c-mvp.text>
-        <div class="flex justify-end gap-2 mt-4">
+        <c-mvp.group row>
           <c-button text="Keep it" ghost @click="show('menu')" />
           <c-button text="Delete" variant="error" @click="$el.closest('dialog').close()" />
-        </div>
+        </c-mvp.group>
       </c-mvp.sheet.view>
     </c-mvp.sheet>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Short form"
-                        description="A short form fits in the body. The sheet sits inside nothing special: its closing controls are type=button, so closing never submits.">
+                        description="A short form fits in the body. The sheet sits inside nothing special: its closing controls are type=button, so closing never submits. Save closes the sheet here; a real form would post.">
     {% cotton:verbatim %}
     <c-mvp.sheet.trigger for="note_sheet" href="/components/sheet/" label="a note">Add a note</c-mvp.sheet.trigger>
     <c-mvp.sheet id="note_sheet" title="Add a note" lead="Visible to everyone on the plan">
-      <form method="post" action="/components/sheet/" class="flex flex-col gap-3">
-        <label class="floating-label">
-          <span>Note</span>
-          <input type="text" name="note" class="input w-full" placeholder="Note">
-        </label>
-        <c-button type="submit" text="Save" variant="primary" />
+      <form @submit.prevent="$el.closest('dialog').close()">
+        <c-mvp.group>
+          <c-form.fieldset legend="Note">
+            <c-form.input name="note" aria-label="Note" />
+          </c-form.fieldset>
+          <c-button type="submit" text="Save" variant="primary" />
+        </c-mvp.group>
       </form>
     </c-mvp.sheet>
   {% endcotton:verbatim %}

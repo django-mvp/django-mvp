@@ -24,16 +24,20 @@
          :data-mvp-sheet-fixed="fixed"
          x-data="mvpSheet"
          only>
-  <button type="button"
-          class="mvp-sheet-grab"
-          data-mvp-sheet-grab
-          aria-label="{% translate "Change the height of this sheet" %}"></button>
+  {% if fixed %}
+    <div class="mvp-sheet-grab" data-mvp-sheet-grab aria-hidden="true"></div>
+  {% else %}
+    <button type="button"
+            class="mvp-sheet-grab"
+            data-mvp-sheet-grab
+            aria-label="{% translate "Change the height of this sheet" %}"></button>
+  {% endif %}
   <div class="mvp-sheet-head" data-mvp-sheet-head>
     {% if art.strip %}<span class="mvp-sheet-art" aria-hidden="true">{{ art }}</span>{% endif %}
-    <span class="mvp-sheet-names">
+    <div class="mvp-sheet-names">
       <h2 class="mvp-sheet-title" id="{{ id }}-title">{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" /> {% endif %}{{ title }}</h2>
       {% if lead %}<span class="mvp-sheet-lead" data-mvp-sheet-lead>{{ lead }}</span>{% endif %}
-    </span>
+    </div>
   </div>
   {% if description.strip %}<div class="mvp-sheet-description" id="{{ id }}-description">{{ description }}</div>{% endif %}
   <div class="mvp-sheet-body" data-mvp-sheet-body>{{ slot }}</div>

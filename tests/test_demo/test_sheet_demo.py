@@ -49,8 +49,13 @@ class TestSheetDemo:
         assert 'data-mvp-sheet-view="confirm"' in page
         assert "mvp-sheet-menu" in page
 
-    def test_the_form_example_holds_a_form(self, page):
-        assert re.search(r'<form[^>]*method="post"', page)
+    def test_the_form_example_holds_a_form_whose_save_closes_the_sheet(self, page):
+        note = page[page.index('id="note_sheet"') :]
+        note = note[: note.index("</dialog>")]
+        form = re.search(r"<form[^>]*>", note)
+        assert form
+        assert "close()" in form.group(0)
+        assert "action=" not in form.group(0)
 
     def test_the_second_sheet_is_opened_from_inside_the_first(self, page):
         first = page[page.index('id="first_sheet"') :]
