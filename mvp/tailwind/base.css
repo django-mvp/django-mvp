@@ -1641,3 +1641,158 @@ html {
   gap: 0.1rem;
   min-width: 0;
 }
+
+/* Sheet (FS-047): a dialog that rises from the foot of a phone's screen and
+   sits centred from the sm breakpoint up. The box is a column: the grab bar and
+   head stay put, the body scrolls, the foot clears the home indicator.
+   --mvp-sheet-rest is the tallest a sheet gets at rest, --mvp-sheet-full its
+   height when full. The script sets data-height on the dialog. */
+.mvp-sheet {
+  --mvp-sheet-rest: 50dvh;
+  --mvp-sheet-full: calc(100dvh - 2.5rem - env(safe-area-inset-top));
+}
+
+.mvp-sheet > .mvp-sheet-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+  padding: 0 1rem 0;
+  max-height: var(--mvp-sheet-rest);
+}
+
+.mvp-sheet[data-height="full"] > .mvp-sheet-box {
+  height: var(--mvp-sheet-full);
+  max-height: var(--mvp-sheet-full);
+}
+
+.mvp-sheet-grab {
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mvp-sheet-grab::before {
+  content: "";
+  width: 2.5rem;
+  height: 0.3rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-base-content) 25%, transparent);
+}
+
+.mvp-sheet-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-block-end: 0.85rem;
+  border-block-end: 1px solid
+    color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  touch-action: none;
+}
+
+.mvp-sheet-art {
+  flex: none;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+}
+
+.mvp-sheet-art > * {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.mvp-sheet-names {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.mvp-sheet-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.mvp-sheet-lead {
+  font-size: 0.85rem;
+  color: color-mix(in oklab, var(--color-base-content) 64%, transparent);
+  overflow-wrap: anywhere;
+}
+
+.mvp-sheet-description {
+  flex: none;
+  font-size: 0.875rem;
+}
+
+.mvp-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mvp-sheet-foot {
+  flex: none;
+  padding-block: 0.5rem calc(1rem + env(safe-area-inset-bottom));
+}
+
+.mvp-sheet-menu {
+  padding: 0;
+}
+
+.mvp-sheet-menu > li > .mvp-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3.25rem;
+  padding-inline: 0.25rem;
+  font-size: 1rem;
+}
+
+.mvp-sheet-menu > li > .mvp-sheet-item > :first-child:is(svg, i, span) {
+  flex: none;
+  width: 1.5rem;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.mvp-sheet-menu > li > .mvp-sheet-item[data-mvp-sheet-danger] {
+  color: var(--color-error);
+}
+
+@media (min-width: 40rem) {
+  .mvp-sheet-grab {
+    display: none;
+  }
+
+  .mvp-sheet > .mvp-sheet-box {
+    width: 91.666667%;
+    max-width: 32rem;
+    max-height: calc(100dvh - 5rem);
+    padding-block-start: 1.25rem;
+  }
+
+  .mvp-sheet-wide > .mvp-sheet-box {
+    max-width: 42rem;
+  }
+}
