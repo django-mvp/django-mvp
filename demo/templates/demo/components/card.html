@@ -17,6 +17,17 @@
     </c-mvp.card>
   {% endcotton:verbatim %}
   </c-components.section>
+  <c-components.section title="Link"
+                        description="Give the card an href and its title becomes the one link, stretched over the whole card: a click or tap anywhere opens it, a keyboard user tabs to it once, and buttons and menus inside keep working.">
+    {% cotton:verbatim %}
+    <c-mvp.card id="linked_card" title="Project Atlas" icon="folder" href="/components/card/#opened">
+      <c-slot name="actions">
+        <c-button id="linked_card_button" text="Archive" size="sm" ghost onclick="this.dataset.pressed = 'yes'" />
+      </c-slot>
+      <c-mvp.text muted tight>Click anywhere on the card to open it.</c-mvp.text>
+    </c-mvp.card>
+  {% endcotton:verbatim %}
+  </c-components.section>
   <c-components.section title="Title badges"
                         description="The badges slot sits just after the title — great for a status, a count, or a version tag.">
     {% cotton:verbatim %}

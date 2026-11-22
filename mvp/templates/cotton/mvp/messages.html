@@ -1,18 +1,31 @@
-{# @description The Django messages list, rendered as stacked toast alerts. #}
-{# @prop dismissible:boolean | description:"Add a dismiss button to each message." #}
-{# @prop :delay:number | default:2000 | description:"Auto-dismiss delay in milliseconds." #}
-<c-vars dismissible :delay=2000 />
-<c-toast placement="top end" class="z-50" only>
+{# @description The Django messages list, rendered as stacked toast alerts. A message can carry one action, a link or a button written into its extra_tags by mvp.utils.action_tags; it stays until it is used or dismissed, and one without an action hides itself after delay. #}
+{# @prop dismissible:boolean | description:"Add a dismiss button to each message. A message with an action always has one." #}
+{# @prop :delay:number | default:2000 | description:"Auto-dismiss delay in milliseconds, for a message with no action." #}
+{# @prop oob:text | description:"The value of hx-swap-oob. Pass oob=\"true\" on the list an htmx response carries, and htmx replaces the list already in the page, found by its id, without a page load." #}
+{% load mvp %}
+<c-vars dismissible :delay=2000 oob />
+<c-toast id="mvp-messages" placement="top end" class="z-50" :hx-swap-oob="oob" only>
   {% for message in messages %}
     {# The alert has four variants. Debug is shown as info, and any other #}
     {# level tag, such as one a project adds, draws a plain alert. #}
-    {% with tag=message.level_tag %}
+    {% with tag=message.level_tag action=message|message_action %}
       <c-alert variant="{% if tag == 'debug' %}info{% elif tag == 'info' or tag == 'success' or tag == 'warning' or tag == 'error' %}{{ tag }}{% endif %}"
                icon="{% if tag == 'debug' %}info{% elif tag == 'info' or tag == 'success' or tag == 'warning' or tag == 'error' %}{{ tag }}{% endif %}"
-               :dismissible="dismissible"
-               :delay="delay"
+               dismissible="{% if dismissible or action %}true{% endif %}"
+               delay="{% if not action %}{{ delay }}{% endif %}"
                class="shadow-lg" only>
         <span>{{ message }}</span>
+        {% if action.method == "post" %}
+          <form method="post"
+                action="{{ action.url }}"
+                class="contents"
+                {% if action.target %}hx-post="{{ action.url }}" hx-target="{{ action.target }}" hx-swap="{{ action.swap }}"{% endif %}>
+            {% csrf_token %}
+            <c-button type="submit" size="xs" ghost only>{{ action.label }}</c-button>
+          </form>
+        {% elif action %}
+          <c-button href="{{ action.url }}" size="xs" ghost only>{{ action.label }}</c-button>
+        {% endif %}
       </c-alert>
     {% endwith %}
   {% endfor %}

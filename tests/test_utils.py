@@ -36,14 +36,18 @@ from pathlib import Path
 
 import pytest
 from django.conf import settings
+from django.contrib import messages
+from django.contrib.messages.storage.base import Message
 from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 
 from mvp.utils import (
     BS5_ICONS,
+    action_tags,
     app_is_installed,
     avatar_url,
+    message_action,
     reverse_or_none,
     site_name,
     title_layout_component,
@@ -276,3 +280,35 @@ class TestTitleLayoutComponent:
 
         for shipped in ("default", "inline", "centred", "compact"):
             assert shipped in str(error.value)
+
+
+class TestActionTags:
+    def test_the_action_comes_back_from_the_tags_it_was_written_to(self):
+        tags = action_tags("Undo", "/undo/", method="post", target="#list")
+
+        action = message_action(Message(messages.SUCCESS, "Moved", extra_tags=tags))
+
+        assert action == {
+            "label": "Undo",
+            "url": "/undo/",
+            "method": "post",
+            "target": "#list",
+            "swap": "outerHTML",
+        }
+
+    def test_a_method_is_get_or_post(self):
+        with pytest.raises(ValueError, match="method"):
+            action_tags("Undo", "/undo/", method="delete")
+
+    def test_ordinary_tags_hold_no_action(self):
+        message = Message(messages.SUCCESS, "Moved", extra_tags="sticky")
+
+        assert message_action(message) is None
+
+    def test_a_message_with_no_tags_holds_no_action(self):
+        assert message_action(Message(messages.SUCCESS, "Moved")) is None
+
+    def test_tags_that_are_not_an_action_are_not_one(self):
+        message = Message(messages.SUCCESS, "Moved", extra_tags="mvp-action:{oops")
+
+        assert message_action(message) is None

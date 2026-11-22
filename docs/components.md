@@ -293,13 +293,13 @@ root element.
 
 | Component | Attributes |
 | --- | --- |
-| `c-mvp.card` | `title`, `icon`, `tight` (remove body padding), `class`, `body_class`; slots: default, `badges`, `actions`, `footer`, `footer_end` |
+| `c-mvp.card` | `title`, `icon`, `href` (make the whole card a link, see [A card that is a link](#a-card-that-is-a-link)), `tight` (remove body padding), `class`, `body_class`; slots: default, `badges`, `actions`, `footer`, `footer_end` |
 | `c-mvp.card.wrapper` | `class` — the bare card surface (background, rounded corners, shadow), for a fully custom interior |
 | `c-icon` | `name` (required); every other attribute reaches the rendered icon element, so `class`, `height` and the rest are set on the tag |
 | `c-mvp.text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
 | `c-mvp.data-field` | `label`, `value`, `help_text` (a tooltip on the label), `missing` (default `–`) — key–value display; links the value when it has a URL |
-| `c-mvp.messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
-| `c-mvp.modal` | `id` (for `showModal()`/`close()`), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` — a dialog laid out as a card, drawn inside daisy-cotton's `c-modal`; `title` is the card's heading and the dialog's accessible name; `icon` and the `actions`/`footer`/`footer_end` slots forward to the inner `c-mvp.card`. It holds no form of its own and its close controls are `type="button"`, so it can sit inside a form |
+| `c-mvp.messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000), `oob` (pass `oob="true"` on the copy an htmx response carries). A message can carry one action, see [A message with an action](#a-message-with-an-action) |
+| `c-mvp.modal` | `id` (for `showModal()`/`close()`), `title` (the heading, and the dialog's accessible name), `icon` (leading the heading), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` (added to the modal box) — a dialog drawn on daisyUI's own modal box, inside daisy-cotton's `c-modal`; the default slot is the body, `actions` sits at the end of the heading row, and `footer` and `footer_end` fill the actions row at its start and end. A body taller than the screen scrolls inside the box while the heading and the actions row stay in view. It holds no form of its own and its close controls are `type="button"`, so it can sit inside a form |
 | `c-mvp.dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`), `full` (panel matches the trigger's width), `hover` (open on hover), `class`, `content_class`; slot `button` = trigger — see the placement note below |
 | `c-mvp.avatar` | `for` (default `request.user`), `src`, `alt` (default `User avatar`), `size` (`xs`/`sm`/`md`/`lg`/`xl`/`xxl` or a Tailwind width class, default `md`), `shape` (default `rounded-full`), `variant` (initials background colour, default `primary`), `status` (`online`/`offline`), `placeholder` (initials shown when there's no image), `class` |
 | `c-mvp.brand.logo` / `c-mvp.brand.icon` | `max-height`, `class` — brand images via the configured resolvers. Two `img` elements when a dark variant exists, one shown at a time |
@@ -340,6 +340,65 @@ fragments spread across the alert's width:
 
 Anything richer than a sentence — a heading, a paragraph and a list — goes in a `<div>`
 for the same reason.
+
+### A card that is a link
+
+Give `c-mvp.card` an `href` and its title becomes the card's one link, stretched over
+the whole card: a click or tap anywhere on the card opens the address, and a keyboard or
+screen-reader user reaches one link, named by the title. Buttons, menus, form controls
+and other links inside the card sit above the stretched link and do their own thing.
+
+```html
+<c-mvp.card title="Project Atlas" icon="folder" href="{% url 'project-detail' project.pk %}">
+  <c-slot name="actions">
+    <c-button text="Archive" size="sm" ghost />
+  </c-slot>
+  <c-mvp.text muted tight>Last changed yesterday.</c-mvp.text>
+</c-mvp.card>
+```
+
+The title is the link's name, so a card with an `href` and no `title` draws no link.
+
+### A message with an action
+
+A Django message can carry one action, a link or a button, so a page can say what it did
+and offer a way back. Pass the result of `mvp.utils.action_tags` as the message's
+`extra_tags`:
+
+```python
+from django.contrib import messages
+from django.urls import reverse
+from mvp.utils import action_tags
+
+messages.success(
+    request,
+    "Moved to the archive.",
+    extra_tags=action_tags("Undo", reverse("restore", args=[pk]), method="post"),
+)
+```
+
+`method="get"`, the default, draws a link to the address. `method="post"` draws a button in
+a form that posts there with the CSRF token. Give a post action a `target`, a selector
+its answer replaces, and `swap`, how it replaces it (default `outerHTML`), and the button
+is sent with htmx and the page does not reload. `action_tags` returns the whole of the
+message's `extra_tags`, so it replaces any others.
+
+A message with an action stays until it is used or dismissed, and always has a dismiss
+button. A message without one keeps the list's `delay`.
+
+To show such a message in an htmx response, draw the list in the response with
+`oob="true"`. htmx finds the list already in the page by its id and replaces it:
+
+```html
+{# The answer to an htmx request that removed a row #}
+<c-mvp.messages :messages="messages" dismissible oob="true" />
+```
+
+Draw it where a request context is available, as `render(request, ...)` does, so
+`messages` and the CSRF token are there. The shell's own list is drawn by `base.html`, and
+a project that overrides the `app.messages` block keeps the id by drawing `c-mvp.messages`.
+In a template of your own, `{{ message|message_action }}` (with `{% load mvp %}`) returns the
+action a message carries, or `None`.
 
 ### A dropdown opens where it was told, unless it cannot
 

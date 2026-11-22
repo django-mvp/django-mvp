@@ -391,6 +391,12 @@ class _FirstElementAttrs(HTMLParser):
     handle_startendtag = handle_starttag
 
 
+@register.filter(name="message_action")
+def message_action_filter(message: Any):
+    """Return the action ``mvp.utils.action_tags`` gave a message, or ``None``."""
+    return utils.message_action(message)
+
+
 @register.filter
 def root_attr(html: Any, name: str):
     """Return one attribute of the first element of an HTML string.

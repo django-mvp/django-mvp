@@ -1,7 +1,7 @@
 {% extends "demo/components/base.html" %}
 {% block component.docs %}
   <c-components.section title="Default"
-                        description="Give the modal an id, then open it from any element with id.showModal(). Clicking the backdrop closes it. The box is laid out exactly like a c-mvp.card.">
+                        description="Give the modal an id, then open it from any element with id.showModal(). Clicking the backdrop closes it. The title, body and actions are drawn on daisyUI's modal box.">
     {% cotton:verbatim %}
     <c-button text="Open modal" variant="primary" onclick="basic_modal.showModal()" />
     <c-mvp.modal id="basic_modal" title="Hello">
@@ -10,7 +10,7 @@
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Title icon"
-                        description="title and icon flow straight through to the inner card's header.">
+                        description="title and icon head the box.">
     {% cotton:verbatim %}
     <c-button text="Show info" variant="info" onclick="info_modal.showModal()" />
     <c-mvp.modal id="info_modal" title="Good to know" icon="info-circle" closable>
@@ -19,7 +19,7 @@
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Footer actions"
-                        description="Put action buttons in footer_end so they sit at the end of the footer. Call id.close() to dismiss.">
+                        description="Put action buttons in footer_end so they sit at the end of the actions row. Call id.close() to dismiss.">
     {% cotton:verbatim %}
     <c-button text="Delete item" variant="error" onclick="confirm_modal.showModal()" />
     <c-mvp.modal id="confirm_modal" title="Are you sure?" icon="trash">
@@ -27,6 +27,40 @@
       <c-slot name="footer_end">
         <c-button text="Cancel" ghost onclick="confirm_modal.close()" />
         <c-button text="Delete" variant="error" onclick="confirm_modal.close()" />
+      </c-slot>
+    </c-mvp.modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Tall content"
+                        description="A body taller than the screen scrolls inside the box, and the heading and the actions row stay in view.">
+    {% cotton:verbatim %}
+    <c-button text="Open tall modal" variant="neutral" onclick="tall_modal.showModal()" />
+    <c-mvp.modal id="tall_modal" title="Terms" icon="info-circle" closable>
+      <c-mvp.text tight>
+        <p>Every paragraph below is here to make the body taller than the screen.</p>
+        <p>First paragraph of a long body.</p>
+        <p>Second paragraph of a long body.</p>
+        <p>Third paragraph of a long body.</p>
+        <p>Fourth paragraph of a long body.</p>
+        <p>Fifth paragraph of a long body.</p>
+        <p>Sixth paragraph of a long body.</p>
+        <p>Seventh paragraph of a long body.</p>
+        <p>Eighth paragraph of a long body.</p>
+        <p>Ninth paragraph of a long body.</p>
+        <p>Tenth paragraph of a long body.</p>
+        <p>Eleventh paragraph of a long body.</p>
+        <p>Twelfth paragraph of a long body.</p>
+        <p>Thirteenth paragraph of a long body.</p>
+        <p>Fourteenth paragraph of a long body.</p>
+        <p>Fifteenth paragraph of a long body.</p>
+        <p>Sixteenth paragraph of a long body.</p>
+        <p>Seventeenth paragraph of a long body.</p>
+        <p>Eighteenth paragraph of a long body.</p>
+        <p>Nineteenth paragraph of a long body.</p>
+        <p>Twentieth paragraph of a long body.</p>
+      </c-mvp.text>
+      <c-slot name="footer_end">
+        <c-button text="Close" variant="primary" onclick="tall_modal.close()" />
       </c-slot>
     </c-mvp.modal>
   {% endcotton:verbatim %}
