@@ -99,7 +99,8 @@ one a long swipe runs, and nothing the developer gave an id appears twice on the
 11. **Given** a list replaced by an htmx request, **When** the new rows arrive, **Then** they swipe
     and their menus open with no further work by the developer.
 12. **Given** a project that loads the package's shipped assets, **When** a page with actionable
-    rows loads, **Then** nothing the rows need is fetched from a third party.
+    rows loads, **Then** nothing the rows need is fetched from a third party, other than icons from the
+    project's own icon provider.
 
 ---
 
@@ -244,8 +245,10 @@ confirm its main action runs. With a mouse and then a keyboard alone, run every 
 - **FR-027**: When the gesture script does not run, every action MUST still be reachable from the
   ⋯ menu.
 - **FR-028**: The gesture script MUST be the package's own, shipped and versioned with the package
-  (G14). Nothing the rows need may be fetched from a third party at page load.
-- **FR-029**: The package's icon set MUST name an icon for the ⋯ trigger.
+  (G14). Nothing else the rows need may be fetched from a third party at page load. Their icons
+  come from the project's own icon provider, the exception G14 names.
+- **FR-029**: The package's default icon names MUST include one for the ⋯ trigger, resolved
+  through the configured icon provider like every other icon. No icon files are added (ADR 0038).
 - **FR-030**: The documentation MUST describe how to give a row its actions, how to mark the main
   action and an action that takes the row out of the list, and the script interface, and the
   demo MUST show a list with actionable rows.
@@ -272,7 +275,8 @@ This feature's row is always a *list row*.
 - **SC-003**: No more than one row on a page is open at any moment.
 - **SC-004**: An action that fails on the server leaves its row on the page as it was before the
   action.
-- **SC-005**: A page with actionable rows fetches nothing from a third party for them.
+- **SC-005**: A page with actionable rows fetches nothing from a third party for them, other than
+  icons from the icon provider the project chose.
 - **SC-006**: A list can be stopped from swiping, and an open row shut, by the developer's
   script, so a list can be reordered without a row opening under the user.
 
