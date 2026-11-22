@@ -29,6 +29,27 @@ Use this when a person should be able to put a list of items in their own order.
    passes make room. Dragging from anywhere else on the row starts nothing,
    so a row can hold links and fields. The buttons swap a row with its neighbour.
 
+## Move rows with a finger, the keyboard or a screen reader
+
+A finger dragging a handle moves the row and the page does not scroll. A finger
+dragging anywhere else on the row scrolls the page as usual. A second finger on a
+handle, and a right click, start no drag. The start of a drag calls
+`navigator.vibrate` on devices that have it. Holding a row near the top or the
+bottom of the screen scrolls the page while the row stays under the pointer. A row
+let go outside the list stays where the gap was.
+
+Pressing Escape during a drag returns the row to where it started. Nothing is
+posted and nothing is announced. The key does not reach an open dialog around
+the list, so the dialog stays open.
+
+The up and down buttons are reached with Tab, and Enter or Space uses them. The
+first row's up button and the last row's down button are marked
+`aria-disabled="true"` and do nothing. Focus stays on the button that was used.
+After each move a visually hidden `role="status"` region says "Moved to position
+2 of 3", translated with the rest of the page. A list with one row, or none, shows
+no handle and no buttons. Under `prefers-reduced-motion: reduce` the rows do not
+slide.
+
 The icons are named `chevron-up`, `chevron-down` and `drag`. The package ships
 no icon set, so your icon configuration has to define them. The
 [Icons](icons.md) page lists the packaged definitions.

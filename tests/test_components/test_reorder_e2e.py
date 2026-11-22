@@ -69,6 +69,16 @@ TWO_PAGE = """
 {% endblock %}
 """
 
+SINGLE_PAGE = """
+{% extends "mvp/base.html" %}
+{% block content %}
+<c-mvp.reorder id="steps" label="Steps">
+  <c-mvp.reorder.row value="a" label="Alpha">Alpha</c-mvp.reorder.row>
+</c-mvp.reorder>
+<c-mvp.reorder id="empty" label="Nothing"></c-mvp.reorder>
+{% endblock %}
+"""
+
 TALL_PAGE = """
 {% extends "mvp/base.html" %}
 {% block content %}
@@ -109,6 +119,11 @@ def render_page(source, request, **context):
 def reorder_test_page(request):
     """Draw the plain test page."""
     return render_page(PAGE, request)
+
+
+def single_page(request):
+    """Draw a list with one row and a list with none."""
+    return render_page(SINGLE_PAGE, request)
 
 
 def tall_page(request):
@@ -165,6 +180,7 @@ def save(request, project_id):
 def reorder_test_urls(settings):
     settings.ROOT_URLCONF = urlconf_of(
         path("reorder-test/", reorder_test_page),
+        path("reorder-test/single/", single_page),
         path("reorder-test/tall/", tall_page),
         path("reorder-test/form/", form_page),
         path("reorder-test/two/", two_page),
@@ -656,3 +672,203 @@ class TestDroppingOutsideTheList:
         page.mouse.up()
 
         assert values(page) == ["b", "c", "a"]
+
+
+def button(value, which):
+    return f'#steps [data-mvp-reorder-value="{value}"] [data-mvp-reorder-{which}]'
+
+
+class TestButtonEdges:
+    def test_the_first_rows_up_and_the_last_rows_down_are_disabled(
+        self, page, live_server
+    ):
+        open_page(page, live_server)
+
+        expect(page.locator(button("a", "up"))).to_have_attribute(
+            "aria-disabled", "true"
+        )
+        expect(page.locator(button("c", "down"))).to_have_attribute(
+            "aria-disabled", "true"
+        )
+        expect(page.locator(button("a", "down"))).not_to_have_attribute(
+            "aria-disabled", "true"
+        )
+        expect(page.locator(button("c", "up"))).not_to_have_attribute(
+            "aria-disabled", "true"
+        )
+
+    def test_the_last_rows_down_button_does_nothing(self, page, live_server):
+        open_page(page, live_server)
+
+        page.locator(button("c", "down")).dispatch_event("click")
+
+        assert values(page) == ["a", "b", "c"]
+
+    def test_a_moved_row_takes_the_edge_state_of_its_new_place(self, page, live_server):
+        open_page(page, live_server)
+
+        page.locator(button("a", "down")).click()
+
+        expect(page.locator(button("b", "up"))).to_have_attribute(
+            "aria-disabled", "true"
+        )
+        expect(page.locator(button("a", "up"))).not_to_have_attribute(
+            "aria-disabled", "true"
+        )
+
+
+class TestFocusAndAnnouncement:
+    def test_focus_stays_on_the_button_that_was_used(self, page, live_server):
+        open_page(page, live_server)
+
+        page.locator(button("a", "down")).click()
+
+        expect(page.locator(button("a", "down"))).to_be_focused()
+
+    def test_a_move_is_announced_in_a_live_region_with_its_new_position(
+        self, page, live_server
+    ):
+        open_page(page, live_server)
+        region = page.locator("#steps [role=status]")
+        expect(region).to_have_text("")
+
+        page.locator(button("a", "down")).click()
+
+        text = region.text_content()
+        assert "2" in text and "3" in text
+
+    def test_the_live_region_is_hidden_from_sight(self, page, live_server):
+        open_page(page, live_server)
+
+        box = page.locator("#steps [role=status]").bounding_box()
+
+        assert box["width"] <= 1 and box["height"] <= 1
+
+    def test_a_move_the_buttons_refuse_announces_nothing(self, page, live_server):
+        open_page(page, live_server)
+
+        page.locator(button("a", "up")).dispatch_event("click")
+
+        expect(page.locator("#steps [role=status]")).to_have_text("")
+
+    def test_a_cancelled_drag_announces_nothing(self, page, live_server):
+        open_page(page, live_server)
+        x, y = centre(page, handle("a"))
+
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x, y + 120, steps=12)
+        page.keyboard.press("Escape")
+        page.mouse.up()
+
+        expect(page.locator("#steps [role=status]")).to_have_text("")
+
+
+class TestKeyboard:
+    def test_tab_reaches_both_buttons_of_every_row(self, page, live_server):
+        open_page(page, live_server)
+        page.locator(button("a", "up")).focus()
+
+        reached = []
+        for _ in range(6):
+            reached.append(
+                page.evaluate(
+                    """() => {
+                      const el = document.activeElement;
+                      const row = el.closest("[data-mvp-reorder-row]");
+                      const kind = el.hasAttribute("data-mvp-reorder-up") ? "up" : "down";
+                      return row.dataset.mvpReorderValue + kind;
+                    }"""
+                )
+            )
+            page.keyboard.press("Tab")
+
+        assert reached == ["aup", "adown", "bup", "bdown", "cup", "cdown"]
+
+    @pytest.mark.parametrize("key", ["Enter", "Space"])
+    def test_enter_and_space_use_a_button(self, page, live_server, key):
+        open_page(page, live_server)
+        page.locator(button("b", "down")).focus()
+
+        page.keyboard.press(key)
+
+        assert values(page) == ["a", "c", "b"]
+        expect(page.locator(button("b", "down"))).to_be_focused()
+
+
+class TestReducedMotion:
+    def transitions_during_a_drag(self, page, live_server):
+        page.set_default_timeout(5000)
+        page.set_viewport_size(VIEWPORT)
+        page.goto(f"{live_server.url}/reorder-test/")
+        page.wait_for_function("window.Alpine !== undefined")
+        x, y = centre(page, handle("a"))
+        end = page.locator('#steps [data-mvp-reorder-value="c"]').bounding_box()
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x, end["y"] + end["height"] * 0.75, steps=6)
+        found = page.eval_on_selector_all(
+            "#steps [data-mvp-reorder-row]:not(.mvp-reorder-held)",
+            """rows => rows.map(row => [
+                getComputedStyle(row).transitionDuration,
+                row.style.transition,
+            ])""",
+        )
+        page.mouse.up()
+        return found
+
+    def test_reduced_motion_applies_no_transition_to_the_rows(self, page, live_server):
+        page.emulate_media(reduced_motion="reduce")
+
+        found = self.transitions_during_a_drag(page, live_server)
+
+        assert {computed for computed, _ in found} == {"0s"}
+        assert {inline for _, inline in found} == {""}
+
+    def test_the_rows_slide_when_motion_is_allowed(self, page, live_server):
+        page.emulate_media(reduced_motion="no-preference")
+
+        found = self.transitions_during_a_drag(page, live_server)
+
+        assert {inline for _, inline in found} != {""}
+
+
+class TestFewRows:
+    def open_single(self, page, live_server):
+        page.set_default_timeout(5000)
+        page.set_viewport_size(VIEWPORT)
+        page.goto(f"{live_server.url}/reorder-test/single/")
+        page.wait_for_function("window.Alpine !== undefined")
+
+    def test_a_list_with_one_row_shows_no_handle_and_no_buttons(
+        self, page, live_server
+    ):
+        self.open_single(page, live_server)
+
+        for hook in ("up", "down", "handle"):
+            expect(page.locator(f"#steps [data-mvp-reorder-{hook}]")).to_be_hidden()
+
+    def test_a_list_with_no_rows_has_no_controls(self, page, live_server):
+        self.open_single(page, live_server)
+
+        assert page.locator("#empty [data-mvp-reorder-moves]").count() == 0
+
+    def test_the_controls_return_when_a_row_is_added(self, page, live_server):
+        self.open_single(page, live_server)
+
+        page.evaluate(TestRowsAddedAfterLoad.APPEND)
+
+        for hook in ("up", "down", "handle"):
+            expect(
+                page.locator(f"#steps [data-mvp-reorder-{hook}]").first
+            ).to_be_visible()
+
+    def test_the_controls_go_when_the_list_is_down_to_one_row(self, page, live_server):
+        open_page(page, live_server)
+
+        page.evaluate(
+            """() => document.querySelectorAll('#steps [data-mvp-reorder-row]')
+                 .forEach((row, index) => { if (index) row.remove(); })"""
+        )
+
+        expect(page.locator("#steps [data-mvp-reorder-handle]")).to_be_hidden()

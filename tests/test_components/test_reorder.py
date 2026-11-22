@@ -126,6 +126,13 @@ class TestReorderRow:
         for hook in ("up", "down", "handle"):
             assert row.select_one(f"[data-mvp-reorder-{hook}]").has_attr("hidden")
 
+    def test_the_row_carries_the_announcement_the_script_speaks(self):
+        row = render("").select_one("[data-mvp-reorder-row]")
+
+        moves = row.select_one("[data-mvp-reorder-moves]")
+        assert "{position}" in moves["data-mvp-reorder-moved"]
+        assert "{total}" in moves["data-mvp-reorder-moved"]
+
     def test_the_title_is_the_slot(self):
         row = render("").select_one("[data-mvp-reorder-row]")
 

@@ -14,6 +14,8 @@ function reorder() {
   let observer = null;
   let lastOrder = [];
   let owner = null;
+  let state = null;
+  let status = null;
   let snapshot = [];
   let cancelled = false;
 
@@ -76,6 +78,8 @@ function reorder() {
   function refresh() {
     const all = rows();
     const form = root.hasAttribute("data-mvp-reorder-form");
+    // One row, or none, has nowhere to move.
+    state.movable = all.length > 1;
     all.forEach((row, index) => {
       const up = row.querySelector("[data-mvp-reorder-up]");
       const down = row.querySelector("[data-mvp-reorder-down]");
@@ -153,6 +157,17 @@ function reorder() {
     if (root.dataset.mvpReorderUrl) post(current);
   }
 
+  // Says where the row now is. The sentence comes from the row's controls, translated by the
+  // server; the words here are only for a list that does not carry it.
+  function announce(row) {
+    const all = rows();
+    const moves = row.querySelector("[data-mvp-reorder-moves]");
+    const sentence = (moves && moves.dataset.mvpReorderMoved) || "Moved to position {position} of {total}";
+    status.textContent = sentence
+      .replace("{position}", String(all.indexOf(row) + 1))
+      .replace("{total}", String(all.length));
+  }
+
   function move(button, step) {
     if (button.getAttribute("aria-disabled") === "true") return;
     const row = button.closest(ROW);
@@ -164,14 +179,21 @@ function reorder() {
     refresh();
     // Moving the row dropped the focus the button held.
     button.focus();
+    announce(row);
     changed();
   }
 
   return {
     active: false,
+    movable: true,
 
     init() {
       root = this.$el;
+      state = this;
+      status = document.createElement("div");
+      status.setAttribute("role", "status");
+      status.className = "sr-only";
+      root.append(status);
       list = root.querySelector("[data-mvp-reorder-list]");
       this.active = root.dataset.mvpReorderMode !== "on-demand";
       lastOrder = order();
@@ -228,6 +250,7 @@ function reorder() {
       document.removeEventListener("keydown", cancel, { capture: true });
       observer.disconnect();
       sortable.destroy();
+      status.remove();
     },
 
     moveUp(button) {
