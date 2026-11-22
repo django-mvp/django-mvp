@@ -47,9 +47,11 @@ can observe failing. A full-page form or link leaves the page, so there is nothi
 
 The reorder feature (https://github.com/django-mvp/django-mvp/issues/689) drags rows by a handle,
 and a row that opened under that drag would break it. It needs swiping off for the list being
-reordered and any open row shut. That is a developer-facing interface, so it is one named,
-documented script object that the reorder feature uses too, rather than a private hook each
-feature finds for itself.
+reordered and any open row shut. The reorder feature announces on the list's element
+when reordering starts and ends, and this feature answers those announcements itself: it shuts
+the open row and switches swiping off, then back on. That keeps the swipe's behaviour in the
+feature that owns the swipe and leaves neither feature waiting on the other. A developer's own
+script switches swiping off and shuts a row through one named, documented script object.
 
 ## D8: The 60% point and the 20-pixel edges are specified
 

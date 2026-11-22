@@ -92,9 +92,13 @@ one a long swipe runs, and nothing the developer gave an id appears twice on the
    **Then** its rows swipe again.
 9. **Given** a row that is open, **When** the developer's script shuts it through the documented
    interface, **Then** it closes.
-10. **Given** a list replaced by an htmx request, **When** the new rows arrive, **Then** they swipe
+10. **Given** a list that announces on its own element that reordering has started, **When**
+    the announcement arrives, **Then** any open row in that list shuts and the list stops
+    swiping, and **When** the list announces that reordering has ended, **Then** its rows swipe
+    again, with no work by the developer.
+11. **Given** a list replaced by an htmx request, **When** the new rows arrive, **Then** they swipe
     and their menus open with no further work by the developer.
-11. **Given** a project that loads the package's shipped assets, **When** a page with actionable
+12. **Given** a project that loads the package's shipped assets, **When** a page with actionable
     rows loads, **Then** nothing the rows need is fetched from a third party.
 
 ---
@@ -231,14 +235,18 @@ confirm its main action runs. With a mouse and then a keyboard alone, run every 
 - **FR-024**: A developer MUST be able to switch swiping off for one list and back on, and to shut
   an open row from script, through one documented, named script interface. Switching swiping off
   MUST close any open row in that list and leave the ⋯ menus working.
-- **FR-025**: Rows that arrive by htmx MUST swipe and open their menus with no work by the
+- **FR-025**: When a list announces on its own element that reordering has started, the row
+  MUST shut any open row in that list and switch swiping off for it, and when the list announces
+  that reordering has ended, switch swiping back on. The announcements are the documented events
+  of the reorder feature; this feature does not depend on that feature being delivered.
+- **FR-026**: Rows that arrive by htmx MUST swipe and open their menus with no work by the
   developer.
-- **FR-026**: When the gesture script does not run, every action MUST still be reachable from the
+- **FR-027**: When the gesture script does not run, every action MUST still be reachable from the
   ⋯ menu.
-- **FR-027**: The gesture script MUST be the package's own, shipped and versioned with the package
+- **FR-028**: The gesture script MUST be the package's own, shipped and versioned with the package
   (G14). Nothing the rows need may be fetched from a third party at page load.
-- **FR-028**: The package's icon set MUST name an icon for the ⋯ trigger.
-- **FR-029**: The documentation MUST describe how to give a row its actions, how to mark the main
+- **FR-029**: The package's icon set MUST name an icon for the ⋯ trigger.
+- **FR-030**: The documentation MUST describe how to give a row its actions, how to mark the main
   action and an action that takes the row out of the list, and the script interface, and the
   demo MUST show a list with actionable rows.
 
@@ -273,8 +281,10 @@ This feature's row is always a *list row*.
 - The sheet a row menu opens in on a touch screen is the package's sheet component, delivered by
   https://github.com/django-mvp/django-mvp/issues/687 before this feature is built.
 - Reordering a list is delivered separately
-  (https://github.com/django-mvp/django-mvp/issues/689). This feature only gives it the way to
-  switch swiping off and shut an open row.
+  (https://github.com/django-mvp/django-mvp/issues/689) and announces on the list's element when
+  reordering starts and ends. This feature listens for those announcements and owns what happens
+  to the swipe. It does not wait on that feature: without it, the announcements simply never
+  arrive.
 - htmx is part of the package's shipped front end, so an action sending an htmx request needs
   nothing more from the project.
 - The look of the row, its actions and its menu is agreed and carried across at build time.

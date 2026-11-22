@@ -10,7 +10,9 @@ Notes for research and planning to answer by name. None of them is settled.
    django-mvp's list pages) rather than a new row of its own.
 3. FS-049 (https://github.com/django-mvp/django-mvp/issues/689, reorder list) needs swiping turned
    off while a list is being reordered: the row exposes a way to switch swiping off for a list and
-   to shut an open row.
+   to shut an open row. The reorder feature announces on the list's element when reordering starts
+   and ends, as documented events whose names are in its spec; this feature listens for them
+   (FR-025). Neither feature depends on the other being delivered.
 4. Gesture code is the package's own small script, shipped with the package (goal G14), never
    from a CDN.
 
