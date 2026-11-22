@@ -1,0 +1,5 @@
+{# @description One panel of a sheet that switches between views. It shows while the sheet's view is its name; an element inside the sheet switches to it with @click="show('name')". #}
+{# @prop name:text | required | description:"The view's name, such as confirm or rename." #}
+{# @slot <p>What the panel holds.</p> — What the panel holds, such as a question or a form. #}
+<c-vars name />
+<div data-mvp-sheet-view="{{ name }}" x-show="view === '{{ name }}'" x-cloak>{{ slot }}</div>

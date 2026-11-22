@@ -1,0 +1,46 @@
+{# @description A dialog that rises from the foot of a phone's screen and sits in the middle of a wider one: a grab bar, a head (art, icon, title and the line under it), a body that scrolls, and a foot. Pressing Escape, tapping outside it or its closing button closes it and changes nothing. Open it with an mvp.sheet.trigger or by dispatching mvp-sheet-open on the window with the sheet's id. #}
+{# @prop id:text | required | description:"The sheet's id, unique on the page. A trigger names it in its for prop." #}
+{# @prop title:text | required | description:"What the sheet is about, shown in its head. It is the dialog's accessible name." #}
+{# @prop lead:text | description:"The line under the title." #}
+{# @prop icon:text | description:"Optional. An icon's name, drawn before the title." #}
+{# @prop full:boolean | description:"Open at the full height of the screen instead of the resting height." #}
+{# @prop fixed:boolean | description:"Keep the sheet at its resting height. It still closes when dragged down." #}
+{# @prop wide:boolean | description:"Give the centred dialog the wide size. A phone is unaffected." #}
+{# @prop class:text | description:"Extra classes added to the dialog." #}
+{# @slot <p>What the sheet holds.</p> — The body: a mvp.sheet.menu, mvp.sheet.view panels, a short form. It scrolls when it is taller than the box. #}
+{# @slot:art <img src="cover.jpg" alt=""> — Optional. Small art drawn before the title and hidden from assistive technology. #}
+{# @slot:description Text that describes the sheet. — Optional. Becomes the dialog's accessible description. #}
+{# @slot:actions <button type="button">Save</button> — Optional. The buttons in the foot, in place of the default closing button. A button that only closes the sheet is type="button". #}
+{% load i18n %}
+<c-vars id title lead icon full fixed wide class art="" description="" actions="" />
+<c-modal id="{{ id }}"
+         class="modal-bottom sm:modal-middle mvp-sheet{% if wide %} mvp-sheet-wide{% endif %} {{ class }}"
+         content_class="mvp-sheet-box"
+         aria-labelledby="{{ id }}-title"
+         aria-describedby="{% if description.strip %}{{ id }}-description{% endif %}"
+         data-mvp-sheet
+         :data-mvp-sheet-full="full"
+         :data-mvp-sheet-fixed="fixed"
+         x-data="mvpSheet"
+         only>
+  <button type="button"
+          class="mvp-sheet-grab"
+          data-mvp-sheet-grab
+          aria-label="{% translate "Change the height of this sheet" %}"></button>
+  <div class="mvp-sheet-head" data-mvp-sheet-head>
+    {% if art.strip %}<span class="mvp-sheet-art" aria-hidden="true">{{ art }}</span>{% endif %}
+    <span class="mvp-sheet-names">
+      <h2 class="mvp-sheet-title" id="{{ id }}-title">{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" /> {% endif %}{{ title }}</h2>
+      {% if lead %}<span class="mvp-sheet-lead" data-mvp-sheet-lead>{{ lead }}</span>{% endif %}
+    </span>
+  </div>
+  {% if description.strip %}<div class="mvp-sheet-description" id="{{ id }}-description">{{ description }}</div>{% endif %}
+  <div class="mvp-sheet-body" data-mvp-sheet-body>{{ slot }}</div>
+  <div class="mvp-sheet-foot" data-mvp-sheet-foot>
+    {% if actions.strip %}
+      {{ actions }}
+    {% else %}
+      <button type="button" class="btn btn-ghost btn-block" onclick="this.closest('dialog').close()">{% translate "Close" %}</button>
+    {% endif %}
+  </div>
+</c-modal>
