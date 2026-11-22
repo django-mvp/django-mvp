@@ -125,7 +125,7 @@ the first is shown, and the foot holds the developer's buttons in place of the d
    **When** it is activated, **Then** that sheet opens showing that view.
 10. **Given** a trigger inside a sheet that opens a second sheet and names an element to return
     focus to, **When** the second sheet closes, **Then** focus goes to the named element, or to
-    the trigger itself when none is named.
+    the element that opened the first sheet when none is named.
 11. **Given** a sheet the developer asks to open at its full height, **When** it opens on a
     narrow screen, **Then** it is at its full height.
 12. **Given** a sheet the developer fixes at its resting height, **When** it renders, **Then** its
@@ -277,7 +277,8 @@ it is closed.
 - **FR-006**: Any element on the page MUST be able to open a sheet by its id, at one of its views,
   falling back to the first view when the named one does not exist. (US1)
 - **FR-007**: A trigger inside a sheet MUST be able to open another sheet, closing its own first,
-  and MUST return focus, when the other closes, to the element the developer named or to itself.
+  and MUST return focus, when the other closes, to the element the developer named or, when none is named, to the element that opened the
+  first sheet.
   (US1, US2)
 - **FR-008**: At most one sheet MUST be open at a time. Opening a sheet closes any other first.
   (US2)

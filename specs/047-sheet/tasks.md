@@ -23,10 +23,13 @@ edited in blocks of their own so a sibling feature's edits merge by keeping both
 - [ ] T009 [US3] Browser tests for every height transition and the gesture's edge cases
 - [ ] T010 [US1] The demo, the documentation, the README and the changelog
 - [ ] T011 [US2] Focus returns to the opener of the sheet that holds a trigger when none is named
+- [ ] T012 [US2] Review fixes in the script: focus fallback, flick step, close flash, view name
+- [ ] T013 [US2] Review fixes in the browser tests: keyboard path, removed sheet, tuning values, retries
+- [ ] T014 [US1] Review fixes in the markup, demo and docs
 
 ## Order
 
-T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 → T010 → T011.
+T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 → T010 → T011 → T012 → T013 → T014.
 
 ---
 
@@ -188,3 +191,32 @@ closed, so FR-007's "the trigger itself" is impossible there. When a trigger ins
 no `returns`, focus goes to the element that opened the sheet that holds it, and to the trigger
 itself only for a trigger outside every sheet. Test first at phone and desktop width. Recorded as
 a review-stage fix task with decision D21.
+
+#### T012 — Review fixes in the script
+
+**Files**: `assets/js/sheet.js`, `mvp/static/js/django-mvp.js`, `tests/test_components/test_sheet_e2e.py`
+
+Focus falls back to the element focused when the sheet opened when neither `returns` nor an opener
+is given. A flick's starting step is the nearest height at release, not the height at press. A
+sheet closed by drag or flick does not flash back before it closes. A view's visibility compares
+the element's own attribute rather than a name written into a script string. Tests first.
+
+#### T013 — Review fixes in the browser tests
+
+**Files**: `tests/test_components/test_sheet_e2e.py`
+
+The keyboard-only path runs at both widths and reaches each control with Tab. A sheet replaced by
+an identical copy opens once with no page error. The two tests that pin the rest limit and the
+fixed sheet's follow distance assert the requirement instead. Focus checks retry. Lines fit 88.
+
+#### T014 — Review fixes in the markup, demo and docs
+
+**Files**: `mvp/templates/cotton/mvp/sheet/index.html`, `demo/templates/demo/components/sheet.html`,
+`tests/test_components/test_sheet.py`, `tests/test_demo/test_sheet_demo.py`,
+`docs/components.md`, `mvp/tailwind/base.css`, `mvp/static/css/django-mvp.css`,
+`mvp/static/css/django-mvp.css.br`
+
+The sheet's names wrapper is a `div`. A fixed sheet's grab bar is not a button. The demo's form
+test looks inside its own dialog, the demo form's Save closes the sheet, and the demo lays out with
+the package's components. The stylesheet comment is three lines. The components page keeps the
+attributes and links to the guide.
