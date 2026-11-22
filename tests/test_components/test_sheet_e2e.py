@@ -8,6 +8,8 @@ inline script or style.
 Source: assets/js/sheet.js, mvp/templates/cotton/mvp/sheet/
 """
 
+import time
+
 import pytest
 from django.http import HttpResponse
 from django.template import engines
@@ -65,6 +67,9 @@ PAGE = """
 <c-mvp.sheet id="tall" title="Tall">
   {% for row in rows %}<p>Row {{ row }}</p>{% endfor %}
 </c-mvp.sheet>
+<c-mvp.sheet id="starts-full" title="Starts full" full><p>Short</p></c-mvp.sheet>
+<button type="button" id="open-starts-full" x-data
+        @click="$dispatch('mvp-sheet-open', { id: 'starts-full' })">Full</button>
 <c-mvp.sheet.trigger for="missing" id="orphan" href="/missing-page/" label="Gone" />
 <c-mvp.sheet.trigger for="before" id="not-a-sheet" href="/not-a-sheet-page/" label="Link" />
 <button type="button" id="open-tall" x-data @click="$dispatch('mvp-sheet-open', { id: 'tall' })">Tall</button>
@@ -597,3 +602,615 @@ class TestAcrossTheWidthSwitch:
         assert page.evaluate(
             "() => document.getElementById('orders').dataset.height"
         ) in {None, "rest"}
+
+
+def after_frame(page):
+    """Wait for the browser to deliver the moves it holds back until the next frame."""
+    page.evaluate(
+        "() => new Promise(done => requestAnimationFrame("
+        "() => requestAnimationFrame(() => done())))"
+    )
+
+
+class Finger:
+    """Touch points driven through the DevTools protocol.
+
+    Every event carries an explicit timestamp from a virtual clock, so how fast
+    a drag is does not depend on how quickly the test runs.
+    """
+
+    def __init__(self, page):
+        self.page = page
+        self.cdp = page.context.new_cdp_session(page)
+        self.clock = time.time()
+        self.points = {}
+
+    def send(self, kind, after_ms):
+        self.clock += after_ms / 1000
+        points = (
+            []
+            if kind in {"touchEnd", "touchCancel"}
+            else [{"x": x, "y": y, "id": i} for i, (x, y) in self.points.items()]
+        )
+        self.cdp.send(
+            "Input.dispatchTouchEvent",
+            {"type": kind, "touchPoints": points, "timestamp": self.clock},
+        )
+
+    def down(self, x, y, finger=0, after_ms=0):
+        self.points[finger] = (x, y)
+        self.send("touchStart", after_ms)
+
+    def move(self, x, y, finger=0, after_ms=16):
+        self.points[finger] = (x, y)
+        self.send("touchMove", after_ms)
+
+    def up(self, after_ms=16):
+        self.send("touchEnd", after_ms)
+        self.points = {}
+
+    def cancel(self, after_ms=16):
+        after_frame(self.page)
+        self.send("touchCancel", after_ms)
+        self.points = {}
+
+    def trace(self, x, y0, y1, steps, step_ms):
+        for step in range(1, steps + 1):
+            self.move(x, y0 + (y1 - y0) * step / steps, after_ms=step_ms)
+
+    def drag(self, x, y0, y1, steps=12, step_ms=16, hold_ms=0):
+        """Press at ``y0``, move to ``y1`` and lift after holding there."""
+        self.down(x, y0)
+        self.trace(x, y0, y1, steps, step_ms)
+        self.up(after_ms=hold_ms or 16)
+
+    def flick(self, x, y0, y1):
+        """A short, fast stroke: well over the speed that counts as a flick."""
+        self.drag(x, y0, y1, steps=3, step_ms=10)
+
+
+@pytest.fixture
+def phone(browser, live_server):
+    """A phone-sized page with touch, its finger, and the script errors it raised."""
+    context = browser.new_context(viewport=PHONE, has_touch=True)
+    page = context.new_page()
+    page.errors = []
+    page.on("pageerror", lambda error: page.errors.append(str(error)))
+    open_page(page, live_server, PHONE)
+    page.finger = Finger(page)
+    yield page
+    context.close()
+    assert page.errors == []
+
+
+SHEET_ANIMATIONS = (
+    "() => document.getAnimations()"
+    ".filter(a => a.effect.target.closest('dialog')).length"
+)
+
+
+def rest_box(page, sheet):
+    """The box once the sheet's own animations have finished.
+
+    The page runs one of its own, a scroll-driven one on the root element, so
+    waiting for every animation to end would never finish.
+    """
+    page.wait_for_function(f"{SHEET_ANIMATIONS} === 0")
+    return box_of(page, sheet)
+
+
+def top_now(page, sheet):
+    """The box's top edge while a finger is still down."""
+    after_frame(page)
+    return box_of(page, sheet)["top"]
+
+
+def open_sheet(page, sheet):
+    dispatch(page, id=sheet)
+    return rest_box(page, sheet)
+
+
+def grab_point(page, sheet, handle="grab"):
+    box = page.locator(f"#{sheet} [data-mvp-sheet-{handle}]").bounding_box()
+    return box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+
+
+def height_of(page, sheet):
+    return page.evaluate(
+        "sheet => document.getElementById(sheet).dataset.height", sheet
+    )
+
+
+def expanded(page, sheet):
+    return page.get_attribute(f"#{sheet} [data-mvp-sheet-grab]", "aria-expanded")
+
+
+def body_state(page, sheet):
+    return page.evaluate(
+        "sheet => { const el = document.querySelector("
+        "`#${sheet} [data-mvp-sheet-body]`);"
+        " return { top: el.scrollTop,"
+        " overflows: el.scrollHeight > el.clientHeight }; }",
+        sheet,
+    )
+
+
+def closed(page, sheet):
+    page.wait_for_function("sheet => !document.getElementById(sheet).open", arg=sheet)
+
+
+class TestHeights:
+    def test_a_short_sheet_rests_no_taller_than_its_content(self, phone):
+        box = open_sheet(phone, "orders")
+
+        assert box["height"] < box["viewport"] / 2
+        assert not body_state(phone, "orders")["overflows"]
+        assert box["bottom"] == pytest.approx(box["viewport"], abs=2)
+
+    def test_a_long_sheet_rests_below_the_top_of_the_screen(self, phone):
+        box = open_sheet(phone, "tall")
+
+        assert box["top"] > box["viewport"] * 0.25
+        assert box["height"] <= box["viewport"] / 2 + 1
+        assert body_state(phone, "tall")["overflows"]
+        assert height_of(phone, "tall") == "rest"
+
+    def test_a_sheet_asked_to_open_full_opens_above_where_rest_would_be(self, phone):
+        rest = open_sheet(phone, "tall")
+        phone.keyboard.press("Escape")
+
+        full = open_sheet(phone, "starts-full")
+
+        assert height_of(phone, "starts-full") == "full"
+        assert full["top"] < rest["top"]
+        assert full["bottom"] == pytest.approx(full["viewport"], abs=2)
+        assert full["top"] > 0
+
+    def test_a_sheet_asked_to_open_full_is_a_centred_dialog_on_a_wide_screen(
+        self, browser, live_server
+    ):
+        context = browser.new_context(viewport=DESKTOP)
+        page = context.new_page()
+        open_page(page, live_server, DESKTOP)
+
+        box = open_sheet(page, "starts-full")
+
+        assert box["top"] > 0
+        assert box["bottom"] < box["viewport"]
+        context.close()
+
+
+class TestDraggingBetweenHeights:
+    def test_dragging_up_from_rest_and_letting_go_near_the_top_makes_it_full(
+        self, phone
+    ):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.drag(x, y, 60)
+
+        full = rest_box(phone, "tall")
+        assert height_of(phone, "tall") == "full"
+        assert full["top"] < rest["top"]
+        assert full["bottom"] == pytest.approx(full["viewport"], abs=2)
+        assert open_sheets(phone) == ["tall"]
+
+    def test_a_short_sheet_can_be_dragged_up_to_full_too(self, phone):
+        rest = open_sheet(phone, "orders")
+        x, y = grab_point(phone, "orders")
+
+        phone.finger.drag(x, y, 60)
+
+        full = rest_box(phone, "orders")
+        assert height_of(phone, "orders") == "full"
+        assert full["height"] > rest["height"]
+        assert full["bottom"] == pytest.approx(full["viewport"], abs=2)
+
+    def test_the_sheet_follows_the_finger_while_it_is_down(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, y - 120, steps=6, step_ms=40)
+
+        assert top_now(phone, "tall") == pytest.approx(rest["top"] - 120, abs=3)
+        phone.finger.up(after_ms=300)
+
+    def test_dragging_down_from_full_to_nearer_rest_leaves_it_at_rest_and_open(
+        self, phone
+    ):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+        phone.finger.drag(x, y, 60)
+        full = rest_box(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.drag(x, y, y + (rest["top"] - full["top"]), hold_ms=200)
+
+        settled = rest_box(phone, "tall")
+        assert height_of(phone, "tall") == "rest"
+        assert settled["top"] == pytest.approx(rest["top"], abs=2)
+        assert open_sheets(phone) == ["tall"]
+
+    def test_dragging_a_rested_sheet_well_below_closes_it_and_returns_focus(
+        self, phone
+    ):
+        phone.tap("#open-orders")
+        rest_box(phone, "orders")
+        x, y = grab_point(phone, "orders")
+        posts = []
+        phone.on(
+            "request",
+            lambda request: (
+                posts.append(request.url) if request.method == "POST" else None
+            ),
+        )
+
+        phone.finger.drag(x, y, y + 300, hold_ms=200)
+
+        closed(phone, "orders")
+        assert open_sheets(phone) == []
+        assert active_id(phone) == "open-orders"
+        assert posts == []
+
+    def test_a_small_slow_drag_down_settles_back_at_rest(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.drag(x, y, y + 30, hold_ms=250)
+
+        settled = rest_box(phone, "tall")
+        assert open_sheets(phone) == ["tall"]
+        assert height_of(phone, "tall") == "rest"
+        assert settled["top"] == pytest.approx(rest["top"], abs=2)
+
+    def test_a_short_flick_up_from_rest_makes_it_full(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.flick(x, y, y - 60)
+
+        full = rest_box(phone, "tall")
+        assert height_of(phone, "tall") == "full"
+        assert full["top"] < rest["top"]
+
+    def test_a_short_flick_down_from_rest_closes_it(self, phone):
+        open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.flick(x, y, y + 40)
+
+        closed(phone, "tall")
+
+    def test_a_short_flick_down_from_full_leaves_it_at_rest_and_open(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+        phone.finger.drag(x, y, 60)
+        rest_box(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.flick(x, y, y + 40)
+
+        settled = rest_box(phone, "tall")
+        assert open_sheets(phone) == ["tall"]
+        assert height_of(phone, "tall") == "rest"
+        assert settled["top"] == pytest.approx(rest["top"], abs=2)
+
+    def test_a_drag_down_from_full_past_rest_closes_it(self, phone):
+        open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+        phone.finger.drag(x, y, 60)
+        rest_box(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.drag(x, y, PHONE["height"] - 20, hold_ms=200)
+
+        closed(phone, "tall")
+
+    def test_a_drag_that_starts_on_the_head_moves_the_sheet_too(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall", "head")
+
+        phone.finger.drag(x, y, 60)
+
+        assert rest_box(phone, "tall")["top"] < rest["top"]
+        assert height_of(phone, "tall") == "full"
+
+    def test_a_cancelled_drag_settles_where_the_finger_last_was(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, y - (rest["top"] - 80), steps=8, step_ms=40)
+        phone.finger.cancel(after_ms=300)
+
+        settled = rest_box(phone, "tall")
+        assert height_of(phone, "tall") == "full"
+        assert settled["top"] < rest["top"]
+
+    def test_closing_and_opening_again_opens_at_rest(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+        phone.finger.drag(x, y, 60)
+        rest_box(phone, "tall")
+        phone.keyboard.press("Escape")
+
+        again = open_sheet(phone, "tall")
+
+        assert height_of(phone, "tall") == "rest"
+        assert again["top"] == pytest.approx(rest["top"], abs=2)
+
+    def test_a_sheet_asked_to_open_full_opens_full_again_after_being_shrunk(
+        self, phone
+    ):
+        full = open_sheet(phone, "starts-full")
+        x, y = grab_point(phone, "starts-full")
+        phone.finger.drag(x, y, y + (full["height"] / 2), hold_ms=200)
+        rest_box(phone, "starts-full")
+        assert height_of(phone, "starts-full") == "rest"
+        phone.keyboard.press("Escape")
+
+        again = open_sheet(phone, "starts-full")
+
+        assert height_of(phone, "starts-full") == "full"
+        assert again["top"] == pytest.approx(full["top"], abs=2)
+
+
+class TestFixedSheet:
+    def test_it_follows_a_drag_up_a_little_and_settles_back(self, phone):
+        phone.tap("#open-typing")
+        rest = rest_box(phone, "typing")
+        x, y = grab_point(phone, "typing")
+
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, y - 300, steps=8, step_ms=40)
+        moved = rest["top"] - top_now(phone, "typing")
+        phone.finger.up(after_ms=300)
+
+        assert 0 < moved <= 25
+        settled = rest_box(phone, "typing")
+        assert settled["top"] == pytest.approx(rest["top"], abs=2)
+        assert height_of(phone, "typing") == "rest"
+        assert open_sheets(phone) == ["typing"]
+
+    def test_it_still_closes_when_dragged_down(self, phone):
+        phone.tap("#open-typing")
+        rest_box(phone, "typing")
+        x, y = grab_point(phone, "typing")
+
+        phone.finger.drag(x, y, PHONE["height"] - 20, hold_ms=200)
+
+        closed(phone, "typing")
+
+    def test_it_still_closes_when_flicked_down(self, phone):
+        phone.tap("#open-typing")
+        rest_box(phone, "typing")
+        x, y = grab_point(phone, "typing")
+
+        phone.finger.flick(x, y, y + 40)
+
+        closed(phone, "typing")
+
+    def test_its_grab_bar_offers_no_change_of_height(self, phone):
+        phone.tap("#open-typing")
+        rest = rest_box(phone, "typing")
+
+        phone.tap("#typing [data-mvp-sheet-grab]")
+
+        assert expanded(phone, "typing") is None
+        assert height_of(phone, "typing") == "rest"
+        assert rest_box(phone, "typing")["top"] == pytest.approx(rest["top"], abs=2)
+
+
+class TestBodyAndPageBehind:
+    def test_a_drag_inside_the_body_scrolls_the_body_and_not_the_sheet(self, phone):
+        open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+        phone.finger.drag(x, y, 60)
+        full = rest_box(phone, "tall")
+        body = phone.locator("#tall [data-mvp-sheet-body]").bounding_box()
+        middle = body["y"] + body["height"] / 2
+
+        phone.finger.drag(x, middle, middle - 150)
+
+        phone.wait_for_function(
+            "() => document.querySelector('#tall [data-mvp-sheet-body]').scrollTop > 0"
+        )
+        assert rest_box(phone, "tall")["top"] == pytest.approx(full["top"], abs=1)
+        assert height_of(phone, "tall") == "full"
+
+    def test_the_page_behind_does_not_scroll_during_a_drag(self, phone):
+        phone.tap("#open-orders")
+        rest_box(phone, "orders")
+        x, y = grab_point(phone, "orders", "head")
+
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, y - 200, steps=8, step_ms=40)
+        during = phone.evaluate("() => window.scrollY")
+        phone.finger.trace(x, y - 200, y + 20, steps=8, step_ms=40)
+        phone.finger.up(after_ms=300)
+
+        assert during == 0
+        assert phone.evaluate("() => window.scrollY") == 0
+
+
+class TestGrabBar:
+    def test_a_tap_switches_between_the_heights_and_says_which(self, phone):
+        rest = open_sheet(phone, "tall")
+        assert expanded(phone, "tall") == "false"
+
+        phone.tap("#tall [data-mvp-sheet-grab]")
+        full = rest_box(phone, "tall")
+        assert expanded(phone, "tall") == "true"
+        assert full["top"] < rest["top"]
+
+        phone.tap("#tall [data-mvp-sheet-grab]")
+        back = rest_box(phone, "tall")
+        assert expanded(phone, "tall") == "false"
+        assert back["top"] == pytest.approx(rest["top"], abs=2)
+
+    def test_the_keyboard_switches_between_the_heights_and_says_which(self, phone):
+        rest = open_sheet(phone, "tall")
+        phone.focus("#tall [data-mvp-sheet-grab]")
+
+        phone.keyboard.press("Enter")
+        full = rest_box(phone, "tall")
+        assert expanded(phone, "tall") == "true"
+        assert full["top"] < rest["top"]
+
+        phone.keyboard.press("Space")
+        back = rest_box(phone, "tall")
+        assert expanded(phone, "tall") == "false"
+        assert back["top"] == pytest.approx(rest["top"], abs=2)
+
+    def test_a_sheet_opened_full_says_so(self, phone):
+        open_sheet(phone, "starts-full")
+
+        assert expanded(phone, "starts-full") == "true"
+
+    def test_a_mouse_drag_ending_on_the_grab_bar_is_a_drag_and_not_a_tap(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.mouse.move(x, y)
+        phone.mouse.down()
+        for step in range(1, 7):
+            phone.mouse.move(x, y - (y - 60) * step / 6)
+            phone.wait_for_timeout(60)
+        phone.wait_for_timeout(200)
+        phone.mouse.up()
+
+        full = rest_box(phone, "tall")
+        phone.wait_for_timeout(100)
+        assert height_of(phone, "tall") == "full"
+        assert full["top"] < rest["top"]
+
+
+class TestGestureEdgeCases:
+    def test_a_sheet_opened_mid_drag_closes_the_dragged_one_and_stays_clean(
+        self, phone
+    ):
+        open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, y - 100, steps=4, step_ms=40)
+        dispatch(phone, id="other")
+        phone.finger.trace(x, y - 100, y - 150, steps=2, step_ms=40)
+        phone.finger.up(after_ms=300)
+
+        other = rest_box(phone, "other")
+        assert open_sheets(phone) == ["other"]
+        assert height_of(phone, "other") == "rest"
+        assert other["bottom"] == pytest.approx(other["viewport"], abs=2)
+        styles = "() => document.querySelector('#tall .mvp-sheet-box').style.cssText"
+        assert phone.evaluate(styles) == ""
+
+    def test_a_second_finger_does_not_move_the_sheet_twice_as_far(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.down(x, y)
+        phone.finger.down(x + 40, y + 200, finger=1)
+        for step in range(1, 5):
+            phone.finger.points[0] = (x, y - 25 * step)
+            phone.finger.points[1] = (x + 40, y + 200 - 25 * step)
+            phone.finger.send("touchMove", 40)
+
+        assert top_now(phone, "tall") == pytest.approx(rest["top"] - 100, abs=3)
+        phone.finger.up(after_ms=300)
+
+    def test_a_finger_that_lands_second_on_the_grab_bar_does_not_drag(self, phone):
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+        body = phone.locator("#tall [data-mvp-sheet-body]").bounding_box()
+
+        phone.finger.down(x, body["y"] + 40)
+        phone.finger.down(x + 20, y, finger=1)
+        for step in range(1, 5):
+            phone.finger.points[1] = (x + 20, y - 25 * step)
+            phone.finger.send("touchMove", 40)
+
+        assert top_now(phone, "tall") == pytest.approx(rest["top"], abs=1)
+        phone.finger.up(after_ms=300)
+        assert height_of(phone, "tall") == "rest"
+
+
+class TestReducedMotionDrag:
+    def test_the_sheet_follows_the_finger_and_settles_without_animating(self, phone):
+        phone.emulate_media(reduced_motion="reduce")
+        rest = open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, y - 150, steps=6, step_ms=40)
+        assert top_now(phone, "tall") == pytest.approx(rest["top"] - 150, abs=3)
+        phone.finger.trace(x, y - 150, 60, steps=6, step_ms=40)
+        phone.finger.up(after_ms=300)
+
+        assert height_of(phone, "tall") == "full"
+        assert phone.evaluate(SHEET_ANIMATIONS) == 0
+        assert rest_box(phone, "tall")["top"] < rest["top"]
+
+    def test_a_closing_drag_closes_straight_away(self, phone):
+        phone.emulate_media(reduced_motion="reduce")
+        open_sheet(phone, "tall")
+        x, y = grab_point(phone, "tall")
+
+        phone.finger.drag(x, y, PHONE["height"] - 20, hold_ms=200)
+
+        assert open_sheets(phone) == []
+
+
+class TestWideScreenIgnoresDrags:
+    @pytest.mark.parametrize("viewport", [DESKTOP, JUST_WIDE], ids=["1280", "640"])
+    def test_the_pointer_moves_nothing(self, browser, live_server, viewport):
+        context = browser.new_context(viewport=viewport)
+        page = context.new_page()
+        open_page(page, live_server, viewport)
+        before = open_sheet(page, "orders")
+        head = page.locator("#orders [data-mvp-sheet-head]").bounding_box()
+        x, y = head["x"] + 20, head["y"] + head["height"] / 2
+
+        page.mouse.move(x, y)
+        page.mouse.down()
+        for step in range(1, 6):
+            page.mouse.move(x, y + 80 * step)
+            page.wait_for_timeout(30)
+        during = box_of(page, "orders")
+        page.mouse.up()
+
+        after = rest_box(page, "orders")
+        assert open_sheets(page) == ["orders"]
+        assert height_of(page, "orders") == "rest"
+        assert during["top"] == pytest.approx(before["top"], abs=1)
+        assert after["top"] == pytest.approx(before["top"], abs=1)
+        context.close()
+
+
+class TestTriggerModifierClicks:
+    @pytest.mark.parametrize("key", ["Control", "Meta", "Shift"])
+    def test_a_link_trigger_is_left_to_the_browser_with_a_modifier_held(
+        self, page, live_server, key
+    ):
+        open_page(page, live_server)
+        page.evaluate(
+            """
+            () => document.addEventListener("click", event => {
+              window.leftAlone = !event.defaultPrevented;
+              event.preventDefault();
+            })
+            """
+        )
+
+        page.click("#open-orders", modifiers=[key])
+
+        assert page.evaluate("() => window.leftAlone") is True
+        assert open_sheets(page) == []
+
+    def test_a_plain_click_still_opens_the_sheet(self, page, live_server):
+        open_page(page, live_server)
+
+        page.click("#open-orders")
+
+        assert open_sheets(page) == ["orders"]
