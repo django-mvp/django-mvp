@@ -242,3 +242,43 @@ class TestSheetTrigger:
         soup = render_trigger()
 
         assert soup.select_one("button [aria-hidden=true]") is not None
+
+
+MENU = """
+<c-mvp.sheet.menu>
+  <c-mvp.sheet.menu.item text="Open" icon="more" href="/open/" />
+  <c-mvp.sheet.menu.item text="Rename" icon="more" />
+  <c-mvp.sheet.menu.item text="Delete" icon="more" danger />
+</c-mvp.sheet.menu>
+"""
+
+
+class TestSheetMenu:
+    @pytest.fixture
+    def soup(self, cotton_render_string_soup):
+        return cotton_render_string_soup(MENU)
+
+    def test_rows_are_a_list(self, soup):
+        assert len(soup.select("ul > li")) == 3
+
+    def test_a_row_with_an_address_is_a_link(self, soup):
+        link = soup.select_one("li a")
+
+        assert link["href"] == "/open/"
+        assert link.get_text(strip=True) == "Open"
+
+    def test_a_row_without_an_address_is_a_button(self, soup):
+        buttons = soup.select("li button")
+
+        assert [b.get_text(strip=True) for b in buttons] == ["Rename", "Delete"]
+        assert all(b["type"] == "button" for b in buttons)
+
+    def test_each_icon_is_hidden_from_assistive_technology(self, soup):
+        icons = soup.select("li [aria-hidden=true]")
+
+        assert len(icons) == 3
+
+    def test_only_the_danger_row_carries_the_destructive_mark(self, soup):
+        marked = soup.select("li [data-mvp-sheet-danger]")
+
+        assert [m.get_text(strip=True) for m in marked] == ["Delete"]
