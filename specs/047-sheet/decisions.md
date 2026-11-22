@@ -219,3 +219,5 @@ take focus. With no `returns` named, focus goes to the opener of the sheet that 
 **ADR:** none — local to this feature, nothing downstream inherits it.
 
 D21's fix changed one existing browser test: it passed before only because the browser restores focus natively, so it pinned the wrong behaviour. It was rewritten, and tests for a trigger outside every sheet and for a named return element were added.
+
+The review fixes changed existing sheet tests the review named: the form example's search was scoped to its own dialog, two tests that pinned tuning values assert the requirement, focus checks retry, and one assertion on the view's name in `x-show` was removed with the code it described. Each still fails when its behaviour is removed.
