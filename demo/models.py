@@ -334,8 +334,14 @@ class ProjectTask(models.Model):
         verbose_name="title",
         help_text="The task's title.",
     )
+    position = models.PositiveIntegerField(
+        default=0,
+        verbose_name="position",
+        help_text="Where the task sits among its project's tasks, counting from zero.",
+    )
 
     class Meta:
+        ordering = ["position", "pk"]
         verbose_name = "project task"
         verbose_name_plural = "project tasks"
 
