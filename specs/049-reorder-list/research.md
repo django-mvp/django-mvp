@@ -94,3 +94,20 @@ Research and planning fill this file. Only the checks the specification depends 
 | Hidden live region for announcements | this repo | check `sr-only` use in `assets/js/search.js` and reuse the pattern |
 | Reorder component, row component, `mvpReorder` | new code | nothing in this repo or its packages reorders rows |
 | Reorder mode controls | new code | two `data-` attributes read by one delegated click handler |
+
+## Citations for the engine claims
+
+Read from the published 1.15.7 package (`sortablejs-1.15.7.tgz`, the file the lockfile will resolve),
+not its documentation:
+
+- The module build the bundle imports (`modular/sortable.esm.js`, the package's `module` field)
+  mounts the auto-scroll plugin and the remove and revert plugins (`Sortable.mount(new
+  AutoScrollPlugin())`, line 3359), with `scrollSensitivity: 30` as its default (line 2432 of
+  `Sortable.js`).
+- `forceFallback: true` turns native dragging off (`this.nativeDraggable = options.forceFallback ?
+  false : supportDraggable`, line 1132 of `Sortable.js`) and the fallback ends on `pointerup` or
+  `pointercancel` on the document (lines 1319 to 1325), which is where the Escape plan hooks in.
+- `draggable` is matched when a drag starts (line 1197), and the children Sortable counts skip any
+  with `style.display === 'none'` (line 360), so a row hidden by its removal is already skipped.
+- The licence is the file's first comment (`@license MIT`, lines 1 to 6 of the module build), and
+  the package ships its `LICENSE` file.
