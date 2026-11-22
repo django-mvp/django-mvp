@@ -300,17 +300,42 @@ class TestFocusReturn:
 
         assert active_id(page) == "before"
 
-    def test_a_trigger_in_the_closed_sheet_sends_focus_to_the_first_trigger(
-        self, page, live_server
+    @BOTH_WIDTHS
+    def test_a_trigger_in_the_closed_sheet_sends_focus_to_the_opener_of_that_sheet(
+        self, page, live_server, viewport
     ):
-        open_page(page, live_server)
-        page.click("#open-orders")
-        dispatch(page, id="orders", view="confirm")
+        open_page(page, live_server, viewport)
+        page.evaluate("() => document.getElementById('open-orders').click()")
+        page.get_by_role("button", name="Delete").click()
         page.click("#open-other-plain")
 
         page.keyboard.press("Escape")
 
         assert active_id(page) == "open-orders"
+
+    @BOTH_WIDTHS
+    def test_a_trigger_outside_every_sheet_gets_focus_back_itself(
+        self, page, live_server, viewport
+    ):
+        open_page(page, live_server, viewport)
+        page.evaluate("() => document.getElementById('open-orders').click()")
+
+        page.keyboard.press("Escape")
+
+        assert active_id(page) == "open-orders"
+
+    @BOTH_WIDTHS
+    def test_a_named_returns_wins_over_the_opener_of_the_holding_sheet(
+        self, page, live_server, viewport
+    ):
+        open_page(page, live_server, viewport)
+        page.evaluate("() => document.getElementById('open-orders').click()")
+        page.get_by_role("button", name="Delete").click()
+        page.click("#open-other")
+
+        page.keyboard.press("Escape")
+
+        assert active_id(page) == "before"
 
 
 class TestViews:

@@ -27,6 +27,9 @@ const DRAG_SLOP = 4;
 // The click that ends a drag on the grab bar arrives within this time of the release.
 const CLICK_GUARD_MS = 50;
 
+// The element that opened each sheet, so a trigger inside a sheet can hand focus on to it.
+const openers = new WeakMap();
+
 const HANDLES = "[data-mvp-sheet-grab], [data-mvp-sheet-head]";
 
 function firstViewName(sheet) {
@@ -98,6 +101,7 @@ function sheet() {
       );
       this.view = names.includes(view) ? view : firstViewName(this.$el);
       this.returnTo = (returns && document.getElementById(returns)) || opener || null;
+      openers.set(this.$el, this.returnTo);
       if (!this.$el.open) {
         this.$el.showModal();
         this.startListening();
@@ -110,6 +114,7 @@ function sheet() {
       this.resetHeight();
       const target = this.returnTo;
       this.returnTo = null;
+      openers.delete(this.$el);
       target?.focus();
     },
 
@@ -447,8 +452,11 @@ function sheetTrigger() {
           return;
         }
         event.preventDefault();
+        // Inside a sheet this trigger cannot take focus once that sheet has closed.
+        const holder = this.$el.closest("[data-mvp-sheet]");
+        const opener = holder ? openers.get(holder) : this.$el;
         window.dispatchEvent(
-          new CustomEvent(OPEN_EVENT, { detail: { id, view, returns, opener: this.$el } }),
+          new CustomEvent(OPEN_EVENT, { detail: { id, view, returns, opener } }),
         );
       };
       this.$el.addEventListener("click", this.onClick);
