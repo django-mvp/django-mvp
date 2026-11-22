@@ -146,8 +146,8 @@ dialog, the Filter button at its end, then the chips. The bar keeps the count an
 
 ### The modal (US-1, US-3)
 
-daisy-cotton pin `>=0.2,<0.3`. `c-mvp.modal` keeps its props and slots and draws its card inside
-`<c-modal ... only>` (ADR 0032). The seven alerts pass `icon` (research).
+daisy-cotton pin `>=0.2,<0.3`. `c-mvp.modal` keeps its props and slots and draws its heading, body
+and actions on the modal box of `<c-modal ... only>` (ADR 0032). The seven alerts pass `icon` (research).
 
 ### Behaviour in the browser (US-3, US-4)
 
