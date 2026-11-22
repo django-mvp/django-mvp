@@ -6,6 +6,10 @@ rows to move, by dragging a handle or by pressing an up or a down button.
 `mvp.ordering.save_order` takes the order your view received and writes it to a
 position field.
 
+The demo site's Reorder page (`components/reorder/`) shows four working lists: a
+row set, a list in a form, a list that posts as it changes and a list with an
+on-demand mode.
+
 ## Make a list reorderable
 
 Use this when a person should be able to put a list of items in their own order.

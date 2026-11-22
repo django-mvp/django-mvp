@@ -1,0 +1,5 @@
+{% if pinned %}
+  <c-demo.task-list id="live-tasks" url="{% url 'reorder-demo-live' %}" :tasks="tasks" />
+{% else %}
+  <c-demo.task-list id="mode-tasks" url="{% url 'reorder-demo-mode' %}" mode="on-demand" :tasks="tasks" />
+{% endif %}

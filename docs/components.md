@@ -546,6 +546,8 @@ daisy-cotton also has `<c-form.textarea>`, `<c-form.select>`, `<c-form.checkbox>
 | `c-mvp.reorder.row` | one row of that list: `value` (the item's identifier), `label` (the item's name, for the controls), `class` |
 | `c-mvp.reorder.moves` | the up and down buttons and the handle of one row: `label`. `c-mvp.reorder.row` places it; write it by hand only for a custom row |
 
+The demo site's Reorder page (`components/reorder/`) shows four lists at work.
+
 ## Add-ons
 
 Components that sit alongside the core set rather than inside it. One of them needs a
