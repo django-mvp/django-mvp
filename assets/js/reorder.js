@@ -14,6 +14,8 @@ function reorder() {
   let observer = null;
   let lastOrder = [];
   let owner = null;
+  let snapshot = [];
+  let cancelled = false;
 
   // The rows in their current order. The fallback clone a drag holds stays inside the list, and
   // a row a form set has removed stays in the document, hidden.
@@ -110,6 +112,39 @@ function reorder() {
     });
   }
 
+  // The row elements in their current order, hidden ones included.
+  function rowElements() {
+    return [...list.children].filter((child) => child.matches(ROW) && !child.classList.contains(HELD));
+  }
+
+  // Puts the rows back in the order they had when the drag began, each in the place a row
+  // already occupies, so anything else in the list keeps its position.
+  function restore() {
+    const current = rowElements();
+    if (current.length !== snapshot.length) return;
+    const marks = current.map((row) => {
+      const mark = document.createComment("");
+      row.before(mark);
+      return mark;
+    });
+    current.forEach((row) => row.remove());
+    marks.forEach((mark, index) => mark.replaceWith(snapshot[index]));
+  }
+
+  // The library has no cancel, so Escape ends the drag with the event that would end it
+  // and the end handler puts the rows back. The capture phase and preventDefault keep
+  // an open dialog from taking the same key.
+  function cancel(event) {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (cancelled) return;
+    cancelled = true;
+    const pointer = sortable.options.supportPointer;
+    const Kind = pointer ? PointerEvent : MouseEvent;
+    document.dispatchEvent(new Kind(pointer ? "pointerup" : "mouseup", { bubbles: true, cancelable: true }));
+  }
+
   // Called once a move is over, from either control.
   function changed() {
     const current = order();
@@ -153,10 +188,25 @@ function reorder() {
         scroll: true,
         scrollSensitivity: 72,
         delay: 0,
+        // A second finger, or any pointer after the first, starts no drag.
+        filter: (event) => event.isPrimary === false || (event.touches && event.touches.length > 1),
         disabled: !this.active,
-        onStart: () => list.classList.add("mvp-reorder-sorting"),
+        onStart: () => {
+          snapshot = rowElements();
+          cancelled = false;
+          list.classList.add("mvp-reorder-sorting");
+          document.addEventListener("keydown", cancel, { capture: true });
+          if (navigator.vibrate) navigator.vibrate(8);
+        },
         onEnd: () => {
+          document.removeEventListener("keydown", cancel, { capture: true });
           list.classList.remove("mvp-reorder-sorting");
+          if (cancelled) {
+            cancelled = false;
+            restore();
+            refresh();
+            return;
+          }
           refresh();
           changed();
         },
@@ -175,6 +225,7 @@ function reorder() {
 
     destroy() {
       if (owner) owner.removeEventListener("submit", writeOrder, { capture: true });
+      document.removeEventListener("keydown", cancel, { capture: true });
       observer.disconnect();
       sortable.destroy();
     },

@@ -69,6 +69,18 @@ TWO_PAGE = """
 {% endblock %}
 """
 
+TALL_PAGE = """
+{% extends "mvp/base.html" %}
+{% block content %}
+<c-mvp.reorder id="steps" label="Steps">
+  <c-mvp.reorder.row value="a" label="Alpha">Alpha</c-mvp.reorder.row>
+  <c-mvp.reorder.row value="b" label="Beta">Beta</c-mvp.reorder.row>
+  <c-mvp.reorder.row value="c" label="Gamma">Gamma</c-mvp.reorder.row>
+</c-mvp.reorder>
+<div style="height: 3000px"></div>
+{% endblock %}
+"""
+
 ROWS = """
 <c-mvp.reorder.row value="p" label="Pee">Pee</c-mvp.reorder.row>
 <c-mvp.reorder.row value="q" label="Queue">Queue</c-mvp.reorder.row>
@@ -97,6 +109,11 @@ def render_page(source, request, **context):
 def reorder_test_page(request):
     """Draw the plain test page."""
     return render_page(PAGE, request)
+
+
+def tall_page(request):
+    """Draw the plain list above a stretch of page that scrolls."""
+    return render_page(TALL_PAGE, request)
 
 
 def form_page(request):
@@ -148,6 +165,7 @@ def save(request, project_id):
 def reorder_test_urls(settings):
     settings.ROOT_URLCONF = urlconf_of(
         path("reorder-test/", reorder_test_page),
+        path("reorder-test/tall/", tall_page),
         path("reorder-test/form/", form_page),
         path("reorder-test/two/", two_page),
         path("reorder-test/rows/", rows),
@@ -422,3 +440,219 @@ class TestRowsAddedAfterLoad:
             "#steps [data-mvp-reorder-row] [data-mvp-reorder-up]"
         ).first
         expect(first).to_have_attribute("aria-disabled", "true")
+
+
+PHONE = {"width": 390, "height": 700}
+
+VIBRATE_STUB = """
+window.vibrations = [];
+navigator.vibrate = (pattern) => { window.vibrations.push(pattern); return true; };
+"""
+
+
+def scroll_y(page):
+    return page.evaluate("window.scrollY")
+
+
+def centre(page, selector):
+    box = page.locator(selector).bounding_box()
+    return box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+
+
+class Finger:
+    """Trusted touches sent through the browser's DevTools protocol."""
+
+    def __init__(self, page):
+        self.session = page.context.new_cdp_session(page)
+
+    def send(self, kind, *points):
+        self.session.send(
+            "Input.dispatchTouchEvent",
+            {
+                "type": kind,
+                "touchPoints": [
+                    {"x": x, "y": y, "id": index} for index, (x, y) in enumerate(points)
+                ],
+            },
+        )
+
+    def drag(self, start, end, steps=12):
+        """Press at ``start`` and move to ``end`` in even steps, then lift."""
+        self.send("touchStart", start)
+        for step in range(1, steps + 1):
+            x = start[0] + (end[0] - start[0]) * step / steps
+            y = start[1] + (end[1] - start[1]) * step / steps
+            self.send("touchMove", (x, y))
+        self.send("touchEnd")
+
+
+@pytest.fixture
+def touch_page(browser, live_server):
+    context = browser.new_context(has_touch=True, viewport=PHONE)
+    page = context.new_page()
+    page.set_default_timeout(5000)
+    page.add_init_script(VIBRATE_STUB)
+    page.goto(f"{live_server.url}/reorder-test/tall/")
+    page.wait_for_function("window.Alpine !== undefined")
+    yield page
+    context.close()
+
+
+def handle(value):
+    return f'#steps [data-mvp-reorder-value="{value}"] [data-mvp-reorder-handle]'
+
+
+class TestTouchDragging:
+    def test_a_touch_drag_from_the_handle_moves_the_row_and_the_page_stays(
+        self, touch_page
+    ):
+        end = centre(touch_page, '#steps [data-mvp-reorder-value="c"]')
+
+        Finger(touch_page).drag(centre(touch_page, handle("a")), (end[0], end[1] + 20))
+
+        assert values(touch_page) == ["b", "c", "a"]
+        assert scroll_y(touch_page) == 0
+
+    def test_a_touch_drag_from_anywhere_else_scrolls_the_page(self, touch_page):
+        title = centre(touch_page, '#steps [data-mvp-reorder-value="b"] div')
+
+        Finger(touch_page).drag(title, (title[0], title[1] - 300))
+
+        assert values(touch_page) == ["a", "b", "c"]
+        assert scroll_y(touch_page) > 0
+
+    def test_a_drag_from_a_handle_calls_vibrate(self, touch_page):
+        end = centre(touch_page, '#steps [data-mvp-reorder-value="c"]')
+
+        Finger(touch_page).drag(centre(touch_page, handle("a")), end)
+
+        assert touch_page.evaluate("window.vibrations.length") == 1
+
+
+class TestStartingADrag:
+    def test_a_right_click_on_a_handle_starts_no_drag(self, page, live_server):
+        open_page(page, live_server)
+        x, y = centre(page, handle("a"))
+        end = page.locator('#steps [data-mvp-reorder-value="c"]').bounding_box()
+
+        page.mouse.move(x, y)
+        page.mouse.down(button="right")
+        page.mouse.move(x, end["y"] + end["height"] * 0.75, steps=12)
+        page.mouse.up(button="right")
+
+        assert values(page) == ["a", "b", "c"]
+
+    def test_a_second_finger_on_a_handle_starts_no_drag(self, touch_page):
+        resting = centre(touch_page, '#steps [data-mvp-reorder-value="c"] div')
+        start = centre(touch_page, handle("a"))
+        end = centre(touch_page, '#steps [data-mvp-reorder-value="c"]')
+        finger = Finger(touch_page)
+
+        finger.send("touchStart", resting)
+        finger.send("touchStart", resting, start)
+        for step in range(1, 9):
+            lower = (start[0], start[1] + (end[1] - start[1]) * step / 8)
+            finger.send("touchMove", resting, lower)
+        finger.send("touchEnd")
+
+        assert values(touch_page) == ["a", "b", "c"]
+        assert touch_page.evaluate("window.vibrations.length") == 0
+
+
+class TestEdgeScrolling:
+    def test_the_page_scrolls_while_the_pointer_rests_near_the_bottom(
+        self, touch_page, live_server
+    ):
+        touch_page.set_viewport_size({"width": 1280, "height": 400})
+        x, y = centre(touch_page, handle("a"))
+
+        touch_page.mouse.move(x, y)
+        touch_page.mouse.down()
+        touch_page.mouse.move(x, 395, steps=10)
+        touch_page.wait_for_timeout(600)
+        scrolled = scroll_y(touch_page)
+        touch_page.mouse.up()
+
+        assert scrolled > 0
+
+
+class TestCancellingADrag:
+    @pytest.fixture
+    def project(self):
+        project = ProjectFactory()
+        for title in ("one", "two", "three"):
+            ProjectTaskFactory(project=project, title=title)
+        for index, task in enumerate(project.tasks.order_by("pk")):
+            task.position = index
+            task.save()
+        return project
+
+    def hold_over_last(self, page):
+        x, y = centre(page, handle("a"))
+        end = page.locator('#steps [data-mvp-reorder-value="c"]').bounding_box()
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x, end["y"] + end["height"] * 0.75, steps=12)
+        assert page.eval_on_selector_all(
+            "#steps [data-mvp-reorder-row]:not(.mvp-reorder-held)",
+            "rows => rows.map(row => row.dataset.mvpReorderValue)",
+        ) == ["b", "c", "a"]
+
+    def test_escape_returns_the_row_to_where_it_started(self, page, live_server):
+        open_page(page, live_server)
+
+        self.hold_over_last(page)
+        page.keyboard.press("Escape")
+        page.mouse.up()
+
+        assert values(page) == ["a", "b", "c"]
+
+    def test_a_cancelled_drag_can_be_followed_by_another(self, page, live_server):
+        open_page(page, live_server)
+
+        self.hold_over_last(page)
+        page.keyboard.press("Escape")
+        page.mouse.up()
+        drag(page, "b", "c")
+
+        assert values(page) == ["a", "c", "b"]
+
+    @pytest.mark.django_db(transaction=True)
+    def test_a_cancelled_drag_posts_nothing(self, page, live_server, project):
+        page.set_default_timeout(5000)
+        page.set_viewport_size(VIEWPORT)
+        page.goto(f"{live_server.url}/reorder-test/post/{project.pk}/")
+        page.wait_for_function("window.Alpine !== undefined")
+        posts = []
+        page.on("request", lambda r: posts.append(r) if r.method == "POST" else None)
+        first = project.tasks.order_by("position").first()
+        x, y = centre(
+            page,
+            f'#steps [data-mvp-reorder-value="{first.pk}"] [data-mvp-reorder-handle]',
+        )
+
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x, y + 140, steps=12)
+        page.keyboard.press("Escape")
+        page.mouse.up()
+        page.wait_for_timeout(300)
+
+        assert posts == []
+
+
+class TestDroppingOutsideTheList:
+    def test_a_row_let_go_outside_the_list_stays_where_the_gap_was(
+        self, page, live_server
+    ):
+        open_page(page, live_server)
+        x, y = centre(page, handle("a"))
+        end = page.locator('#steps [data-mvp-reorder-value="c"]').bounding_box()
+
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x, end["y"] + end["height"] * 0.75, steps=12)
+        page.mouse.move(1270, 880, steps=6)
+        page.mouse.up()
+
+        assert values(page) == ["b", "c", "a"]
