@@ -1666,12 +1666,17 @@ html {
   );
 }
 
-.mvp-sheet[data-height="full"] > .mvp-sheet-box {
-  height: min(var(--mvp-sheet-full), calc(100dvh - var(--mvp-sheet-keyboard)));
-  max-height: min(
-    var(--mvp-sheet-full),
-    calc(100dvh - var(--mvp-sheet-keyboard))
-  );
+@media not (min-width: 40rem) {
+  .mvp-sheet[data-height="full"] > .mvp-sheet-box {
+    height: min(
+      var(--mvp-sheet-full),
+      calc(100dvh - var(--mvp-sheet-keyboard))
+    );
+    max-height: min(
+      var(--mvp-sheet-full),
+      calc(100dvh - var(--mvp-sheet-keyboard))
+    );
+  }
 }
 
 .mvp-sheet-grab {
