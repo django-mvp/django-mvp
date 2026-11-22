@@ -1650,6 +1650,7 @@ html {
 .mvp-sheet {
   --mvp-sheet-rest: 50dvh;
   --mvp-sheet-full: calc(100dvh - 2.5rem - env(safe-area-inset-top));
+  --mvp-sheet-keyboard: 0px;
 }
 
 .mvp-sheet > .mvp-sheet-box {
@@ -1658,12 +1659,19 @@ html {
   gap: 0.5rem;
   overflow: hidden;
   padding: 0 1rem 0;
-  max-height: var(--mvp-sheet-rest);
+  margin-block-end: var(--mvp-sheet-keyboard);
+  max-height: min(
+    var(--mvp-sheet-rest),
+    calc(100dvh - var(--mvp-sheet-keyboard))
+  );
 }
 
 .mvp-sheet[data-height="full"] > .mvp-sheet-box {
-  height: var(--mvp-sheet-full);
-  max-height: var(--mvp-sheet-full);
+  height: min(var(--mvp-sheet-full), calc(100dvh - var(--mvp-sheet-keyboard)));
+  max-height: min(
+    var(--mvp-sheet-full),
+    calc(100dvh - var(--mvp-sheet-keyboard))
+  );
 }
 
 .mvp-sheet-grab {
@@ -1788,11 +1796,22 @@ html {
   .mvp-sheet > .mvp-sheet-box {
     width: 91.666667%;
     max-width: 32rem;
-    max-height: calc(100dvh - 5rem);
+    max-height: calc(100dvh - 5rem - var(--mvp-sheet-keyboard));
     padding-block-start: 1.25rem;
   }
 
   .mvp-sheet-wide > .mvp-sheet-box {
     max-width: 42rem;
+  }
+}
+
+/* daisyUI sets its slide and fade with selectors this rule cannot outrank. */
+@media (prefers-reduced-motion: reduce) {
+  .mvp-sheet,
+  .mvp-sheet > .mvp-sheet-box,
+  .mvp-sheet > .modal-backdrop {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation-duration: 0s !important;
   }
 }
