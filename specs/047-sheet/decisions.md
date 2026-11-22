@@ -166,6 +166,26 @@ engine has.
 
 **ADR:** none.
 
+## D19: FR-002 names `c-modal`, the base `c-mvp.modal` is drawn on
+
+The design review found that `c-mvp.modal` sends its `class` to the box, so a sheet wrapped in it
+cannot give the dialog `sm:modal-middle`. FR-002 and its assumption now say what D12 already did:
+the sheet is drawn on daisyUI's modal box inside daisy-cotton's `c-modal`. Behaviour is unchanged.
+The orchestrator holding the specification gate was told.
+
+**ADR:** none.
+
+## D20: Design-review watch items
+
+The trigger's script lives in `mvpSheetTrigger` and lets the link follow when its sheet is absent.
+The grab bar uses `aria-expanded`. Drags are tested with explicit event timestamps, at 639 and 640 px
+for the width switch, with geometry assertions at each height, full to closed, a mouse drag ending on
+the grab bar, a sheet opened mid-drag, keyboard-only runs, and a keyboard-offset test that places the
+field below the faked keyboard line first. `sub` is named `lead`. No test of wording, no
+render-all sentence, no built-stylesheet assertion.
+
+**ADR:** none.
+
 ## D18: Five templates and one script
 
 `sheet`, `sheet.view`, `sheet.trigger`, `sheet.menu` and `sheet.menu.item` are templates; the

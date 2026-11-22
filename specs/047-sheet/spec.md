@@ -262,8 +262,9 @@ it is closed.
 - **FR-001**: The package MUST provide a sheet: a modal dialog with a head holding a required
   title, an optional line under it, an optional icon or art and an optional accessible
   description, a body, and a foot. (US1)
-- **FR-002**: The sheet MUST be drawn on the package's modal, and MUST take its placement on
-  narrow and wide screens from daisyUI's own responsive modal placement. (US1, US2)
+- **FR-002**: The sheet MUST be drawn on daisyUI's modal box inside daisy-cotton's `c-modal`, as
+  `c-mvp.modal` is, and MUST take its placement on narrow and wide screens from daisyUI's own
+  responsive modal placement. (US1, US2)
 - **FR-003**: The package MUST provide a trigger that opens a named sheet, announces that it opens
   a dialog, takes an accessible name for the item it belongs to, and falls back to a plain link
   where scripts do not run when it is given an address. (US1)
@@ -348,8 +349,9 @@ it is closed.
 
 ## Assumptions
 
-- The sheet is drawn on `c-mvp.modal` once it has been redrawn on daisyUI's own modal box
-  (https://github.com/django-mvp/django-mvp/issues/684). This feature is built after that merge.
+- The sheet is drawn on daisyUI's own modal box inside daisy-cotton's `c-modal`, the same base
+  `c-mvp.modal` was redrawn on (https://github.com/django-mvp/django-mvp/issues/684). This
+  feature is built after that merge.
 - The browser's own `<dialog>` supplies Escape, the focus trap and, on Android, closing with the
   system back gesture. They are not specified again here, only relied on.
 - The row actions feature (https://github.com/django-mvp/django-mvp/issues/688) places this

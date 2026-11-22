@@ -43,11 +43,10 @@ Delivers FR-001, FR-002, FR-003, FR-004, FR-005 (markup), FR-009, FR-019 (wide s
 The contract in `plan.md`. Port the sheet from the agreed design into daisy-cotton's `c-modal`
 with `modal-bottom sm:modal-middle` in the template text so the stylesheet scan finds it. Grab bar
 is a `<button type="button">` with a translated `aria-label`. Head holds the `art` slot (hidden from
-assistive technology), icon, title, `sub`. `description` slot becomes the dialog's accessible
+assistive technology), icon, title, `lead`. `description` slot becomes the dialog's accessible
 description. Foot is the `actions` slot or one closing `type="button"`. `full`, `fixed` and `wide`
 set data attributes and the wide size class. Tests: US1 scenarios 1, 2, 7 (markup), 8, 11, 12, 13,
-14, and a title-less sheet is not silently accepted by the component's documentation header.
-Add the sheet to `test_render_all.py`.
+14.
 
 #### T002 — The trigger
 
@@ -75,8 +74,7 @@ nearest existing coverage test
 Port the agreed styles: grab bar, head, art tile, menu rows, safe-area padding at the foot, the
 column box with a pinned head and a scrolling body, the grab bar hidden from `sm` up, the wide
 size. Custom properties `--mvp-sheet-rest` and `--mvp-sheet-full`. One block with a comment
-header. Rebuild with `uv run invoke build-stylesheet`. A test asserts the built stylesheet holds
-`sm:modal-middle` and `modal-bottom`.
+header. Rebuild with `uv run invoke build-stylesheet`. The browser tests cover the placement.
 
 ---
 
@@ -98,7 +96,7 @@ focus returns (the named element, else the opener). On the dialog's `close` even
 the first view, resets the height and moves focus to the remembered element. A trigger whose sheet
 is not on the page does nothing (the link then follows its address). Views are found from
 `[data-mvp-sheet-view]`; `view` and `show(name)` are in scope. Rebuild the bundle
-(`npm run build:js:prod`). Tests, first: scenarios of US2 3–8 at phone and desktop width, and US1 10.
+(`npm run build:js:prod`). Tests, first: scenarios of US2 3–8 at phone and desktop width (4–6 once by keyboard alone), US1 9 and 10, an unknown view opening the first, a trigger whose sheet is absent following its link, and two sheets each opening and closing alone. `mvpSheetTrigger` is registered here and reads `for`, `view` and `returns` from `data-` attributes.
 
 #### T006 — The keyboard offset, reduced motion and the wide switch
 
@@ -110,15 +108,14 @@ While open, read `window.visualViewport` and set `--mvp-sheet-keyboard` on the d
 takes it as a bottom offset and shrinks its maximum height; `focusin` scrolls the field into view
 in the body. Only the open sheet listens. `prefers-reduced-motion` removes the open and close
 slide. A sheet open across a change from narrow to wide stays open on the same view and returns to
-its resting height when turned back. Tests: US2 10 (with the viewport redefined and `resize`
-fired, named as such) and 11, and the rotate edge case.
+its resting height when turned back. Tests: US2 10 (the field placed below the faked keyboard line first, `visualViewport` height and offset redefined, `resize` fired on `window.visualViewport`, and the field's rectangle asserted above the faked keyboard) and 11, and the rotate edge case.
 
 #### T007 — Browser tests for the sheet at phone and desktop width
 
 **Files**: `tests/test_components/test_sheet_e2e.py`, `demo/templates/demo/components/sheet.html`
 (a minimal fixture page if T010's is not yet there)
 
-US2 scenarios 1, 2, 9; US1 scenario 15 (no request to another origin while a page with a sheet
+US2 scenarios 1, 2, 9 (1 and 2 also at 639 and 640 px wide); US1 scenario 15 (no request to another origin while a page with a sheet
 loads and opens it); the fallback link with scripts turned off (US1 scenario 4, SC-004); the
 body scrolls while the head stays and the page behind does not; Tab never leaves the sheet; Escape,
 tap outside and the closing button close without submitting a form the sheet sits in; reopening
@@ -153,9 +150,9 @@ Tests first, as in T009.
 **Files**: `tests/test_components/test_sheet_e2e.py`
 
 At a phone viewport with touch, driving touch events with real timing: US3 scenarios 1–11, 13;
-open→full, full→rest, rest→closed by drag and by flick; a fixed sheet settles back and still
+open→full, full→rest, rest→closed and full→closed by drag and by flick, with geometry asserted at each height (box top and bottom, not constants), explicit timestamps on every touch event; a fixed sheet settles back and still
 closes; a drag inside the body scrolls it; the page behind does not scroll during a drag; the grab
-bar by tap and by keyboard; a second finger does not move the sheet twice as far; an interrupted
+bar by tap and by keyboard (`aria-expanded` flips), a mouse drag that ends on it; a second sheet opened mid-drag; a second finger does not move the sheet twice as far; an interrupted
 drag settles at its last position; full again after reopen is rest unless `full` was asked. At desktop
 width with the mouse, scenario 12: the sheet does not move.
 

@@ -44,7 +44,7 @@ Read on 2026-11-22, against `origin/main` after the modal was redrawn on its own
 1. **Where the sheet is drawn.** Adopted in part. The sheet sits in daisy-cotton's `c-modal`, the
    box `c-mvp.modal` is drawn on, and passes `modal-bottom sm:modal-middle` through its `class`
    (checked: `class` lands on the `<dialog>`, `content_class` on the box). It does not wrap
-   `c-mvp.modal` itself, because that component draws its own heading row and names the dialog
+   `c-mvp.modal` itself (its `class` goes to the box, so the dialog cannot take `sm:modal-middle`; FR-002 is reworded to name `c-modal`), because that component draws its own heading row and names the dialog
    from `aria-label`, while a sheet draws a head of its own (grab bar, art, title, line under it)
    and names the dialog from that title (D12). daisy-cotton is not changed.
 2. **FS-048's trigger and menu.** Adopted. The trigger and the menu are components with a
@@ -118,6 +118,7 @@ search stopped.
 | A menu row, link or button, with an icon | an installed package | daisy-cotton `c-menu`, `c-menu.item` |
 | Icon by name | this repo | `c-icon` and the packaged icon set (`more` is checked in the first task) |
 | Escape, focus trap, system back gesture, focus return on close | the browser | `<dialog>` with `showModal()` |
+| Page behind does not scroll | an installed package | daisyUI's `:root:has(.modal[open])` overflow lock in the built stylesheet |
 | Hiding a panel | an installed package | Alpine `x-show` |
 | Pointer tracking with capture | the browser | pointer events and `setPointerCapture` |
 | Reduced motion, wide screen | the browser | `prefers-reduced-motion` and `matchMedia`, as `page_side.js` already reads |

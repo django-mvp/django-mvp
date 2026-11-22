@@ -26,9 +26,9 @@ design, class names renamed under `mvp-sheet-` and colours replaced by theme var
 
 ## The markup contract (what tests and FS-048 rely on)
 
-`<c-mvp.sheet id title sub icon full fixed wide class>`
+`<c-mvp.sheet id title lead icon full fixed wide class>`
 
-- `id` and `title` required. `sub` is the line under the title. `icon` is an icon name drawn before
+- `id` and `title` required. `lead` is the line under the title. `icon` is an icon name drawn before
   the title. `full` opens at the full height, `fixed` keeps the sheet at its resting height, `wide`
   adds the package's wide size for the centred dialog. Slots: default (the body, views and menus),
   `art` (small art before the title), `description` (text that becomes the dialog's accessible
@@ -36,7 +36,7 @@ design, class names renamed under `mvp-sheet-` and colours replaced by theme var
 - Renders a `<dialog id class="modal modal-bottom sm:modal-middle mvp-sheet">` named by
   `aria-labelledby="{id}-title"`, described by `aria-describedby="{id}-description"` when there is
   one, carrying `data-mvp-sheet`, `data-mvp-sheet-full` and `data-mvp-sheet-fixed` when set, and
-  `x-data="mvpSheet({ id })"`. Inside the box: the grab bar (`<button type="button"
+  `x-data="mvpSheet"` (the component reads its id from `$el.id`; no template value goes inside an Alpine expression). Inside the box: the grab bar (`<button type="button"
   data-mvp-sheet-grab>` with `aria-label`), the head (`data-mvp-sheet-head`), the body
   (`data-mvp-sheet-body`) and the foot. Every closing control is `type="button"`.
 - Views: `<c-mvp.sheet.view name="confirm">` renders `<div data-mvp-sheet-view="confirm"
@@ -44,8 +44,9 @@ design, class names renamed under `mvp-sheet-` and colours replaced by theme var
   inside switches with `@click="show('confirm')"`.
 - Trigger: `<c-mvp.sheet.trigger for="id" href label view returns id>` renders `<a href>` when an
   address is given and a `<button type="button">` when not, with `aria-haspopup="dialog"`, an
-  accessible name made from `label`, and a click that dispatches `mvp-sheet-open` on `window`
-  with `{ id, view, returns, opener }`. An empty slot draws the icon-only button, a slot its words.
+  accessible name made from `label`, and behaviour in `mvpSheetTrigger` (registered in `sheet.js`, configured from `data-` attributes): its
+  click prevents the default and dispatches `mvp-sheet-open` on `window` with `{ id, view, returns,
+  opener }` only when the named element is a sheet on the page, and otherwise lets the link follow. An empty slot draws the icon-only button, a slot its words.
 - Menu: `<c-mvp.sheet.menu>` is the list, `<c-mvp.sheet.menu.item text icon href danger>` a row,
   rendered with `c-menu` and `c-menu.item`.
 - Any element opens a sheet with `$dispatch('mvp-sheet-open', { id, view })`.
@@ -60,8 +61,9 @@ the box's height or its downward translate from the finger, records the last sam
 and on release `settle()` picks the target by D16 and animates there, then writes `data-height` and
 clears the inline styles. Closing animates the box off the bottom and then calls `close()`.
 `prefers-reduced-motion` skips every animation. The script's numbers are named constants.
-The grab bar button toggles rest and full (not when fixed) and carries `aria-expanded`-style state
-as `aria-label` text and `data-height`, since the platform controls read as expand and collapse.
+The grab bar button toggles rest and full (not when fixed), keeps one translated `aria-label` and
+carries `aria-expanded` (true at full height, omitted on a fixed sheet). Its click is ignored when it
+ends a drag that moved. Velocity is computed from `event.timeStamp`, not `performance.now()`.
 At and above `sm` the script ignores pointer drags and hides nothing itself: the grab bar is hidden
 by the stylesheet and `settle` is never called.
 
@@ -83,7 +85,8 @@ by the stylesheet and `settle` is never called.
 ## Which scenario is which kind of test
 
 Rendered markup: US1 scenarios 1–10, 13, 14, FR-001, 003–005, 009, 019 (the wide size class). Real
-browser: US1 scenarios 11, 12, 15; every US2 and US3 scenario; all edge cases; SC-002 to SC-005.
+browser, with the page scroll lock supplied by daisyUI's `:root:has(.modal[open])` rule (no code
+here): US1 scenarios 11, 12, 15; every US2 and US3 scenario; all edge cases; SC-002 to SC-005.
 The keyboard offset (US2 scenario 10) is driven by redefining `visualViewport.height` and firing
 `resize`, since no automated browser draws a keyboard; that is named in the test.
 
