@@ -39,12 +39,14 @@ started from a control and ended by a second control or Escape, as phone apps do
 mode. The developer chooses per list. The control is the developer's to place, because the package
 provides components and the host places them.
 
-## D4: Swiping is off while a list is reordered
+## D4: Reordering announces its start and end, and other behaviour pauses itself
 
-A row that can both be swiped and dragged would answer one gesture two ways. While reordering,
-swiping is off and any open row shuts, through the switch
-https://github.com/django-mvp/django-mvp/issues/688 provides. This feature never reaches into
-that feature's internals. That issue is delivered first, so the build can use its switch.
+A row that can both be swiped and dragged would answer one gesture two ways. Rather than reach
+into another feature to turn its swiping off, the list announces on itself, as documented events,
+when reordering starts and when it ends. Swiping rows for their actions
+(https://github.com/django-mvp/django-mvp/issues/688) listens for them, turns swiping off and
+shuts any open row: that side is delivered there. So this feature depends on no other and can be
+built alongside it, and any later behaviour on a row can pause the same way.
 
 ## D5: A refused order is undone and the person is told
 

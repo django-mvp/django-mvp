@@ -22,8 +22,10 @@ Notes for research and planning to answer by name. None of them is settled.
    case plugs in (goal G4). Read ADR 0004 first: removed rows stay in the document and rows are
    never re-indexed, and reordering must keep to that.
 4. FS-048 (https://github.com/django-mvp/django-mvp/issues/688, row actions) makes rows
-   swipeable. While a list is being reordered swiping is off and any open row shuts. Use the
-   switch FS-048 exposes. Do not reach into its internals.
+   swipeable. This feature does not depend on it. The reorderable list announces on the list
+   element when reordering starts and ends (documented events, named at planning, for example
+   `mvp:reorder-start` and `mvp:reorder-end`), and FS-048 listens for them to turn swiping off and
+   shut open rows. Document the events where the list's other public names are documented.
 
 ## Design rules
 

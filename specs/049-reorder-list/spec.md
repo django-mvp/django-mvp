@@ -44,9 +44,9 @@ All answered from the issue and the agreed design. The reasoning for each is in 
 - Q: Is a list always reorderable, or only in a mode? → A: The developer chooses. In a form the
   list is reorderable whenever it is shown. A list that is read most of the time offers a reorder
   mode (D3).
-- Q: What happens to rows swiped open for their actions? → A: While a list is being reordered,
-  swiping its rows is off and any open row shuts. This uses the switch the row-actions feature
-  (https://github.com/django-mvp/django-mvp/issues/688) provides (D4).
+- Q: How does other behaviour on a list's rows, such as swiping a row for its actions, know to
+  pause? → A: The list announces on itself, as documented events, when reordering starts and when
+  it ends. Other behaviour listens and pauses. This feature turns nothing else off itself (D4).
 - Q: What happens when a posted order is refused by the server? → A: The list goes back to the
   order it had before that move and the person is told the change was not saved (D5).
 - Q: Can a row be dragged from one list into another, or into a nested list? → A: No. A row
@@ -155,8 +155,9 @@ matches.
 10. **Given** a list that offers a reorder mode, **When** the person uses its control, **Then**
     each row shows its handle and its up and down buttons, and **When** they use the control that
     ends it or press Escape, **Then** the mode ends and the handles and buttons go.
-11. **Given** a list whose rows can be swiped for their actions, **When** reordering starts,
-    **Then** any row swiped open shuts and swiping is off until reordering ends.
+11. **Given** a reorderable list with other behaviour on its rows listening to it, **When**
+    reordering starts, **Then** the list announces the start, and **When** reordering ends,
+    **Then** it announces the end, so that behaviour can pause in between.
 12. **Given** a list that posts its order as it changes, **When** the server refuses or cannot be
     reached, **Then** the list goes back to the order it had before that move and the person is
     told the change was not saved.
@@ -221,8 +222,9 @@ matches.
   (US2).
 - **FR-017**: A reorder mode MUST end from its own control and on Escape, and the list MUST show no handle and
   no up or down buttons outside it (US2).
-- **FR-018**: While a list is being reordered, swiping its rows for their actions MUST be off and
-  any row swiped open MUST shut, through the switch the row-actions feature provides (US2).
+- **FR-018**: A reorderable list MUST announce on itself, as documented events, when reordering
+  starts and when it ends: a drag, a move by button, and a reorder mode each start and end one,
+  so other behaviour on its rows can pause (US2).
 - **FR-019**: When a posted order is refused or cannot be sent, the list MUST return to its order
   before that move and the person MUST be told it was not saved (US2).
 - **FR-020**: A reorderable list in a dialog closed without submitting MUST return to the order
