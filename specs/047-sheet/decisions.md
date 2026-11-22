@@ -13,7 +13,7 @@ different places. A component library has one. daisyUI's own responsive modal cl
 from those classes means the package adds no breakpoint of its own and stays on daisyUI's
 documented behaviour. A tablet in portrait is above that width and gets the centred dialog.
 
-**ADR:** none. It follows from FR-002 and is documented with the component.
+**ADR:** none — It follows from FR-002 and is documented with the component.
 
 ## D2: Two heights, resting and full
 
@@ -24,7 +24,7 @@ cover the request without a third state nobody asked for. The resting height is 
 height up to a limit, because the agreed design sizes its menus to their content, and the limit
 keeps the page visible above the sheet as both platforms do at their resting state.
 
-**ADR:** none. The limit itself is a planning decision.
+**ADR:** none — The limit itself is a planning decision.
 
 ## D3: Every sheet can grow to its full height, unless the developer fixes it
 
@@ -45,7 +45,7 @@ slider, map or drag-to-reorder list a sheet holds. Starting drags on the grab ba
 which is the region the issue names, keeps every control in the body working and is the smaller
 script. Scrolling a long body works at both heights.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D5: A release settles by position, a flick by direction
 
@@ -110,7 +110,7 @@ can sit beside it. Both draw on the same thing, daisy-cotton's `c-modal` with da
 which is what FR-002 asks for. The `search` dialog already uses `c-modal` directly for the same
 reason.
 
-**ADR:** none. Local to this component.
+**ADR:** none — Local to this component.
 
 ## D13: The trigger, the menu and the open event are the public surface
 
@@ -119,16 +119,16 @@ documented properties. Opening a sheet from anywhere is one window event, `mvp-s
 the sheet's `id` and optionally a `view` and the id of the element to return focus to. The trigger
 uses it, and so can any other element a developer writes.
 
-**ADR:** none. It follows from FR-003, FR-004 and FR-006.
+**ADR:** none — It follows from FR-003, FR-004 and FR-006.
 
 ## D14: No gesture library
 
 A drag here is one pointer on the grab bar and the head, along one axis, settling at one of three
-places. Pointer events with pointer capture do it in about a hundred lines. A library for it would
+places. Pointer events with pointer capture do it in a few hundred lines with the sheet's other behaviour. A library for it would
 ship to every page, and the packages that do bottom sheets are framework components, not
 something that attaches to a native `<dialog>`.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D15: The menu wraps `c-menu`
 
@@ -136,7 +136,7 @@ daisy-cotton's `c-menu` and `c-menu.item` render a link or a button with an icon
 sheet's menu is `c-mvp.sheet.menu` (the list) and `c-mvp.sheet.menu.item` (a row), thin wrappers
 that add the sheet's row height and a `danger` mark, so nothing a row renders is written twice.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D16: The gesture's numbers
 
@@ -154,7 +154,7 @@ that add the sheet's row height and a `danger` mark, so nothing a row renders is
 None is pinned in the specification. They are named constants at the top of `sheet.js` and the
 tests drive the sheet through them.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D17: The keyboard offset is read from `visualViewport`
 
@@ -164,7 +164,7 @@ it reads `window.visualViewport` and gives the box the difference as a bottom of
 its maximum height by it. This is the smallest thing that works in both and uses no API only one
 engine has.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D19: FR-002 names `c-modal`, the base `c-mvp.modal` is drawn on
 
@@ -173,7 +173,7 @@ cannot give the dialog `sm:modal-middle`. FR-002 and its assumption now say what
 the sheet is drawn on daisyUI's modal box inside daisy-cotton's `c-modal`. Behaviour is unchanged.
 The orchestrator holding the specification gate was told.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D20: Design-review watch items
 
@@ -184,22 +184,22 @@ the grab bar, a sheet opened mid-drag, keyboard-only runs, and a keyboard-offset
 field below the faked keyboard line first. `sub` is named `lead`. No test of wording, no
 render-all sentence, no built-stylesheet assertion.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D18: Five templates and one script
 
 `sheet`, `sheet.view`, `sheet.trigger`, `sheet.menu` and `sheet.menu.item` are templates; the
-sheet's behaviour is one registered Alpine component, `mvpSheet`, in `assets/js/sheet.js`. A
-trigger and a view are template markup using Alpine's own bindings and the window event, so they
-need no component of their own.
+sheet's behaviour is two registered Alpine components in `assets/js/sheet.js`: `mvpSheet`, and
+`mvpSheetTrigger`, which lets a link follow its address when its sheet is not on the page (D20). A
+view is template markup using Alpine's own `x-show`.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D21: A trigger inside a sheet returns focus to that sheet's opener
 
 A trigger inside a sheet is in a closed dialog by the time the second sheet closes, so it cannot
 take focus. With no `returns` named, focus goes to the opener of the sheet that holds the trigger.
 
-**ADR:** none.
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 D21's fix changed one existing browser test: it passed before only because the browser restores focus natively, so it pinned the wrong behaviour. It was rewritten, and tests for a trigger outside every sheet and for a named return element were added.
