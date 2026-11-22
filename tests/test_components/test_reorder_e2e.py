@@ -8,11 +8,11 @@ test-only page, ``/reorder-test/``, drawn at desktop width.
 import json
 
 import pytest
-from playwright.sync_api import expect
 from django.http import HttpResponse, JsonResponse
 from django.template import engines
 from django.urls import path
 from django_cotton.compiler_regex import CottonCompiler
+from playwright.sync_api import expect
 
 from demo import urls as demo_urls
 from mvp.ordering import save_order
