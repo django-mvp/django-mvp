@@ -158,6 +158,27 @@ and for a page with no header. Anything that has to clear the sticky header read
 side panel and the document's `scroll-padding-top`. See
 [Header height](docs/layout.md#header-height).
 
+### Reorderable list
+
+A `<c-mvp.reorder>`: a list whose rows a person puts in their own order, by dragging the **handle**
+of a row or by pressing its up and down buttons. It can hand the order on, and it is not the
+**Position field** that stores the order. See [Reorder a list](docs/reorder.md).
+
+### Handle
+
+The grip at the end of a **reorderable list**'s row. Only a drag that starts on it moves the row,
+so the rest of the row stays free for links and fields.
+
+### Reorder mode
+
+A **reorderable list** with `mode="on-demand"`: its move controls are hidden until the person
+starts reordering, and hidden again when they finish.
+
+### Position field
+
+The integer field on a record that holds where it sits in a list. `mvp.ordering.save_order` writes
+it from the order a request carries. See [Reorder a list](docs/reorder.md#save-a-received-order).
+
 ### Side block
 
 The `page.side` block of `page_view.html`. A page fills it with one side panel; left empty, the

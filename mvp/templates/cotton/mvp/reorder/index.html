@@ -1,0 +1,26 @@
+{# @description A list whose rows a person reorders by dragging a handle or pressing the up and down buttons. It can hand the order to a form, post it to an address, or only announce it. A list that posts needs an id and is not rendered with `only`, since the token comes from the surrounding context. #}
+{# @prop id:text | description:"The list's id. Required when the list posts, so the controls can name it." #}
+{# @prop label:text | description:"The list's accessible name." #}
+{# @prop name:text | default:"order" | description:"The field name that carries the order, in the form and in the post." #}
+{# @prop form:boolean | description:"Each row's identifier is submitted under the field name, in the rows' order, by the surrounding form." #}
+{# @prop url:text | description:"An address the order is posted to on every change. The answer replaces the list." #}
+{# @prop mode:select['always','on-demand'] | default:"always" | description:"Whether the rows can be moved at any time." #}
+{# @prop class:text | description:"Extra classes on the root element." #}
+{# @slot A c-mvp.reorder.row for each item, in order. #}
+<c-vars id label name="order" form url mode="always" class />
+<div {% if id %}id="{{ id }}"{% endif %}
+     class="{{ class }}"
+     x-data="mvpReorder"
+     data-mvp-reorder
+     data-mvp-reorder-mode="{{ mode }}"
+     data-mvp-reorder-name="{{ name }}"
+     {% if form %}data-mvp-reorder-form{% endif %}
+     {% if url %}data-mvp-reorder-url="{{ url }}"{% endif %}
+     {{ attrs }}>
+  {% if url %}{% csrf_token %}{% endif %}
+  <ol class="mvp-reorder"
+      data-mvp-reorder-list
+      {% if label %}aria-label="{{ label }}"{% endif %}>
+    {{ slot }}
+  </ol>
+</div>

@@ -538,6 +538,14 @@ daisy-cotton also has `<c-form.textarea>`, `<c-form.select>`, `<c-form.checkbox>
 `<c-form.radio>`, `<c-form.toggle>` and `<c-form.file_input>`. Leave out `variant`,
 `aria-invalid` and `aria-describedby` when the field has no error.
 
+## Reorderable lists
+
+| Component | Attributes |
+| --- | --- |
+| `c-mvp.reorder` | a list whose rows a person drags or moves with buttons: `id`, `label` (the list's accessible name), `name` (the order's field name, default `order`), `class` — see [Reorder a list](reorder.md) |
+| `c-mvp.reorder.row` | one row of that list: `value` (the item's identifier), `label` (the item's name, for the controls), `class` |
+| `c-mvp.reorder.moves` | the up and down buttons and the handle of one row: `label`. `c-mvp.reorder.row` places it; write it by hand only for a custom row |
+
 ## Add-ons
 
 Components that sit alongside the core set rather than inside it. One of them needs a
