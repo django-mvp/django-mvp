@@ -194,3 +194,10 @@ trigger and a view are template markup using Alpine's own bindings and the windo
 need no component of their own.
 
 **ADR:** none.
+
+## D21: A trigger inside a sheet returns focus to that sheet's opener
+
+A trigger inside a sheet is in a closed dialog by the time the second sheet closes, so it cannot
+take focus. With no `returns` named, focus goes to the opener of the sheet that holds the trigger.
+
+**ADR:** none.

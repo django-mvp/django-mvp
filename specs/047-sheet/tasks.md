@@ -22,10 +22,11 @@ edited in blocks of their own so a sibling feature's edits merge by keeping both
 - [ ] T008 [US3] The two heights, the drag and flick, the grab bar as a control
 - [ ] T009 [US3] Browser tests for every height transition and the gesture's edge cases
 - [ ] T010 [US1] The demo, the documentation, the README and the changelog
+- [ ] T011 [US2] Focus returns to the opener of the sheet that holds a trigger when none is named
 
 ## Order
 
-T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 → T010.
+T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 → T010 → T011.
 
 ---
 
@@ -176,3 +177,14 @@ fixed sheet too. The guide documents every property of the five components, the 
 event with its `id`, `view` and `returns`, `show(name)`, that a trigger with no address needs
 scripts, and that a sheet's title is required because it names the dialog. A demo test renders each
 example. Bundle and stylesheet are rebuilt if anything above changed them.
+
+#### T011 — Focus returns to the opener of the sheet that holds a trigger when none is named
+
+**Files**: `assets/js/sheet.js`, `mvp/static/js/django-mvp.js`,
+`tests/test_components/test_sheet_e2e.py`, `docs/developer/sheets.md`
+
+Found while building the drag: a trigger inside a sheet cannot take focus once its sheet has
+closed, so FR-007's "the trigger itself" is impossible there. When a trigger inside a sheet names
+no `returns`, focus goes to the element that opened the sheet that holds it, and to the trigger
+itself only for a trigger outside every sheet. Test first at phone and desktop width. Recorded as
+a review-stage fix task with decision D21.
