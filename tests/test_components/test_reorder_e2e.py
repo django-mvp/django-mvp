@@ -9,6 +9,7 @@ import json
 import threading
 
 import pytest
+from django import forms
 from django.http import HttpResponse, JsonResponse
 from django.template import engines
 from django.urls import path
@@ -210,6 +211,44 @@ DIALOG_PAGE = (
 """
 )
 
+DIALOG_FORM_PAGE = """
+{% extends "mvp/base.html" %}
+{% block content %}
+<dialog id="box">
+  <form id="save" method="dialog">
+    <c-mvp.reorder id="steps" label="Steps" form>
+      <c-mvp.reorder.row value="a" label="Alpha">Alpha</c-mvp.reorder.row>
+      <c-mvp.reorder.row value="b" label="Beta">Beta</c-mvp.reorder.row>
+      <c-mvp.reorder.row value="c" label="Gamma">Gamma</c-mvp.reorder.row>
+    </c-mvp.reorder>
+    <button type="submit" id="confirm">Confirm</button>
+  </form>
+  <button type="button" id="cancel" onclick="box.close()">Cancel</button>
+</dialog>
+{% endblock %}
+"""
+
+SET_PAGE = """
+{% extends "mvp/base.html" %}
+{% block content %}
+<form id="save" method="post">
+  {% csrf_token %}
+  <c-mvp.form.formset :formset="formset" layout="{{ layout }}" />
+  <button type="submit" id="submit">Save</button>
+</form>
+{% endblock %}
+"""
+
+
+class NameForm(forms.Form):
+    """A row with one required field."""
+
+    name = forms.CharField()
+
+
+OrderedFormSet = forms.formset_factory(NameForm, can_order=True, extra=0)
+
+
 SCRIPT_LIST = """
 <c-mvp.reorder id="steps" label="Steps" mode="on-demand"
                url="/reorder-test/script/" data-answer="{{ answered }}">
@@ -259,6 +298,25 @@ def dialog_page(request):
     return render_page(DIALOG_PAGE, request)
 
 
+def dialog_form_page(request):
+    """Draw the list in a dialog whose form closes it."""
+    return render_page(DIALOG_FORM_PAGE, request)
+
+
+def set_page(request):
+    """Draw a row set, or answer a valid post with the names in submitted order."""
+    if request.method == "POST":
+        formset = OrderedFormSet(request.POST)
+        if formset.is_valid():
+            return JsonResponse(
+                {"names": [form.cleaned_data["name"] for form in formset.ordered_forms]}
+            )
+    formset = OrderedFormSet(initial=[{"name": name} for name in "abc"])
+    return render_page(
+        SET_PAGE, request, formset=formset, layout=request.GET.get("layout", "stacked")
+    )
+
+
 def script_page(request):
     """Draw the on-demand list that posts to the scripted view."""
     return render_page(SCRIPT_PAGE, request, values=["a", "b", "c"], answered="")
@@ -293,6 +351,8 @@ def reorder_test_urls(settings):
         path("reorder-test/save/<int:project_id>/", save),
         path("reorder-test/mode/", mode_page),
         path("reorder-test/dialog/", dialog_page),
+        path("reorder-test/dialog-form/", dialog_form_page),
+        path("reorder-test/set/", set_page),
         path("reorder-test/script/page/", script_page),
         path("reorder-test/script/", script_save),
         *demo_urls.urlpatterns,
@@ -1097,7 +1157,7 @@ class TestReorderMode:
         assert values(page) == ["a", "b", "c"]
         expect(page.locator("#steps[data-reordering]")).to_have_count(1)
 
-    def test_escape_inside_an_open_dialog_closes_the_dialog_and_ends_no_mode(
+    def test_escape_inside_an_open_dialog_closes_the_dialog_and_the_mode_ends_with_it(
         self, page, live_server
     ):
         open_at(page, live_server, "/reorder-test/dialog/")
@@ -1108,7 +1168,12 @@ class TestReorderMode:
         page.keyboard.press("Escape")
 
         assert page.evaluate("document.getElementById('box').open") is False
-        assert [event[0] for event in seen(page)] == ["start"]
+        page.wait_for_function("window.seen.length === 2")
+        assert [event[:2] for event in seen(page)] == [
+            ["start", "mode"],
+            ["end", "mode"],
+        ]
+        assert page.locator("#steps[data-reordering]").count() == 0
 
     def test_the_controls_only_name_their_own_list(self, page, live_server):
         self.open_mode(page, live_server)
@@ -1342,3 +1407,144 @@ class TestRefusedOrFailedPost:
 
         page.wait_for_selector("#steps[data-answer='2']")
         assert script.posted[-1] == ["c", "b", "a"]
+
+
+class TestListInADialog:
+    def open_dialog(self, page, live_server):
+        open_at(page, live_server, "/reorder-test/dialog-form/")
+        page.evaluate("document.getElementById('box').showModal()")
+
+    def move_down(self, page, value):
+        page.locator(
+            f'#steps [data-mvp-reorder-value="{value}"] [data-mvp-reorder-down]'
+        ).click()
+
+    def test_closing_with_the_cancel_button_returns_the_order_the_dialog_opened_with(
+        self, page, live_server
+    ):
+        self.open_dialog(page, live_server)
+        self.move_down(page, "a")
+        assert values(page) == ["b", "a", "c"]
+
+        page.click("#cancel")
+
+        assert values(page) == ["a", "b", "c"]
+
+    def test_escape_closes_the_dialog_and_returns_the_order(self, page, live_server):
+        self.open_dialog(page, live_server)
+        self.move_down(page, "a")
+
+        page.keyboard.press("Escape")
+
+        assert page.evaluate("document.getElementById('box').open") is False
+        assert values(page) == ["a", "b", "c"]
+
+    def test_the_order_is_back_when_the_dialog_opens_again(self, page, live_server):
+        self.open_dialog(page, live_server)
+        self.move_down(page, "a")
+        page.click("#cancel")
+
+        page.evaluate("document.getElementById('box').showModal()")
+
+        assert values(page) == ["a", "b", "c"]
+        assert page.locator("#steps [data-mvp-reorder-input]").evaluate_all(
+            "inputs => inputs.map(input => input.value)"
+        ) == ["a", "b", "c"]
+
+    def test_submitting_keeps_the_new_order(self, page, live_server):
+        self.open_dialog(page, live_server)
+        self.move_down(page, "a")
+
+        page.click("#confirm")
+
+        assert page.evaluate("document.getElementById('box').open") is False
+        assert values(page) == ["b", "a", "c"]
+
+    def test_a_later_cancel_returns_to_the_submitted_order(self, page, live_server):
+        self.open_dialog(page, live_server)
+        self.move_down(page, "a")
+        page.click("#confirm")
+        page.evaluate("document.getElementById('box').showModal()")
+        self.move_down(page, "b")
+        assert values(page) == ["a", "b", "c"]
+
+        page.click("#cancel")
+
+        assert values(page) == ["b", "a", "c"]
+
+    def test_escape_during_a_drag_leaves_the_dialog_open_with_the_original_order(
+        self, page, live_server
+    ):
+        self.open_dialog(page, live_server)
+        x, y = centre(page, handle("a"))
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x, y + 140, steps=12)
+
+        page.keyboard.press("Escape")
+        page.mouse.up()
+
+        assert page.evaluate("document.getElementById('box').open") is True
+        assert values(page) == ["a", "b", "c"]
+
+
+@pytest.fixture
+def no_scripts(browser, live_server):
+    """A page in a browser context that runs no scripts."""
+    context = browser.new_context(java_script_enabled=False, viewport=VIEWPORT)
+    page = context.new_page()
+    page.set_default_timeout(5000)
+    yield page
+    context.close()
+
+
+class TestWithoutScripts:
+    def test_the_rows_show_in_the_saved_order(self, no_scripts, live_server):
+        no_scripts.goto(f"{live_server.url}/reorder-test/form/")
+
+        titles = no_scripts.locator("#steps [data-mvp-reorder-row]")
+
+        assert titles.evaluate_all(
+            "rows => rows.map(row => row.textContent.trim())"
+        ) == [
+            "Alpha",
+            "Beta",
+            "Gamma",
+        ]
+
+    def test_no_handle_and_no_button_is_shown(self, no_scripts, live_server):
+        no_scripts.goto(f"{live_server.url}/reorder-test/form/")
+
+        controls = no_scripts.locator(
+            "[data-mvp-reorder-handle], [data-mvp-reorder-up], [data-mvp-reorder-down]"
+        )
+
+        assert controls.count() == 9
+        assert not any(controls.nth(i).is_visible() for i in range(9))
+
+    @pytest.mark.parametrize("layout", ["stacked", "tabular"])
+    def test_a_row_set_shows_its_typed_order_fields(
+        self, no_scripts, live_server, layout
+    ):
+        no_scripts.goto(f"{live_server.url}/reorder-test/set/?layout={layout}")
+
+        typed = no_scripts.locator('input[type="number"][name$="-ORDER"]')
+
+        assert typed.count() == 3
+        assert all(typed.nth(i).is_visible() for i in range(3))
+        controls = no_scripts.locator("[data-mvp-reorder-handle]")
+        assert not any(controls.nth(i).is_visible() for i in range(controls.count()))
+
+    @pytest.mark.parametrize("layout", ["stacked", "tabular"])
+    def test_typed_numbers_decide_the_order_the_server_reads(
+        self, no_scripts, live_server, layout
+    ):
+        no_scripts.goto(f"{live_server.url}/reorder-test/set/?layout={layout}")
+        typed = no_scripts.locator('input[type="number"][name$="-ORDER"]')
+        for index, number in enumerate(["3", "1", "2"]):
+            typed.nth(index).fill(number)
+
+        with no_scripts.expect_navigation():
+            no_scripts.click("#submit")
+
+        assert json.loads(no_scripts.inner_text("body")) == {"names": ["b", "c", "a"]}

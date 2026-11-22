@@ -19,6 +19,8 @@ function reorder() {
   let observer = null;
   let lastOrder = [];
   let owner = null;
+  let dialog = null;
+  let kept = [];
   let state = null;
   let status = null;
   let snapshot = [];
@@ -145,6 +147,19 @@ function reorder() {
     });
     current.forEach((row) => row.remove());
     marks.forEach((mark, index) => mark.replaceWith(wanted[index]));
+  }
+
+  // A dialog closed without submitting its form puts the list back as it was when the
+  // dialog was opened, and a mode begun inside it ends with it.
+  function closed() {
+    place(kept);
+    refresh();
+    state.endMode();
+  }
+
+  // A submitted form keeps the order it was sent with.
+  function submitted() {
+    kept = rowElements();
   }
 
   // Returns the rows to the order the server last rendered.
@@ -366,6 +381,12 @@ function reorder() {
       root.addEventListener("htmx:sendError", failed);
       owner = root.closest("form");
       if (owner) owner.addEventListener("submit", writeOrder, { capture: true });
+      dialog = root.closest("dialog");
+      if (dialog) {
+        kept = rowElements();
+        dialog.addEventListener("close", closed);
+        if (owner) owner.addEventListener("submit", submitted);
+      }
     },
 
     destroy() {
@@ -376,6 +397,10 @@ function reorder() {
       root.removeEventListener("htmx:sendError", failed);
       document.removeEventListener("keydown", leave);
       if (owner) owner.removeEventListener("submit", writeOrder, { capture: true });
+      if (dialog) {
+        dialog.removeEventListener("close", closed);
+        if (owner) owner.removeEventListener("submit", submitted);
+      }
       document.removeEventListener("keydown", cancel, { capture: true });
       observer.disconnect();
       sortable.destroy();

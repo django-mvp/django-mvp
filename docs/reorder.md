@@ -201,6 +201,46 @@ A new move, or the start of a drag, drops a post still in flight. The latest
 order is the one shown and sent, and a late answer for an older order is
 ignored. A drag that ends where it began sends the current order again.
 
+## Reorder inside a dialog
+
+Use this when a person moves rows in a dialog and either confirms the change or
+walks away from it.
+
+1. Put the list, with `form`, inside a form inside the `dialog`, with a button
+   that submits the form.
+
+    ```html
+    <dialog id="steps-dialog">
+      <form method="dialog">
+        <c-mvp.reorder id="steps" label="Steps" form name="order">
+          ...
+        </c-mvp.reorder>
+        <button type="submit">Confirm</button>
+        <button type="button" onclick="this.closest('dialog').close()">Cancel</button>
+      </form>
+    </dialog>
+    ```
+
+2. Close the dialog with the cancel button, with Escape or by any other means
+   than submitting the form. The rows go back to the order they had when the
+   dialog opened. Submitting the form keeps the new order, and the next time
+   the dialog is closed without submitting, the list returns to that order.
+
+A list with `mode="on-demand"` inside a dialog ends its mode when the dialog
+closes. Escape closes the dialog and is not taken by the list, except during a
+drag, where it cancels the drag and leaves the dialog open.
+
+## Use the list without scripts
+
+A page loaded with JavaScript switched off shows each list in its saved order,
+with no handle and no up or down button, because the controls stay hidden until
+the script has run. Nothing can be dragged, and a list with `form` sends no
+order.
+
+A row set built with `can_order` shows the typed `ORDER` field of each row
+instead. Type the numbers, submit the form, and the server reads the rows in
+that order through the formset's `ordered_forms`.
+
 ## Save a received order
 
 Use this when a request arrives carrying the identifiers of a list's records in
