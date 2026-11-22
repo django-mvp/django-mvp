@@ -382,6 +382,26 @@ def values(page, root="#steps"):
     )
 
 
+def settled(page, expected, root="#steps"):
+    """Wait for the rows to reach ``expected``, then return them.
+
+    Some changes arrive after the event that caused them: a dialog's close event is a
+    queued task, and a finished drag restores or places rows on the next frame. A slow
+    machine shows the old order for a moment, so these are polled, not read once.
+    """
+    try:
+        page.wait_for_function(
+            """([root, expected]) => JSON.stringify(
+              [...document.querySelectorAll(root + ' [data-mvp-reorder-row]')]
+                .map((row) => row.dataset.mvpReorderValue)) === JSON.stringify(expected)""",
+            arg=[root, expected],
+            timeout=4000,
+        )
+    except Exception:
+        pass
+    return values(page, root)
+
+
 def drag(page, source, target, below=True, grab="[data-mvp-reorder-handle]"):
     """Drag the row ``source`` by ``grab`` until it is over the row ``target``."""
     start = page.locator(f'#steps [data-mvp-reorder-value="{source}"] {grab}')
@@ -806,9 +826,10 @@ class TestCancellingADrag:
         self.hold_over_last(page)
         page.keyboard.press("Escape")
         page.mouse.up()
+        assert settled(page, ["a", "b", "c"]) == ["a", "b", "c"]
         drag(page, "b", "c")
 
-        assert values(page) == ["a", "c", "b"]
+        assert settled(page, ["a", "c", "b"]) == ["a", "c", "b"]
 
     @pytest.mark.django_db(transaction=True)
     def test_a_cancelled_drag_posts_nothing(self, page, live_server, project):
@@ -984,14 +1005,16 @@ class TestReducedMotion:
         end = page.locator('#steps [data-mvp-reorder-value="c"]').bounding_box()
         page.mouse.move(x, y)
         page.mouse.down()
-        page.mouse.move(x, end["y"] + end["height"] * 0.75, steps=6)
-        found = page.eval_on_selector_all(
-            "#steps [data-mvp-reorder-row]:not(.mvp-reorder-held)",
-            """rows => rows.map(row => [
-                getComputedStyle(row).transitionDuration,
-                row.style.transition,
-            ])""",
-        )
+        found = []
+        for target in (0.75, 0.25, 0.75):
+            page.mouse.move(x, end["y"] + end["height"] * target, steps=6)
+            found += page.eval_on_selector_all(
+                "#steps [data-mvp-reorder-row]:not(.mvp-reorder-held)",
+                """rows => rows.map(row => [
+                    getComputedStyle(row).transitionDuration,
+                    row.style.transition,
+                ])""",
+            )
         page.mouse.up()
         return found
 
@@ -1320,7 +1343,9 @@ class TestRefusedOrFailedPost:
         script.actions = ["accept", "refuse"]
         self.open_script(page, live_server)
         self.move_down(page, "a")
-        page.wait_for_function("window.htmx && !document.querySelector('.htmx-request')")
+        page.wait_for_function(
+            "window.htmx && !document.querySelector('.htmx-request')"
+        )
         page.wait_for_timeout(200)
 
         self.move_down(page, "b")
@@ -1453,7 +1478,7 @@ class TestListInADialog:
 
         page.click("#cancel")
 
-        assert values(page) == ["a", "b", "c"]
+        assert settled(page, ["a", "b", "c"]) == ["a", "b", "c"]
 
     def test_escape_closes_the_dialog_and_returns_the_order(self, page, live_server):
         self.open_dialog(page, live_server)
@@ -1480,7 +1505,7 @@ class TestListInADialog:
 
         page.click("#cancel")
 
-        assert values(page)[:3] == ["a", "b", "c"]
+        assert settled(page, ["a", "b", "c", "d"])[:3] == ["a", "b", "c"]
 
     def test_the_order_is_back_when_the_dialog_opens_again(self, page, live_server):
         self.open_dialog(page, live_server)
@@ -1513,7 +1538,7 @@ class TestListInADialog:
 
         page.click("#cancel")
 
-        assert values(page) == ["b", "a", "c"]
+        assert settled(page, ["b", "a", "c"]) == ["b", "a", "c"]
 
     def test_escape_during_a_drag_leaves_the_dialog_open_with_the_original_order(
         self, page, live_server
