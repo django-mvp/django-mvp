@@ -13,11 +13,12 @@
 {# @slot:actions <button type="button">Save</button> — Optional. The buttons in the foot, in place of the default closing button. A button that only closes the sheet is type="button". #}
 {% load i18n %}
 <c-vars id title lead icon full fixed wide class art="" description="" actions="" />
+{% if description.strip %}{% firstof id|add:"-description" as described_by %}{% endif %}
 <c-modal id="{{ id }}"
          class="modal-bottom sm:modal-middle mvp-sheet{% if wide %} mvp-sheet-wide{% endif %} {{ class }}"
          content_class="mvp-sheet-box"
          aria-labelledby="{{ id }}-title"
-         aria-describedby="{% if description.strip %}{{ id }}-description{% endif %}"
+         :aria-describedby="described_by"
          data-mvp-sheet
          :data-mvp-sheet-full="full"
          :data-mvp-sheet-fixed="fixed"

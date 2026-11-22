@@ -106,6 +106,11 @@ class TestSheetHead:
         assert not soup.select_one("dialog#more").get("aria-describedby")
         assert soup.select_one("#more-description") is None
 
+    def test_without_a_description_the_attribute_is_left_off(self, render_sheet):
+        soup = render_sheet()
+
+        assert not soup.select_one("dialog#more").has_attr("aria-describedby")
+
 
 class TestSheetFoot:
     def test_the_default_foot_is_one_button_that_closes_without_submitting(
