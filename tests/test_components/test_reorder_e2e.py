@@ -15,6 +15,7 @@ from django_cotton.compiler_regex import CottonCompiler
 from playwright.sync_api import expect
 
 from demo import urls as demo_urls
+from demo.models import Project
 from mvp.ordering import save_order
 from tests.conftest import requires_browser, urlconf_of
 from tests.factories import ProjectFactory, ProjectTaskFactory
@@ -120,7 +121,7 @@ def echo(request):
 
 def post_page(request, project_id):
     """Draw the page whose list posts its order."""
-    project = ProjectFactory._meta.model.objects.get(pk=project_id)
+    project = Project.objects.get(pk=project_id)
     return render_page(
         POST_PAGE, request, project=project, tasks=project.tasks.all(), answered=""
     )
@@ -128,7 +129,7 @@ def post_page(request, project_id):
 
 def save(request, project_id):
     """Store a posted order and answer with the list drawn again."""
-    project = ProjectFactory._meta.model.objects.get(pk=project_id)
+    project = Project.objects.get(pk=project_id)
     posts = request.session.setdefault("posts", [])
     posts.append(request.POST.getlist("order"))
     save_order(project.tasks.all(), request.POST.getlist("order"))
