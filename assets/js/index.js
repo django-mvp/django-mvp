@@ -28,6 +28,7 @@ import { registerPageSide } from "./page_side.js";
 import { registerPageSideColumn } from "./page_side_column.js";
 import { startRail } from "./rail.js";
 import { startSearch } from "./search.js";
+import { registerSheet } from "./sheet.js";
 import { startThemeColor } from "./theme_color.js";
 import { startThemeCycle } from "./theme_cycle.js";
 
@@ -100,6 +101,9 @@ registerPageSideColumn(Alpine);
 
 // The install page's device detection and install button. See assets/js/install.js.
 registerInstallPage(Alpine);
+
+// The sheet and its trigger. See assets/js/sheet.js.
+registerSheet(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.
