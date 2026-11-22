@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `c-mvp.sheet`, with `c-mvp.sheet.view`, `c-mvp.sheet.trigger`, `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item`: a dialog that rises from the foot of a phone's screen and is centred on a wider one, for a menu of actions, a short form or a few steps. On a phone it has a grab bar and can be dragged between its resting and full heights or down to close it. A trigger inside a sheet that names no `returns` gives focus back to the element that opened that sheet. See `docs/developer/sheets.md`.
 - `c-mvp.card` takes an `href`. The title becomes the card's one link, stretched over the whole card, so a click or tap anywhere on it opens the address while buttons, menus and links inside the card keep working. A keyboard user reaches one link, named by the title. See `docs/components.md`.
 - A message can carry one action, a link or a button that posts, given with `mvp.utils.action_tags` as the message's `extra_tags`. A message with an action stays until it is used or dismissed, and one without keeps today's auto-dismiss. `c-mvp.messages` takes `oob="true"` so an htmx response can carry the list and have it replace the one in the page, and its toast now has the id `mvp-messages`. See `docs/components.md`.
 

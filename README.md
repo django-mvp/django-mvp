@@ -50,6 +50,9 @@ the box. **Things should just work.**
   [daisy-cotton](https://github.com/django-mvp/daisy-cotton), which is installed with it. Need more control?
   Override the component's template in your project — that's the intended extension
   path, not a bigger API.
+- **Sheets** — a dialog that rises from the foot of a phone's screen, with a grab bar to
+  drag it taller or shorter, and is centred on a wider one. It holds a menu, a short
+  form or a few steps, and its trigger is a real link where scripts do not run.
 - **Views that do the boring parts** — list pages with admin-style search, whitelisted
   ordering and pagination; form pages rendered with crispy-forms; delete
   flows with related-object summaries and type-to-confirm; styled error pages.
