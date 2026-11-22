@@ -22,6 +22,9 @@ set fills its `ORDER` fields, any other list in a form sends the rows' identifie
 a name the developer chooses, and a list outside a form posts that same order to an address each
 time it changes. Each list uses one of the three.
 
+**ADR:** none, the three destinations are documented in docs/reorder.md and nothing downstream inherits the split
+
+
 ## D2: The package saves an order to a position field
 
 The issue says many models carry a position field. Without a helper every project writes the
@@ -31,6 +34,9 @@ it names a record outside them or leaves one out. Refusing rather than saving th
 keeps a stale page from scrambling the list. Who may reorder what stays the developer's decision,
 expressed by the records they pass.
 
+**ADR:** none, a helper's contract is documented in docs/reorder.md
+
+
 ## D3: Always reorderable in a form, a reorder mode otherwise
 
 The agreed design has both: a list in a form, or a dialog with Confirm and Cancel, that is
@@ -38,6 +44,9 @@ reorderable whenever it is shown, and a list read most of the time that offers a
 started from a control and ended by a second control or Escape, as phone apps do for an edit
 mode. The developer chooses per list. The control is the developer's to place, because the package
 provides components and the host places them.
+
+**ADR:** none, a per-list choice documented in docs/reorder.md
+
 
 ## D4: Reordering announces its start and end, and other behaviour pauses itself
 
@@ -48,17 +57,26 @@ when reordering starts and when it ends. Swiping rows for their actions
 shuts any open row: that side is delivered there. So this feature depends on no other and can be
 built alongside it, and any later behaviour on a row can pause the same way.
 
+**ADR:** docs/adr/0045-reordering-announces-its-start-and-end-on-the-list.md
+
+
 ## D5: A refused order is undone and the person is told
 
 A list that posts as it changes shows a move before the server has accepted it. If the server
 refuses or cannot be reached, leaving the row where it was dropped would show an order that was
 not saved. The list returns to its order before that move and says the change was not saved.
 
+**ADR:** none, local to the posting list
+
+
 ## D6: Vertical lists, one list at a time
 
 Neither the issue nor the agreed design moves rows between lists, nests them, or lays them out as
 a grid. Each would need its own rules for where a row may land. They are left out until a project
 asks for one.
+
+**ADR:** none, a scope boundary recorded in the specification
+
 
 ## D7: Without scripts, the saved order is shown
 
@@ -67,16 +85,25 @@ saved order, and a row set keeps its `ORDER` number fields, which is what Django
 so the order can still be set by typing. A list that posts as it changes offers nothing to
 reorder without scripts.
 
+**ADR:** none, follows from what Django already renders
+
+
 ## D8: Up and down buttons on every row, and an announced position
 
 The issue asks for buttons "for anyone who cannot drag". Each row carries both, the impossible
 move is not usable (up on the first row, down on the last), focus stays with the row that moved,
 and its new position is announced, so a keyboard or screen reader user can follow what happened.
 
+**ADR:** none, local to the row controls
+
+
 ## D9: Reduced motion is respected
 
 Rows that slide into place are motion a person may have asked their system to avoid. With
 reduced motion requested, rows take their new places without animation.
+
+**ADR:** none, a browser setting honoured
+
 
 ## Design review of the plan
 
