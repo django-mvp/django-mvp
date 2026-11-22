@@ -8,6 +8,7 @@ test-only page, ``/reorder-test/``, drawn at desktop width.
 import json
 
 import pytest
+from playwright.sync_api import expect
 from django.http import HttpResponse, JsonResponse
 from django.template import engines
 from django.urls import path
@@ -49,6 +50,30 @@ FORM_PAGE = """
 {% endblock %}
 """
 
+TWO_PAGE = """
+{% extends "mvp/base.html" %}
+{% block content %}
+<form id="save" method="post" action="/reorder-test/echo/">
+  {% csrf_token %}
+  <c-mvp.reorder id="steps" label="Steps" form>
+    <c-mvp.reorder.row value="a" label="Alpha">Alpha</c-mvp.reorder.row>
+    <c-mvp.reorder.row value="b" label="Beta">Beta</c-mvp.reorder.row>
+    <c-mvp.reorder.row value="c" label="Gamma">Gamma</c-mvp.reorder.row>
+  </c-mvp.reorder>
+  <c-mvp.reorder id="others" label="Others" form>
+    <c-mvp.reorder.row value="x" label="Ex">Ex</c-mvp.reorder.row>
+    <c-mvp.reorder.row value="y" label="Why">Why</c-mvp.reorder.row>
+  </c-mvp.reorder>
+</form>
+{% endblock %}
+"""
+
+ROWS = """
+<c-mvp.reorder.row value="p" label="Pee">Pee</c-mvp.reorder.row>
+<c-mvp.reorder.row value="q" label="Queue">Queue</c-mvp.reorder.row>
+<c-mvp.reorder.row value="r" label="Are">Are</c-mvp.reorder.row>
+"""
+
 POST_LIST = """
 <c-mvp.reorder id="steps" label="Steps" url="/reorder-test/save/{{ project.pk }}/" data-answer="{{ answered }}">
   {% for task in tasks %}
@@ -76,6 +101,16 @@ def reorder_test_page(request):
 def form_page(request):
     """Draw the page whose list hands its order to a form."""
     return render_page(FORM_PAGE, request)
+
+
+def two_page(request):
+    """Draw the page with two lists."""
+    return render_page(TWO_PAGE, request)
+
+
+def rows(request):
+    """Answer with three rows, as a swap of a list's contents would."""
+    return render_page(ROWS, request)
 
 
 def echo(request):
@@ -113,6 +148,8 @@ def reorder_test_urls(settings):
     settings.ROOT_URLCONF = urlconf_of(
         path("reorder-test/", reorder_test_page),
         path("reorder-test/form/", form_page),
+        path("reorder-test/two/", two_page),
+        path("reorder-test/rows/", rows),
         path("reorder-test/echo/", echo),
         path("reorder-test/post/<int:project_id>/", post_page),
         path("reorder-test/save/<int:project_id>/", save),
@@ -298,3 +335,89 @@ class TestNoDestination:
         page.wait_for_timeout(300)
 
         assert posts == []
+
+
+class TestSeveralLists:
+    def test_reordering_one_list_leaves_the_other_alone(self, page, live_server):
+        page.set_default_timeout(5000)
+        page.set_viewport_size(VIEWPORT)
+        page.goto(f"{live_server.url}/reorder-test/two/")
+        page.wait_for_function("window.Alpine !== undefined")
+        before = page.eval_on_selector_all(
+            "#others input[type=hidden]", "i => i.map(x => x.name + '=' + x.value)"
+        )
+
+        drag(page, "a", "c")
+        page.locator(
+            '#steps [data-mvp-reorder-value="b"] [data-mvp-reorder-down]'
+        ).click()
+
+        assert values(page) != ["a", "b", "c"]
+        assert values(page, "#others") == ["x", "y"]
+        assert (
+            page.eval_on_selector_all(
+                "#others input[type=hidden]", "i => i.map(x => x.name + '=' + x.value)"
+            )
+            == before
+        )
+
+
+class TestRowsAddedAfterLoad:
+    APPEND = """
+        () => {
+          const list = document.querySelector("#steps [data-mvp-reorder-list]");
+          const row = list.firstElementChild.cloneNode(true);
+          row.dataset.mvpReorderValue = "z";
+          row.querySelector("input").value = "z";
+          list.append(row);
+        }
+    """
+
+    def test_an_appended_row_can_be_dragged_and_moved_with_its_buttons(
+        self, page, live_server
+    ):
+        open_page(page, live_server)
+
+        page.evaluate(self.APPEND)
+        drag(page, "z", "a", below=False)
+        assert values(page) == ["z", "a", "b", "c"]
+        page.locator(
+            '#steps [data-mvp-reorder-value="z"] [data-mvp-reorder-down]'
+        ).click()
+
+        assert values(page) == ["a", "z", "b", "c"]
+
+    def test_the_edge_buttons_follow_an_appended_row(self, page, live_server):
+        open_page(page, live_server)
+
+        page.evaluate(self.APPEND)
+
+        last = page.locator(
+            '#steps [data-mvp-reorder-value="z"] [data-mvp-reorder-down]'
+        )
+        previous_last = page.locator(
+            '#steps [data-mvp-reorder-value="c"] [data-mvp-reorder-down]'
+        )
+        expect(last).to_have_attribute("aria-disabled", "true")
+        expect(previous_last).not_to_have_attribute("aria-disabled", "true")
+
+    def test_rows_arriving_in_a_swap_of_the_lists_contents_work(
+        self, page, live_server
+    ):
+        open_page(page, live_server)
+
+        page.evaluate(
+            """() => htmx.ajax("GET", "/reorder-test/rows/",
+                 {target: "#steps [data-mvp-reorder-list]", swap: "innerHTML"})"""
+        )
+        page.wait_for_selector('#steps [data-mvp-reorder-value="p"]')
+        page.locator(
+            '#steps [data-mvp-reorder-value="r"] [data-mvp-reorder-up]'
+        ).click()
+        drag(page, "p", "r")
+
+        assert values(page) == ["r", "p", "q"]
+        first = page.locator(
+            "#steps [data-mvp-reorder-row] [data-mvp-reorder-up]"
+        ).first
+        expect(first).to_have_attribute("aria-disabled", "true")
