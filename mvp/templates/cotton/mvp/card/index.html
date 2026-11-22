@@ -2,6 +2,7 @@
 {# @prop title:text | default:"" | description:"Heading text." #}
 {# @prop icon:text | default:"" | description:"Leading icon name for the heading." #}
 {# @prop tight:boolean | description:"Remove body padding, for full-bleed tables/lists." #}
+{# @prop href:text | default:"" | description:"Make the whole card a link. The title is the one link, stretched over the card, so a click or tap anywhere on it opens the address, and it is the link's name for a keyboard or screen-reader user. Buttons, menus and links inside the card sit above it and keep working. Needs a title: without one no link is drawn." #}
 {# @prop class:text | description:"Extra classes on the .card surface." #}
 {# @prop body_class:text | description:"Extra classes on the .card-body." #}
 {# @slot Card body content — The main card content. #}
@@ -9,15 +10,25 @@
 {# @slot:actions Buttons, dropdown — Header, end-aligned. #}
 {# @slot:footer Footer content — Footer, start-aligned. #}
 {# @slot:footer_end Footer content — Footer, end-aligned. #}
-<c-vars title="" icon="" tight class body_class />
-<c-mvp.card.wrapper class="{{ class }}" :attrs="attrs" only>
+<c-vars title="" icon="" href="" tight class body_class />
+{% comment %}
+  With an href the title's link grows an ::after over the whole card, and every
+  other link, button or form control inside the card is lifted above it so it
+  still takes its own click. The card is the positioned ancestor the overlay
+  fills, and shows the keyboard focus the link itself does not draw.
+{% endcomment %}
+<c-mvp.card.wrapper class="{% if href and title %}relative cursor-pointer has-[.card-link:focus-visible]:outline-2 has-[.card-link:focus-visible]:outline-offset-2 has-[.card-link:focus-visible]:outline-primary [&_:is(a[href],button,input,select,textarea,label,summary,[role=button]):not(.card-link)]:relative [&_:is(a[href],button,input,select,textarea,label,summary,[role=button]):not(.card-link)]:z-2{% endif %} {{ class }}" :attrs="attrs" only>
   <div class="card-body {% if tight %}p-0{% endif %} {{ body_class }}">
     {% if title or icon or badges or actions %}
       <div class="flex items-center gap-3">
         {% if title or icon %}
           <h2 class="card-title">
             {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
-            {% if title %}<span>{{ title }}</span>{% endif %}
+            {% if title and href %}
+              <a href="{{ href }}" class="card-link focus-visible:outline-none after:absolute after:inset-0 after:z-1 after:rounded-[inherit] after:content-['']">{{ title }}</a>
+            {% elif title %}
+              <span>{{ title }}</span>
+            {% endif %}
           </h2>
         {% endif %}
         {% if badges %}<div class="flex items-center gap-1">{{ badges }}</div>{% endif %}

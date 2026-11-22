@@ -1,7 +1,8 @@
-"""Tests for ``<c-mvp.modal>``: a dialog laid out as a card.
+"""Tests for ``<c-mvp.modal>``: a dialog drawn on daisyUI's own modal box.
 
-The component draws its card inside daisy-cotton's ``<c-modal>``, so it holds
-no form of its own and works inside one, such as the list page's filter form.
+The title, body and actions sit directly in the box of daisy-cotton's
+``<c-modal>``, so it holds no form of its own and works inside one, such as the
+list page's filter form.
 
 Source: mvp/templates/cotton/mvp/modal.html
 """
@@ -84,20 +85,54 @@ class TestModalProps:
         assert closable.select_one(".modal-box button") is not None
         assert plain.select_one(".modal-box button") is None
 
-    def test_class_reaches_the_card(self, render_modal):
-        soup = render_modal(attrs='class="extra-card"')
+    def test_class_reaches_the_box(self, render_modal):
+        soup = render_modal(attrs='class="extra-box"')
 
-        assert "extra-card" in soup.select_one(".modal-box .card")["class"]
+        assert "extra-box" in soup.select_one(".modal-box")["class"]
+
+    def test_the_box_is_the_only_surface(self, render_modal):
+        soup = render_modal(attrs="closable")
+
+        assert soup.select_one(".modal-box .card") is None
 
 
 class TestModalSlots:
-    def test_the_body_is_drawn_in_the_card(self, render_modal):
+    def test_the_body_is_drawn_in_the_box(self, render_modal):
         soup = render_modal()
 
-        assert soup.select_one(".modal-box .card #body") is not None
+        assert soup.select_one(".modal-box #body") is not None
 
-    @pytest.mark.parametrize("slot", ["actions", "footer", "footer_end"])
-    def test_each_named_slot_is_drawn_in_the_card(self, render_modal, slot):
+    def test_the_title_and_icon_head_the_box(self, render_modal):
+        soup = render_modal(attrs='icon="info"')
+
+        heading = soup.select_one(".modal-box h2")
+        assert "Pick one" in heading.get_text()
+        assert heading.find("i") is not None
+
+    def test_actions_sit_at_the_end_of_the_heading_row(self, render_modal):
+        soup = render_modal(
+            slots='<c-slot name="actions"><b id="slot">x</b></c-slot>'
+        )
+
+        heading_row = soup.select_one(".modal-box h2").parent
+        assert heading_row.select_one("#slot") is not None
+
+    @pytest.mark.parametrize("slot", ["footer", "footer_end"])
+    def test_the_footer_slots_are_drawn_in_the_modal_action_row(
+        self, render_modal, slot
+    ):
         soup = render_modal(slots=f'<c-slot name="{slot}"><b id="slot">x</b></c-slot>')
 
-        assert soup.select_one(".modal-box .card #slot") is not None
+        assert soup.select_one(".modal-box .modal-action #slot") is not None
+
+    def test_no_action_row_is_drawn_without_a_footer(self, render_modal):
+        soup = render_modal()
+
+        assert soup.select_one(".modal-action") is None
+
+    def test_the_body_is_not_drawn_in_the_action_row(self, render_modal):
+        soup = render_modal(
+            slots='<c-slot name="footer"><b id="slot">x</b></c-slot>'
+        )
+
+        assert soup.select_one(".modal-action #body") is None

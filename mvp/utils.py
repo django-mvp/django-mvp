@@ -1,5 +1,6 @@
 """Default resolvers, icon aliases and small helpers for django-mvp."""
 
+import json
 from typing import Any
 
 from django.apps import apps
@@ -214,6 +215,65 @@ BS5_ICONS = {
     "warning": "bi bi-exclamation-triangle-fill",
     "error": "bi bi-x-circle-fill",
 }
+
+
+#: What an action's tags start with, so they are never taken for ordinary tags.
+MESSAGE_ACTION_PREFIX = "mvp-action:"
+
+
+def action_tags(label, url, *, method="get", target="", swap="outerHTML"):
+    """Return the ``extra_tags`` that give a Django message one action.
+
+    Pass the result as ``extra_tags`` to any of Django's messages calls. The
+    message is then drawn with a link, or with a button that posts, beside its
+    text, and it stays until it is used or dismissed.
+
+    Args:
+        label: The words of the link or button, such as ``"Undo"``.
+        url: Where the link goes, or where the button posts.
+        method: ``"get"`` draws a link, ``"post"`` a button in a form that posts
+            to ``url`` with the CSRF token.
+        target: For a ``"post"`` action, a selector that its answer replaces.
+            With one the button is sent with htmx instead of loading a page.
+        swap: How the answer replaces ``target``.
+
+    Returns:
+        A string to use as the message's ``extra_tags``. It replaces any other
+        extra tags.
+
+    Raises:
+        ValueError: ``method`` is neither ``"get"`` nor ``"post"``.
+    """
+    if method not in ("get", "post"):
+        raise ValueError(f"method must be 'get' or 'post', not {method!r}")
+    action = {
+        "label": str(label),
+        "url": str(url),
+        "method": method,
+        "target": target,
+        "swap": swap,
+    }
+    return MESSAGE_ACTION_PREFIX + json.dumps(action)
+
+
+def message_action(message):
+    """Return the action ``action_tags`` wrote into a message, or ``None``.
+
+    Args:
+        message: A Django message.
+
+    Returns:
+        A dict with ``label``, ``url``, ``method``, ``target`` and ``swap``, or
+        ``None`` when the message carries no action.
+    """
+    tags = message.extra_tags or ""
+    if not tags.startswith(MESSAGE_ACTION_PREFIX):
+        return None
+    try:
+        action = json.loads(tags[len(MESSAGE_ACTION_PREFIX) :])
+    except ValueError:
+        return None
+    return action if isinstance(action, dict) else None
 
 
 def reverse_or_none(name):

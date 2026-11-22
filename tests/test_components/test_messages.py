@@ -5,6 +5,10 @@ level tag. ``debug`` takes the ``info`` variant, since daisy-cotton has no debug
 alert. A level tag daisy-cotton has no variant for, such as one a project adds
 through ``MESSAGE_TAGS``, draws its message in a plain alert.
 
+A message can carry one action, a link or a button, written into its
+``extra_tags`` by ``mvp.utils.action_tags``. A message with an action stays until
+it is used or dismissed, and the list can be drawn as an htmx out-of-band swap.
+
 Source: mvp/templates/cotton/mvp/messages.html
 """
 
@@ -12,6 +16,8 @@ import pytest
 from django.contrib import messages
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory
+
+from mvp.utils import action_tags
 
 LEVEL_VARIANTS = {
     messages.DEBUG: "info",
@@ -33,16 +39,22 @@ PROJECT_TAGS = ("notice", "in")
 def render_messages(cotton_render_string_soup):
     """Render the component over messages added at the given levels."""
 
-    def render(*levels):
+    def render(*levels, extra_tags="", attrs=""):
         request = RequestFactory().get("/")
         request.session = {}
         request._messages = FallbackStorage(request)
         messages.set_level(request, messages.DEBUG)
         for level in levels:
-            messages.add_message(request, level, f"message at level {level}")
+            messages.add_message(
+                request, level, f"message at level {level}", extra_tags=extra_tags
+            )
         return cotton_render_string_soup(
-            "<c-mvp.messages :messages='messages' />",
-            context={"messages": messages.get_messages(request), "request": request},
+            f"<c-mvp.messages :messages='messages' {attrs} />",
+            context={
+                "messages": messages.get_messages(request),
+                "request": request,
+                "csrf_token": "token",
+            },
         )
 
     return render
@@ -103,3 +115,89 @@ class TestMessageIcons:
 
         alert = soup.select_one(".toast > [role='alert']")
         assert alert.find("i") is not None
+
+
+class TestMessageAction:
+    def test_a_link_action_draws_a_link_inside_the_alert(self, render_messages):
+        tags = action_tags("View", "/things/7/")
+
+        soup = render_messages(messages.SUCCESS, extra_tags=tags)
+
+        link = soup.select_one(".toast > [role='alert'] a")
+        assert link["href"] == "/things/7/"
+        assert link.get_text(strip=True) == "View"
+
+    def test_a_post_action_draws_a_form_that_posts_to_the_address(
+        self, render_messages
+    ):
+        tags = action_tags("Undo", "/things/7/undo/", method="post")
+
+        soup = render_messages(messages.SUCCESS, extra_tags=tags)
+
+        form = soup.select_one(".toast > [role='alert'] form")
+        assert form["method"] == "post"
+        assert form["action"] == "/things/7/undo/"
+        assert form.select_one("button[type='submit']").get_text(strip=True) == "Undo"
+        assert form.get("hx-post") is None
+        assert form.select_one("input[name='csrfmiddlewaretoken']")["value"] == "token"
+
+    def test_a_post_action_with_a_target_is_sent_with_htmx(self, render_messages):
+        tags = action_tags(
+            "Undo", "/things/7/undo/", method="post", target="#things", swap="outerHTML"
+        )
+
+        soup = render_messages(messages.SUCCESS, extra_tags=tags)
+
+        form = soup.select_one(".toast > [role='alert'] form")
+        assert form["hx-post"] == "/things/7/undo/"
+        assert form["hx-target"] == "#things"
+        assert form["hx-swap"] == "outerHTML"
+
+    def test_a_message_without_an_action_draws_none(self, render_messages):
+        soup = render_messages(messages.SUCCESS, extra_tags="sticky")
+
+        alert = soup.select_one(".toast > [role='alert']")
+        assert alert.find("form") is None
+        assert alert.find("a") is None
+
+    def test_a_message_with_an_action_does_not_hide_itself(self, render_messages):
+        tags = action_tags("Undo", "/undo/", method="post")
+
+        soup = render_messages(messages.SUCCESS, extra_tags=tags, attrs="dismissible")
+
+        alert = soup.select_one(".toast > [role='alert']")
+        assert alert.get("x-init") is None
+
+    def test_a_message_with_an_action_can_be_dismissed_when_the_list_is_not(
+        self, render_messages
+    ):
+        tags = action_tags("Undo", "/undo/", method="post")
+
+        soup = render_messages(messages.SUCCESS, extra_tags=tags)
+
+        assert soup.select_one(".toast > [role='alert'] button[aria-label]")
+
+    def test_a_message_without_an_action_keeps_its_auto_dismiss(
+        self, render_messages
+    ):
+        soup = render_messages(messages.SUCCESS, attrs="dismissible :delay=3000")
+
+        alert = soup.select_one(".toast > [role='alert']")
+        assert "3000" in alert["x-init"]
+
+
+class TestOutOfBandSwap:
+    def test_the_list_is_found_by_an_id_in_the_page(self, render_messages):
+        soup = render_messages(messages.SUCCESS)
+
+        assert soup.select_one(".toast")["id"]
+
+    def test_oob_has_htmx_swap_the_list_in_place_by_its_id(self, render_messages):
+        soup = render_messages(messages.SUCCESS, attrs='oob="true"')
+
+        assert soup.select_one(".toast")["hx-swap-oob"] == "true"
+
+    def test_without_oob_the_list_is_not_an_out_of_band_swap(self, render_messages):
+        soup = render_messages(messages.SUCCESS)
+
+        assert soup.select_one(".toast").get("hx-swap-oob") is None
