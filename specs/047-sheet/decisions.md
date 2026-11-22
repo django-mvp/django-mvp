@@ -36,6 +36,8 @@ two-item menu, fixes it at its resting height, which is an iOS sheet with only t
 A fixed sheet follows the finger a little when dragged up, so the drag is felt, settles back, and
 still closes when dragged down.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D4: Drags start on the grab bar and the head only
 
 Both platforms let a drag inside scrolling content move the sheet once the content is scrolled to
@@ -54,6 +56,8 @@ fling's direction; below it, it settles at the nearest state. iOS behaves the sa
 detents. One step per flick keeps a downward flick at full height from throwing away a sheet the
 user only meant to shrink. The threshold itself is a planning decision.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D6: The grab bar is a control
 
 Material's drag handle is an accessibility control: tapping it cycles the sheet's states, and
@@ -61,6 +65,8 @@ TalkBack offers expand and collapse on it. iOS's grabber is likewise activated b
 person who cannot drag, or who uses a keyboard on a narrow window, must still reach the full
 height, so the grab bar is a button that switches between the two heights and says which one the
 sheet is at. Closing stays with Escape, the closing button and a tap outside.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D7: One sheet at a time; a sheet opened from a sheet replaces it
 
@@ -70,12 +76,16 @@ developer names when the second closes, usually the first sheet's trigger. Stack
 put two modal dialogs and two backdrops on a phone screen with nothing to gain, so the rule is the
 same everywhere: opening any sheet closes the open one.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D8: A developer can open a sheet at full height
 
 The agreed design has a tall sheet with a pinned head and a scrolling body for long content such
 as a list to pick from. That is a sheet whose only useful height is full, which iOS expresses as a
 sheet with only the large detent. It is an option, and the sheet can still be dragged down to its
 resting height or closed, so the gestures behave the same on every sheet.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D9: A trigger with an address falls back to a link
 
@@ -85,6 +95,8 @@ trigger is a link to the item's own page that, where scripts run, opens the shee
 address is optional because some sheets, such as a setting, have no page of their own; such a
 trigger is a button and needs scripts, which the documentation states.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D10: Every way of closing changes nothing
 
 The agreed design's sheets close without effect on Escape, a tap outside and a swipe down, and
@@ -93,6 +105,8 @@ modal closes from `type="button"` controls that call `close()` rather than a `me
 form, so a sheet inside a form never submits it, and the sheet's own closing controls keep to
 that.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D11: Three stories
 
 A developer building a sheet, a user working in one, and a user on a phone dragging one. Views, a
@@ -100,6 +114,8 @@ sheet opened from a sheet, the full-height option and the fallback link are sett
 of building one, so they are scenarios under the first story. The drag is its own story because it
 was asked for in its own words and is something a user sets out to do: see more of the sheet, or
 put it away.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D12: The sheet is drawn in daisy-cotton's `c-modal`, not wrapped in `c-mvp.modal`
 
