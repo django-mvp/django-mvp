@@ -9,7 +9,7 @@
 {# @prop class:text | description:"Extra classes added to the link or button." #}
 {# @slot Rename — Optional. The trigger's words. Leave empty for an icon-only button. #}
 {% load i18n %}
-<c-vars for href view returns id icon="more" label class />
+<c-vars for href view="" returns id icon="more" label class />
 {% if href %}
 <a href="{{ href }}"
    class="btn btn-ghost{% if not slot.strip %} btn-sm btn-square{% endif %} {{ class }}"

@@ -201,3 +201,5 @@ A trigger inside a sheet is in a closed dialog by the time the second sheet clos
 take focus. With no `returns` named, focus goes to the opener of the sheet that holds the trigger.
 
 **ADR:** none.
+
+D21's fix changed one existing browser test: it passed before only because the browser restores focus natively, so it pinned the wrong behaviour. It was rewritten, and tests for a trigger outside every sheet and for a named return element were added.
