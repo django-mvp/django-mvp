@@ -84,3 +84,12 @@ One review round. Every finding but one was applied as the plan's "Corrections f
 review". Not adopted: merging the ADR task into the row set's layout task, because the ledger
 already holds the task rows and the merge saves nothing. All other notes were sweeps of wording.
 **ADR:** none, local to this feature.
+
+## D10: A reorder mode ends with the dialog that holds it
+
+An earlier test pinned that Escape inside an open dialog closed the dialog and left the reorder
+mode on. A list in a dialog that is closed without submitting returns to its order from when the
+dialog opened, so a mode left on would show handles on a list the person has abandoned. The mode
+now ends when the dialog closes, and the test was rewritten to assert that. It was written in this
+same feature and replaced because the requirement it pinned was wrong, not weakened to pass.
+**ADR:** none, local to this feature.
