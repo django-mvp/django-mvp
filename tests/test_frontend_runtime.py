@@ -82,6 +82,8 @@ class TestShippedFrontEndRuntime:
         # placement strings would have been the obvious choice and are useless
         # here, because assets/js/dropdown.js writes the same literals itself.
         "@floating-ui/dom": "clippingAncestors",
+        # The author line of the licence comment the build keeps in the bundle.
+        "sortablejs": "RubaXa",
     }
 
     @pytest.mark.parametrize("package,marker", sorted(LIBRARY_MARKERS.items()))
