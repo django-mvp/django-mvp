@@ -48,6 +48,22 @@ urlpatterns = [
     path("theme/preview/", views.theme_preview_demo, name="theme-preview"),
     path("components/", views.components_demo, name="custom-components"),
     path(
+        "components/reorder/",
+        views.ReorderDemoView.as_view(),
+        {"slug": "reorder"},
+        name="component-doc-reorder",
+    ),
+    path(
+        "components/reorder/live/",
+        views.ReorderDemoSaveView.as_view(pinned=True),
+        name="reorder-demo-live",
+    ),
+    path(
+        "components/reorder/mode/",
+        views.ReorderDemoSaveView.as_view(pinned=False),
+        name="reorder-demo-mode",
+    ),
+    path(
         "components/<slug:slug>/",
         views.ComponentDocView.as_view(),
         name="component-doc",

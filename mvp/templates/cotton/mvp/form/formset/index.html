@@ -64,13 +64,25 @@
           Empty cell holding the remove column open. `sr-only` takes it out of
           flow, collapsing the track and widening every row past its heading.
         {% endcomment %}
+        {% if formset.can_order %}<span aria-hidden="true"></span>{% endif %}
         {% if formset.can_delete %}<span aria-hidden="true"></span>{% endif %}
       </div>
     {% endif %}
-    {% for form in formset.forms %}
+    {% comment %}
+      A set that can order keeps its rows and the row template in one list that
+      `mvpReorder` watches, so a row the add control inserts joins it. The tags
+      open and close conditionally; djlint cannot pair them across a branch.
+    {% endcomment %}
+    {# djlint:off #}
+    {% if formset.can_order %}<div x-data="mvpReorder" data-mvp-reorder data-mvp-reorder-mode="always"><div class="space-y-4" data-mvp-reorder-list>{% endif %}
+    {# djlint:on #}
+    {% for form in formset|formset_rows %}
+      {% firstof form|formset_row_keeps_order:formset as keeps_order %}
       <c-mvp.form.formset.row :form="form"
                            :first="forloop.first"
                            :can-delete="formset.can_delete"
+                           :can-order="formset.can_order"
+                           :keeps-order="keeps_order"
                            :layout="layout"
                            :grid-style="grid_style"
                            :remove-label="remove_label" />
@@ -78,10 +90,14 @@
     <template>
       <c-mvp.form.formset.row :form="formset.empty_form"
                            :can-delete="formset.can_delete"
+                           :can-order="formset.can_order"
                            :layout="layout"
                            :grid-style="grid_style"
                            :remove-label="remove_label" />
     </template>
+    {# djlint:off #}
+    {% if formset.can_order %}</div></div>{% endif %}
+    {# djlint:on #}
     <c-button type="button"
               size="sm"
               outline

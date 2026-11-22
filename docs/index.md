@@ -23,6 +23,7 @@ configuration through Django settings, customization through template overrides.
 | [Account Center](account-center.md) | The account area any installed app can add a page to |
 | [Views](views.md) | List/form/detail/delete views and mixins |
 | [Formsets](formsets.md) | A parent record and its related rows, and the standalone formset case |
+| [Reorder a list](reorder.md) | Lists a person puts in their own order: the three ways to keep the result, the on-demand mode, lists in dialogs, and the `save_order` reference |
 | [Styling](styling.md) | Tailwind/DaisyUI, the two build tiers, and the shell's class hooks |
 | [Theming](theming.md) | Every theme variable, why the theme plugin computes nothing, and writing a custom theme from scratch |
 | [Utility Classes](utility-classes.md) | Every Tailwind utility and daisyUI component the packaged stylesheet ships pre-built |

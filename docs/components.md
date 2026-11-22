@@ -515,7 +515,7 @@ unmet.
 | `c-mvp.form` | the `<form>` element: CSRF token (only when `method` is `post`), multipart detection, and an optional rendered form. `form-obj` renders through `c-mvp.form.render`; `formset` and `inlines` only detect that a multipart encoding is needed and are not rendered by `c-mvp.form` itself. `method`, `action`, `id` and anything else pass straight to the `<form>` element |
 | `c-mvp.form.render` | `form` — renders a Django form's fields, honouring its helper when it has one |
 | `c-mvp.form.formset` | whole Django formset: `formset` (required), `title` (defaults to the model in plural; left out for the only set on a [rows-only page](formsets.md#the-rows-only-page) unless passed), `description`, `add-label`, `remove-label`, `class` — see [Formsets](formsets.md) |
-| `c-mvp.form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `first`, `can-delete`, `remove-label`, `class` — placed by `c-mvp.form.formset`, which supplies `first` and `can-delete` from the set; write it by hand only for a custom set layout |
+| `c-mvp.form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `first`, `can-delete`, `can-order`, `keeps-order`, `remove-label`, `class` — placed by `c-mvp.form.formset`, which supplies `first`, `can-delete`, `can-order` and `keeps-order` from the set; write it by hand only for a custom set layout |
 
 A form is drawn through `<c-mvp.form>`. For a single field you write by hand, outside a
 Django form, compose daisy-cotton's form components. A fieldset with an `id` gives the
@@ -537,6 +537,16 @@ names them in `aria-describedby`:
 daisy-cotton also has `<c-form.textarea>`, `<c-form.select>`, `<c-form.checkbox>`,
 `<c-form.radio>`, `<c-form.toggle>` and `<c-form.file_input>`. Leave out `variant`,
 `aria-invalid` and `aria-describedby` when the field has no error.
+
+## Reorderable lists
+
+| Component | Attributes |
+| --- | --- |
+| `c-mvp.reorder` | a list whose rows a person drags or moves with buttons: `id`, `label` (the list's accessible name), `name` (the order's field name, default `order`), `form` (a surrounding form submits the order), `url` (the order is posted there; needs an `id`), `mode` (`always`, or `on-demand` to reorder only between a start and an end control; needs an `id`), `class` — see [Reorder a list](reorder.md) |
+| `c-mvp.reorder.row` | one row of that list: `value` (the item's identifier), `label` (the item's name, for the controls), `class` |
+| `c-mvp.reorder.moves` | the up and down buttons and the handle of one row: `label`. `c-mvp.reorder.row` places it; write it by hand only for a custom row |
+
+The demo site's Reorder page (`components/reorder/`) shows four lists at work.
 
 ## Add-ons
 
