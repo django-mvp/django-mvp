@@ -115,7 +115,9 @@ Use this when each move should be stored at once.
     ```python
     @require_POST
     def step_order(request, project_id):
-        steps = Step.objects.filter(project_id=project_id)
+        steps = Step.objects.filter(
+            project_id=project_id, project__owner=request.user
+        )
         try:
             save_order(steps, request.POST.getlist("order"))
         except InvalidOrder:

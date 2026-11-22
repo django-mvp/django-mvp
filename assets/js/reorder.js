@@ -152,7 +152,10 @@ function reorder() {
   // A dialog closed without submitting its form puts the list back as it was when the
   // dialog was opened, and a mode begun inside it ends with it.
   function closed() {
-    place(kept);
+    // Rows added while the dialog was open stay, after the ones that were there.
+    const present = kept.filter((row) => list.contains(row));
+    const added = rowElements().filter((row) => !kept.includes(row));
+    place([...present, ...added]);
     refresh();
     state.endMode();
   }
@@ -209,7 +212,10 @@ function reorder() {
   }
 
   function finished(event) {
-    if (own(event) && inflight === event.detail.xhr) inflight = null;
+    if (!own(event) || inflight !== event.detail.xhr) return;
+    inflight = null;
+    // An answer that does not replace the list still confirms the order it was sent with.
+    if (event.detail.successful) confirmed = order();
   }
 
   // A late answer for an order that a newer move has replaced is dropped, and the answer

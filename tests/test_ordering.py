@@ -8,7 +8,7 @@ from django.db import transaction
 from django.db.models import QuerySet
 
 from mvp.ordering import InvalidOrder, save_order
-from tests.factories import ProjectFactory, ProjectTaskFactory
+from tests.factories import OrderLineFactory, ProjectFactory, ProjectTaskFactory
 
 
 def positions(project):
@@ -65,13 +65,25 @@ class TestSaveOrder:
         outsider.refresh_from_db()
         assert outsider.position == 7
 
-    def test_writes_to_the_named_field(self, project):
-        """``field`` picks the column that receives the numbers."""
-        save_order(
-            project.tasks.all(), ids_of(project, "b", "c", "a"), field="position"
-        )
+    def test_writes_to_the_named_field(self):
+        """``field`` picks the column that receives the numbers, and no other."""
+        lines = [OrderLineFactory(quantity=5) for _ in range(3)]
+        ids = [str(lines[2].pk), str(lines[0].pk), str(lines[1].pk)]
 
-        assert positions(project) == {"b": 0, "c": 1, "a": 2}
+        save_order(type(lines[0]).objects.all(), ids, field="quantity")
+
+        stored = type(lines[0]).objects.all()
+        quantities = {str(line.pk): line.quantity for line in stored}
+        assert [quantities[pk] for pk in ids] == [0, 1, 2]
+
+    def test_a_sliced_queryset_is_ordered(self, project):
+        """A queryset cut with a slice still names exactly its own records."""
+        ids = ids_of(project, "a", "b", "c")
+        tasks = project.tasks.order_by("pk")[:3]
+
+        save_order(tasks, list(reversed(ids)))
+
+        assert positions(project) == {"c": 0, "b": 1, "a": 2}
 
     def test_a_duplicate_is_refused_and_nothing_changes(self, project):
         """An identifier named twice raises and leaves every row as it was."""

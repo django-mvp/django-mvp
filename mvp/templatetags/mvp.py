@@ -671,9 +671,10 @@ def formset_row_keeps_order(form, formset):
     Returns:
         Whether the row's ``ORDER`` takes a number.
     """
-    return formset.forms.index(form) < formset.initial_form_count() or (
-        form.has_changed()
-    )
+    # The row's own index, read from its prefix: a view's ``sort_forms`` can
+    # move a form to another place in ``formset.forms``.
+    index = int(form.prefix.rsplit("-", 1)[1])
+    return index < formset.initial_form_count() or form.has_changed()
 
 
 @register.filter

@@ -100,9 +100,13 @@ ROWS = """
 """
 
 POST_LIST = """
-<c-mvp.reorder id="steps" label="Steps" url="/reorder-test/save/{{ project.pk }}/" data-answer="{{ answered }}">
+<c-mvp.reorder id="steps" label="Steps"
+                       url="/reorder-test/save/{{ project.pk }}/"
+                       data-answer="{{ answered }}">
   {% for task in tasks %}
-    <c-mvp.reorder.row value="{{ task.pk }}" label="{{ task.title }}">{{ task.title }}</c-mvp.reorder.row>
+    <c-mvp.reorder.row value="{{ task.pk }}" label="{{ task.title }}">
+                {{ task.title }}
+              </c-mvp.reorder.row>
   {% endfor %}
 </c-mvp.reorder>
 """
@@ -253,7 +257,9 @@ SCRIPT_LIST = """
 <c-mvp.reorder id="steps" label="Steps" mode="on-demand"
                url="/reorder-test/script/" data-answer="{{ answered }}">
   {% for value in values %}
-    <c-mvp.reorder.row value="{{ value }}" label="{{ value }}">{{ value }}</c-mvp.reorder.row>
+    <c-mvp.reorder.row value="{{ value }}" label="{{ value }}">
+                {{ value }}
+              </c-mvp.reorder.row>
   {% endfor %}
 </c-mvp.reorder>
 """
@@ -329,6 +335,8 @@ def script_save(request):
     action = Script.actions.pop(0) if Script.actions else "answer"
     if action == "refuse":
         return HttpResponse(status=400)
+    if action == "accept":
+        return HttpResponse(status=204)
     if action == "stall":
         Script.release.wait(10)
     template = engines["django"].from_string(CottonCompiler().process(SCRIPT_LIST))
@@ -754,8 +762,10 @@ class TestEdgeScrolling:
         touch_page.mouse.move(x, 395, steps=10)
         touch_page.wait_for_timeout(600)
         scrolled = scroll_y(touch_page)
+        held = touch_page.locator("#steps .mvp-reorder-held").count()
         touch_page.mouse.up()
 
+        assert held == 1
         assert scrolled > 0
 
 
@@ -943,7 +953,8 @@ class TestKeyboard:
                     """() => {
                       const el = document.activeElement;
                       const row = el.closest("[data-mvp-reorder-row]");
-                      const kind = el.hasAttribute("data-mvp-reorder-up") ? "up" : "down";
+                      const up = el.hasAttribute("data-mvp-reorder-up");
+                      const kind = up ? "up" : "down";
                       return row.dataset.mvpReorderValue + kind;
                     }"""
                 )
@@ -1303,6 +1314,20 @@ class TestRefusedOrFailedPost:
 
         expect(page.locator("#steps [role=alert]")).to_be_hidden()
 
+    def test_an_accepted_post_with_no_answer_is_the_new_confirmed_order(
+        self, page, live_server, script
+    ):
+        script.actions = ["accept", "refuse"]
+        self.open_script(page, live_server)
+        self.move_down(page, "a")
+        page.wait_for_function("window.htmx && !document.querySelector('.htmx-request')")
+        page.wait_for_timeout(200)
+
+        self.move_down(page, "b")
+
+        expect(page.locator("#steps [role=alert]")).to_be_visible()
+        assert values(page) == ["b", "a", "c"]
+
     def test_the_rows_return_to_the_last_confirmed_order(
         self, page, live_server, script
     ):
@@ -1438,6 +1463,24 @@ class TestListInADialog:
 
         assert page.evaluate("document.getElementById('box').open") is False
         assert values(page) == ["a", "b", "c"]
+
+    def test_a_row_added_inside_the_dialog_does_not_stop_the_order_returning(
+        self, page, live_server
+    ):
+        self.open_dialog(page, live_server)
+        self.move_down(page, "a")
+        page.evaluate(
+            """() => {
+              const added = document.querySelector('#steps [data-mvp-reorder-row]')
+                .cloneNode(true);
+              added.dataset.mvpReorderValue = 'd';
+              document.querySelector('#steps [data-mvp-reorder-list]').append(added);
+            }"""
+        )
+
+        page.click("#cancel")
+
+        assert values(page)[:3] == ["a", "b", "c"]
 
     def test_the_order_is_back_when_the_dialog_opens_again(self, page, live_server):
         self.open_dialog(page, live_server)

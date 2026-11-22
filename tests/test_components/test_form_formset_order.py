@@ -118,6 +118,30 @@ class TestFormsetRowKeepsOrder:
         assert formset_row_keeps_order(formset.forms[1], formset)
 
 
+class TestRowsKeepOrderWhateverTheirDisplayPlace:
+    """A view's ``sort_forms`` can put forms in a different place in the list."""
+
+    def reversed_set(self):
+        formset = OrderedFormSet(
+            submitted([("a", "1"), ("b", "2"), ("", "")], initial=2)
+        )
+        formset.forms = list(reversed(formset.forms))
+        return formset
+
+    def test_an_extra_row_shown_first_is_not_taken_for_a_saved_one(self):
+        formset = self.reversed_set()
+        extra = next(form for form in formset.forms if form.prefix.endswith("-2"))
+
+        assert formset.forms[0] is extra
+        assert not formset_row_keeps_order(extra, formset)
+
+    def test_a_saved_row_shown_last_is_still_saved(self):
+        formset = self.reversed_set()
+        saved = next(form for form in formset.forms if form.prefix.endswith("-0"))
+
+        assert formset_row_keeps_order(saved, formset)
+
+
 class TestOrderedFormsetRows:
     def test_order_is_a_hidden_input_on_every_row(self):
         soup = soup_of(OrderedFormSet(initial=[{"name": "a"}, {"name": "b"}]))

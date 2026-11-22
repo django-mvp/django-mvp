@@ -46,5 +46,5 @@ def save_order(queryset, ids, *, field="position"):
         ordered = [records[key] for key in keys]
         for position, record in enumerate(ordered):
             setattr(record, field, position)
-        queryset.bulk_update(ordered, [field])
+        queryset.model._base_manager.bulk_update(ordered, [field])
     return ordered
