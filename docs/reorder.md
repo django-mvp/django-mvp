@@ -37,6 +37,71 @@ Two lists on one page move independently. A row added to the list after the page
 loaded, by a script or by an htmx swap of the list's contents, can be dragged and
 has working buttons.
 
+## Send the order to the server
+
+A list with neither `form` nor `url` reorders on the page and sends nothing. It
+suits a page that reads the rows itself. Pick one of the two destinations to keep
+the result.
+
+### Submit the order with a form
+
+Use this when the list sits inside a form that has other fields too.
+
+1. Put the list inside the form and add `form`. Give each row its `value`.
+
+    ```html
+    <form method="post">
+      {% csrf_token %}
+      <c-mvp.reorder id="steps" label="Steps" form name="order">
+        {% for step in steps %}
+          <c-mvp.reorder.row value="{{ step.pk }}" label="{{ step.title }}">
+            {{ step.title }}
+          </c-mvp.reorder.row>
+        {% endfor %}
+      </c-mvp.reorder>
+      <button type="submit">Save</button>
+    </form>
+    ```
+
+2. In the view, read `request.POST.getlist("order")`. The identifiers arrive in
+   the order the rows had when the form was sent, because each row holds a hidden
+   input that moves with it. Pass them to [`save_order`](#save-a-received-order).
+
+The field is named by `name`, which defaults to `order`. The input takes its
+name when the script runs, so a form sent without scripts carries no order.
+
+### Post the order to an address
+
+Use this when each move should be stored at once.
+
+1. Add `url`, and an `id` that is unique on the page. Do not render the list
+   with `only`, because the CSRF token comes from the surrounding context.
+
+    ```html
+    <c-mvp.reorder id="steps" label="Steps" url="{% url 'step-order' project.pk %}">
+      ...
+    </c-mvp.reorder>
+    ```
+
+2. Write the view that receives the post. The order arrives in the field named by
+   `name`. Answer with the list drawn again, with the same `id`, because the
+   answer replaces the list.
+
+    ```python
+    @require_POST
+    def step_order(request, project_id):
+        steps = Step.objects.filter(project_id=project_id)
+        try:
+            save_order(steps, request.POST.getlist("order"))
+        except InvalidOrder:
+            return HttpResponseBadRequest()
+        return render(request, "steps/list.html", {"steps": steps.all()})
+    ```
+
+A move that leaves the rows as they were posts nothing. The up and down buttons
+get ids built from the list's `id` and the row's `value`, so focus returns to the
+button that was used after the answer arrives.
+
 ## Save a received order
 
 Use this when a request arrives carrying the identifiers of a list's records in
@@ -94,6 +159,8 @@ script.
 | `id` | The list's id. |
 | `label` | The list's accessible name. |
 | `name` | The field name that carries the order. Defaults to `order`. |
+| `form` | Each row's identifier is submitted by the surrounding form under `name`. |
+| `url` | An address the order is posted to on every change. Needs an `id`. |
 | `class`, other attributes | Pass to the root element. |
 
 ### `<c-mvp.reorder.row>`

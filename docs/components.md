@@ -542,7 +542,7 @@ daisy-cotton also has `<c-form.textarea>`, `<c-form.select>`, `<c-form.checkbox>
 
 | Component | Attributes |
 | --- | --- |
-| `c-mvp.reorder` | a list whose rows a person drags or moves with buttons: `id`, `label` (the list's accessible name), `name` (the order's field name, default `order`), `class` — see [Reorder a list](reorder.md) |
+| `c-mvp.reorder` | a list whose rows a person drags or moves with buttons: `id`, `label` (the list's accessible name), `name` (the order's field name, default `order`), `form` (a surrounding form submits the order), `url` (the order is posted there; needs an `id`), `class` — see [Reorder a list](reorder.md) |
 | `c-mvp.reorder.row` | one row of that list: `value` (the item's identifier), `label` (the item's name, for the controls), `class` |
 | `c-mvp.reorder.moves` | the up and down buttons and the handle of one row: `label`. `c-mvp.reorder.row` places it; write it by hand only for a custom row |
 

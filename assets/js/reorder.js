@@ -1,4 +1,5 @@
 // Alpine.data("mvpReorder"), registered in index.js (docs/adr/0035-behaviour-lives-in-registered-alpine-components.md).
+import htmx from "htmx.org";
 import Sortable from "sortablejs";
 
 const ROW = "[data-mvp-reorder-row]";
@@ -50,11 +51,24 @@ function reorder() {
     });
   }
 
+  // The answer replaces the root, so the list on the page is always the server's.
+  function post(ids) {
+    const token = root.querySelector("[name=csrfmiddlewaretoken]");
+    htmx.ajax("POST", root.dataset.mvpReorderUrl, {
+      source: root,
+      target: root,
+      swap: "outerHTML",
+      values: { [root.dataset.mvpReorderName]: ids },
+      headers: { "X-CSRFToken": token ? token.value : "" },
+    });
+  }
+
   // Called once a move is over, from either control.
   function changed() {
     const current = order();
     if (current.join("\n") === lastOrder.join("\n")) return;
     lastOrder = current;
+    if (root.dataset.mvpReorderUrl) post(current);
   }
 
   function move(button, step) {
