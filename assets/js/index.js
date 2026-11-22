@@ -27,6 +27,7 @@ import { registerLayoutStore } from "./layout.js";
 import { registerPageSide } from "./page_side.js";
 import { registerPageSideColumn } from "./page_side_column.js";
 import { startRail } from "./rail.js";
+import { registerReorder } from "./reorder.js";
 import { startSearch } from "./search.js";
 import { registerSheet } from "./sheet.js";
 import { startThemeColor } from "./theme_color.js";
@@ -104,6 +105,9 @@ registerInstallPage(Alpine);
 
 // The sheet and its trigger. See assets/js/sheet.js.
 registerSheet(Alpine);
+
+// The reorderable list's drag and move buttons. See assets/js/reorder.js.
+registerReorder(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.

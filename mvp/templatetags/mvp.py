@@ -9,6 +9,7 @@ from django import template
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.forms import CheckboxInput
+from django.forms.formsets import ORDERING_FIELD_NAME
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils.module_loading import import_string
@@ -627,6 +628,56 @@ def formset_label(formset):
 
 
 @register.filter
+def formset_rows(formset):
+    """Return the set's forms in the order to draw them.
+
+    A set that can order and carries a submission is drawn in the order the
+    person left the rows in, so an invalid submission does not put them back
+    where they started. A blank or unreadable ``ORDER`` sorts last, and rows
+    that tie keep their places. Every other set is drawn as it is.
+
+    Args:
+        formset: The formset to draw.
+
+    Returns:
+        The forms, as a list.
+    """
+    forms = list(formset.forms)
+    if not (getattr(formset, "can_order", False) and formset.is_bound):
+        return forms
+
+    def position(form):
+        submitted = formset.data.get(form.add_prefix(ORDERING_FIELD_NAME))
+        try:
+            return (0, int(submitted))
+        except (TypeError, ValueError):
+            return (1, 0)
+
+    return sorted(forms, key=position)
+
+
+@register.filter
+def formset_row_keeps_order(form, formset):
+    """Return True when a row's ``ORDER`` is written by the browser.
+
+    This is Django's own rule for which rows ``ordered_forms`` reads: a saved
+    row, or an extra row that has changed. A blank extra row is left without a
+    value, so it stays blank and the set stays valid.
+
+    Args:
+        form: One row of the set.
+        formset: The set it belongs to.
+
+    Returns:
+        Whether the row's ``ORDER`` takes a number.
+    """
+    # The row's own index, read from its prefix: a view's ``sort_forms`` can
+    # move a form to another place in ``formset.forms``.
+    index = int(form.prefix.rsplit("-", 1)[1])
+    return index < formset.initial_form_count() or form.has_changed()
+
+
+@register.filter
 def formset_columns(formset):
     """Return the fields a tabular set shows as columns, in render order.
 
@@ -635,20 +686,26 @@ def formset_columns(formset):
     the columns off, and under ``can_delete_extra=False`` the fields differ
     between initial and extra rows. ``DELETE`` is excluded for the same reason
     a row does not render it as a field — it drives the remove control, which
-    gets a column of its own.
+    gets a column of its own. ``ORDER`` is left out likewise: the browser
+    writes it, and the move controls take its place.
     """
     empty_form = getattr(formset, "empty_form", None)
     if empty_form is None:
         return []
-    return [field for field in empty_form.visible_fields() if field.name != "DELETE"]
+    return [
+        field
+        for field in empty_form.visible_fields()
+        if field.name not in {"DELETE", ORDERING_FIELD_NAME}
+    ]
 
 
 @register.filter
 def formset_grid_style(formset):
     """Return the ``grid-template-columns`` a tabular set's rows share.
 
-    One equal-width track per column plus a narrow trailing one for the remove
-    control, as an inline style rather than a utility class because the column
+    One equal-width track per column plus a narrow trailing one for the move
+    controls when the set can order and one for the remove control, as an
+    inline style rather than a utility class because the column
     count is only known at render time and Tailwind emits classes it can find
     as literal text at build time.
 
@@ -661,6 +718,8 @@ def formset_grid_style(formset):
     if not columns:
         return ""
     tracks = f"repeat({len(columns)}, minmax(0, 1fr))"
+    if getattr(formset, "can_order", False):
+        tracks = f"{tracks} auto"
     if getattr(formset, "can_delete", False):
         tracks = f"{tracks} auto"
     return f"grid-template-columns: {tracks};"

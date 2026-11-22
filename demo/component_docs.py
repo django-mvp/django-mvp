@@ -47,6 +47,12 @@ COMPONENTS = [
         "A whole Django formset: management form, one row per form, and add/remove controls.",
     ),
     ComponentDoc(
+        "reorder",
+        "Reorder",
+        "list-ul",
+        "A list a person puts in their own order by dragging or with buttons.",
+    ),
+    ComponentDoc(
         "dropdown", "Dropdown", "list", "A trigger that reveals a floating panel."
     ),
     ComponentDoc("modal", "Modal", "layout", "A dialog overlay opened via JavaScript."),

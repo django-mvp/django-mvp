@@ -1,0 +1,49 @@
+{% extends "demo/components/base.html" %}
+{% block component.docs %}
+  <c-components.section title="Row set"
+                        description="A formset built with can_order. Every row gets up and down buttons and a handle, and the form saves the rows in the order shown. Edit a title, move a row and press Save.">
+    {% cotton:verbatim %}
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="list" value="set">
+      <c-mvp.form.formset :formset="set_formset" title="Tasks" />
+      <c-button type="submit" text="Save" variant="primary" />
+    </form>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="In a form"
+                        description="A list with form carries each row's identifier in a hidden input, so the surrounding form submits the order together with its other fields. The view hands the identifiers to save_order.">
+    {% cotton:verbatim %}
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <c-mvp.reorder id="form-tasks" label="Tasks" form name="order">
+        {% for task in form_tasks %}
+          <c-mvp.reorder.row value="{{ task.pk }}" label="{{ task.title }}">{{ task.title }}</c-mvp.reorder.row>
+        {% endfor %}
+      </c-mvp.reorder>
+      <c-button type="submit" text="Save order" variant="primary" />
+    </form>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Posts as it changes"
+                        description="A list with url posts its order after every move. The first task is pinned here: an order that moves it is refused, the rows go back to the order the server last drew and a message says the change was not saved. Move any other row to see it kept, and move the first one to see it refused.">
+    {% cotton:verbatim %}
+    <c-demo.task-list id="live-tasks"
+                      url="{% url 'reorder-demo-live' %}"
+                      :tasks="live_tasks" />
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="On demand"
+                        description="With mode=on-demand the list is plain until a control starts the mode. Any element with data-mvp-reorder-start names the list, so the button can sit in a toolbar away from it. Done, or Escape, ends the mode.">
+    {% cotton:verbatim %}
+    <div class="flex gap-2 mb-2" role="toolbar" aria-label="Task actions">
+      <button type="button" class="btn btn-sm" data-mvp-reorder-start="mode-tasks">Edit order</button>
+      <button type="button" class="btn btn-sm btn-primary" data-mvp-reorder-end="mode-tasks">Done</button>
+    </div>
+    <c-demo.task-list id="mode-tasks"
+                      url="{% url 'reorder-demo-mode' %}"
+                      mode="on-demand"
+                      :tasks="mode_tasks" />
+  {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

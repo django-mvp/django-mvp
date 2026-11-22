@@ -5,6 +5,8 @@
 {# @prop class:text | description:"Extra classes on the root element." #}
 {# @prop first:boolean | default:False | description:"Suppresses the leading hairline for the first row." #}
 {# @prop can-delete:boolean | default:False | description:"Show the remove control, when this row also has a DELETE field." #}
+{# @prop can-order:boolean | default:False | description:"Show the move controls and keep the row's ORDER value in a hidden input; a typed ORDER field stands in when scripts are off." #}
+{# @prop keeps-order:boolean | default:False | description:"Mark the row as one whose ORDER takes a number: a saved row, or an extra row that has changed." #}
 {# @prop layout:select['stacked','tabular'] | default:"stacked" | description:"Row presentation; tabular aligns fields to the set's column grid from sm up." #}
 {# @prop grid-style:text | description:"Column-track CSS passed down from the set, for tabular layout." #}
 {# @prop remove-label:text | default:"Remove" | description:"Accessible name for the remove control." #}
@@ -18,6 +20,8 @@
         class
         first=False
         can-delete=False
+        can-order=False
+        keeps-order=False
         layout="stacked"
         grid-style
         remove-label="{% trans "Remove" %}" />
@@ -29,6 +33,7 @@
   <div class="group space-y-4 {{ class }}"
        x-data="mvpFormsetRow({{ form.DELETE.value|yesno:'true,false,false' }})"
        x-show="!removed"
+       {% if can_order %}data-mvp-reorder-row{% endif %}
        {{ attrs }}>
     {% if not first %}<c-mvp.rule only />{% endif %}
     {% firstof label form|formset_row_label as row_label %}
@@ -37,10 +42,13 @@
       `can_delete_extra=False` Django withholds DELETE from extra forms even
       though `formset.can_delete` stays True on the set.
     {% endcomment %}
-    {% if row_label or can_delete and form.DELETE %}
+    {% trans "this row" as this_row %}
+    {% firstof row_label this_row as move_label %}
+    {% if row_label or can_order or can_delete and form.DELETE %}
       {# `mb-1` replaces the row's own spacing under the header, so it sits with its fields. #}
       <div class="flex items-center justify-between gap-2 mb-1{% if layout == "tabular" %} sm:hidden{% endif %}">
         <c-mvp.text tight bold only>{{ row_label }}</c-mvp.text>
+        {% if can_order %}<c-mvp.reorder.moves label="{{ move_label }}" class="ml-auto" only />{% endif %}
         {% if can_delete and form.DELETE %}
           {% comment %}
             `group-focus-within`, not hover alone, or the control is
@@ -59,6 +67,17 @@
     {{ form|as_crispy_errors }}
     {% for field in form.hidden_fields %}{{ field }}{% endfor %}
     {% comment %}
+      The browser writes this value. It has no `id`: the typed field further
+      down carries the field's own, and comes later so a typed value wins.
+    {% endcomment %}
+    {% if can_order and form.ORDER %}
+      <input type="hidden"
+             name="{{ form.ORDER.html_name }}"
+             value="{{ form.ORDER.value|default_if_none:'' }}"
+             data-mvp-reorder-order
+             {% if keeps_order %}data-mvp-reorder-saved{% endif %}>
+    {% endif %}
+    {% comment %}
       The grid wrapper opens and closes conditionally rather than the field
       loop being written out twice. djlint cannot pair tags across a branch.
     {% endcomment %}
@@ -74,6 +93,8 @@
     {% for field in form.visible_fields %}
       {% if field.name == "DELETE" %}
         <input type="hidden" name="{{ field.html_name }}" :value="removed ? 'on' : ''">
+      {% elif can_order and field.name == "ORDER" %}
+        {# Written as the hidden input above; the typed field is drawn once, below. #}
       {% elif layout == "tabular" %}
         {{ field|as_crispy_cell }}
       {% else %}
@@ -85,6 +106,11 @@
       columns line up whether or not this row has a DELETE field to record.
     {% endcomment %}
     {% if layout == "tabular" %}
+      {% if can_order %}
+        <div class="hidden sm:flex sm:items-center">
+          <c-mvp.reorder.moves label="{{ move_label }}" only />
+        </div>
+      {% endif %}
       {% if can_delete %}
         <div class="hidden sm:block">
           {% if form.DELETE %}
@@ -101,5 +127,6 @@
       </div>
     {% endif %}
     {# djlint:on #}
+    {% if can_order and form.ORDER %}<noscript>{{ form.ORDER|as_crispy_field }}</noscript>{% endif %}
   </div>
 {% endif %}

@@ -1,0 +1,11 @@
+{# @description A reorderable list of tasks that posts its order as it changes. The page draws it and so does the view that answers the post. #}
+{# @prop id:text | description:"The list's id." #}
+{# @prop url:text | description:"Where the order is posted." #}
+{# @prop mode:select['always','on-demand'] | default:"always" | description:"Whether the rows can be moved at any time." #}
+{# @prop tasks | description:"The tasks, in their saved order." #}
+<c-vars id url mode="always" tasks />
+<c-mvp.reorder id="{{ id }}" label="Tasks" url="{{ url }}" mode="{{ mode }}">
+  {% for task in tasks %}
+    <c-mvp.reorder.row value="{{ task.pk }}" label="{{ task.title }}">{{ task.title }}</c-mvp.reorder.row>
+  {% endfor %}
+</c-mvp.reorder>

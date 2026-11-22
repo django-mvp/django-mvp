@@ -45,7 +45,7 @@ the box. **Things should just work.**
   (pydata-sphinx-theme style): sidebar collapse breakpoint, offcanvas, icon-rail or
   no collapse, and navbar widgets are all `MVP_CONFIG` keys.
 - **A Cotton component library** — cards, grids, menu entries, dropdowns, pagination,
-  hero sections and more, with small consistent attribute APIs. The basic components, such
+  hero sections, reorderable lists and more, with small consistent attribute APIs. The basic components, such
   as the button, the alert and the menu, come from
   [daisy-cotton](https://github.com/django-mvp/daisy-cotton), which is installed with it. Need more control?
   Override the component's template in your project — that's the intended extension
