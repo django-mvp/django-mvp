@@ -90,6 +90,13 @@ class TestReorderList:
         assert token["value"]
         assert token["value"] != "NOTPROVIDED"
 
+    def test_the_list_carries_a_hidden_alert_the_script_shows_on_a_failed_post(self):
+        root = render('id="steps" url="/steps/order/"').select_one("[data-mvp-reorder]")
+
+        alert = root.select_one("[data-mvp-reorder-alert]")
+        assert alert["role"] == "alert"
+        assert alert.has_attr("hidden")
+
     def test_extra_attributes_reach_the_root(self):
         root = render('data-probe="x"').select_one("[data-mvp-reorder]")
 

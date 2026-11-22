@@ -1,3 +1,4 @@
+{% load i18n %}
 {# @description A list whose rows a person reorders by dragging a handle or pressing the up and down buttons. It can hand the order to a form, post it to an address, or only announce it. A list that posts needs an id and is not rendered with `only`, since the token comes from the surrounding context. #}
 {# @prop id:text | description:"The list's id. Required when the list posts, so the controls can name it." #}
 {# @prop label:text | description:"The list's accessible name." #}
@@ -23,4 +24,8 @@
       {% if label %}aria-label="{{ label }}"{% endif %}>
     {{ slot }}
   </ol>
+  <div class="alert alert-error mt-2"
+       role="alert"
+       data-mvp-reorder-alert
+       hidden>{% translate "The new order could not be saved. The list is back as it was." %}</div>
 </div>

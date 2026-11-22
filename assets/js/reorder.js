@@ -4,6 +4,11 @@ import Sortable from "sortablejs";
 
 const ROW = "[data-mvp-reorder-row]";
 const HELD = "mvp-reorder-held";
+const NOT_SAVED = "The new order was not saved";
+
+// The mode of a list an answer is about to replace, by the list's id, for the list that
+// replaces it to take up.
+const handover = new Map();
 
 // The state lives in this closure, not on the Alpine object: the list can sit inside another
 // component, and a member name on both would shadow the outer one.
@@ -18,6 +23,11 @@ function reorder() {
   let status = null;
   let snapshot = [];
   let cancelled = false;
+  let dragging = false;
+  let confirmed = [];
+  let inflight = null;
+  let aborted = false;
+  let notice = null;
 
   // The rows in their current order. The fallback clone a drag holds stays inside the list, and
   // a row a form set has removed stays in the document, hidden.
@@ -104,8 +114,10 @@ function reorder() {
     });
   }
 
-  // The answer replaces the root, so the list on the page is always the server's.
+  // The answer replaces the root, so the list on the page is always the server's. A post
+  // still in flight is for an older order and is dropped.
   function post(ids) {
+    stop();
     const token = root.querySelector("[name=csrfmiddlewaretoken]");
     htmx.ajax("POST", root.dataset.mvpReorderUrl, {
       source: root,
@@ -121,18 +133,106 @@ function reorder() {
     return [...list.children].filter((child) => child.matches(ROW) && !child.classList.contains(HELD));
   }
 
-  // Puts the rows back in the order they had when the drag began, each in the place a row
-  // already occupies, so anything else in the list keeps its position.
-  function restore() {
+  // Puts the rows in the given order, each in the place a row already occupies, so anything
+  // else in the list keeps its position.
+  function place(wanted) {
     const current = rowElements();
-    if (current.length !== snapshot.length) return;
+    if (current.length !== wanted.length) return;
     const marks = current.map((row) => {
       const mark = document.createComment("");
       row.before(mark);
       return mark;
     });
     current.forEach((row) => row.remove());
-    marks.forEach((mark, index) => mark.replaceWith(snapshot[index]));
+    marks.forEach((mark, index) => mark.replaceWith(wanted[index]));
+  }
+
+  // Returns the rows to the order the server last rendered.
+  function rollback() {
+    const byValue = new Map(rowElements().map((row) => [row.dataset.mvpReorderValue, row]));
+    const wanted = confirmed.map((value) => byValue.get(value));
+    if (wanted.includes(undefined)) return;
+    place(wanted);
+    lastOrder = confirmed;
+    refresh();
+  }
+
+  function fire(kind, source) {
+    root.dispatchEvent(new CustomEvent(`mvp:reorder-${kind}`, { bubbles: true, detail: { source } }));
+  }
+
+  function showNotice() {
+    const message = notice ? notice.textContent.trim() : NOT_SAVED;
+    if (notice) notice.hidden = false;
+    status.textContent = message;
+  }
+
+  function hideNotice() {
+    if (notice) notice.hidden = true;
+  }
+
+  // A move is beginning, from either control: the last failure is no longer news.
+  function begin() {
+    hideNotice();
+  }
+
+  function stop() {
+    if (!inflight) return false;
+    const request = inflight;
+    inflight = null;
+    request.abort();
+    return true;
+  }
+
+  // Only events of the list's own request count: the list can hold other htmx elements.
+  function own(event) {
+    return event.target === root;
+  }
+
+  function sent(event) {
+    if (own(event)) inflight = event.detail.xhr;
+  }
+
+  function finished(event) {
+    if (own(event) && inflight === event.detail.xhr) inflight = null;
+  }
+
+  // A late answer for an order that a newer move has replaced is dropped, and the answer
+  // that replaces the list hands the mode on to the list that takes its place.
+  function answering(event) {
+    if (!own(event)) return;
+    if (inflight && event.detail.xhr !== inflight) {
+      event.detail.shouldSwap = false;
+      return;
+    }
+    if (event.detail.shouldSwap !== false && root.id) handover.set(root.id, state.active);
+  }
+
+  function failed(event) {
+    if (!own(event)) return;
+    inflight = null;
+    rollback();
+    showNotice();
+  }
+
+  function onDemand() {
+    return root.dataset.mvpReorderMode === "on-demand";
+  }
+
+  // Escape ends the mode, unless a drag is under way (it takes the key itself) or the list is
+  // in an open dialog, which takes the key itself.
+  function leave(event) {
+    if (event.key !== "Escape" || event.defaultPrevented || dragging) return;
+    if (root.closest("dialog[open]")) return;
+    state.endMode();
+  }
+
+  // Brings what follows the mode in step with it, and fires nothing.
+  function applyMode() {
+    sortable.option("disabled", !state.active);
+    write(root, "data-reordering", onDemand() && state.active ? "" : null);
+    document.removeEventListener("keydown", leave);
+    if (onDemand() && state.active) document.addEventListener("keydown", leave);
   }
 
   // The library has no cancel, so Escape ends the drag with the event that would end it
@@ -149,10 +249,11 @@ function reorder() {
     document.dispatchEvent(new Kind(pointer ? "pointerup" : "mouseup", { bubbles: true, cancelable: true }));
   }
 
-  // Called once a move is over, from either control.
-  function changed() {
+  // Called once a move is over, from either control. A drag that dropped an older post
+  // sends the order again even when it changed nothing.
+  function changed(again) {
     const current = order();
-    if (current.join("\n") === lastOrder.join("\n")) return;
+    if (!again && current.join("\n") === lastOrder.join("\n")) return;
     lastOrder = current;
     if (root.dataset.mvpReorderUrl) post(current);
   }
@@ -174,6 +275,8 @@ function reorder() {
     const all = rows();
     const neighbour = all[all.indexOf(row) + step];
     if (!neighbour) return;
+    begin();
+    fire("start", "button");
     if (step < 0) neighbour.before(row);
     else neighbour.after(row);
     refresh();
@@ -181,6 +284,7 @@ function reorder() {
     button.focus();
     announce(row);
     changed();
+    fire("end", "button");
   }
 
   return {
@@ -195,8 +299,12 @@ function reorder() {
       status.className = "sr-only";
       root.append(status);
       list = root.querySelector("[data-mvp-reorder-list]");
-      this.active = root.dataset.mvpReorderMode !== "on-demand";
+      const handed = root.id && handover.get(root.id);
+      if (root.id) handover.delete(root.id);
+      this.active = onDemand() ? Boolean(handed) : true;
+      notice = root.querySelector("[data-mvp-reorder-alert]");
       lastOrder = order();
+      confirmed = lastOrder;
 
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       sortable = new Sortable(list, {
@@ -216,6 +324,10 @@ function reorder() {
         onStart: () => {
           snapshot = rowElements();
           cancelled = false;
+          dragging = true;
+          begin();
+          aborted = stop();
+          fire("start", "drag");
           list.classList.add("mvp-reorder-sorting");
           document.addEventListener("keydown", cancel, { capture: true });
           if (navigator.vibrate) navigator.vibrate(8);
@@ -223,14 +335,19 @@ function reorder() {
         onEnd: () => {
           document.removeEventListener("keydown", cancel, { capture: true });
           list.classList.remove("mvp-reorder-sorting");
+          dragging = false;
+          const again = aborted;
+          aborted = false;
           if (cancelled) {
             cancelled = false;
-            restore();
+            place(snapshot);
             refresh();
-            return;
+            if (again && root.dataset.mvpReorderUrl) post(order());
+          } else {
+            refresh();
+            changed(again && Boolean(root.dataset.mvpReorderUrl));
           }
-          refresh();
-          changed();
+          fire("end", "drag");
         },
       });
 
@@ -241,16 +358,43 @@ function reorder() {
       observer.observe(list, { childList: true });
       watch();
       refresh();
+      applyMode();
+      root.addEventListener("htmx:beforeRequest", sent);
+      root.addEventListener("htmx:afterRequest", finished);
+      root.addEventListener("htmx:beforeSwap", answering);
+      root.addEventListener("htmx:responseError", failed);
+      root.addEventListener("htmx:sendError", failed);
       owner = root.closest("form");
       if (owner) owner.addEventListener("submit", writeOrder, { capture: true });
     },
 
     destroy() {
+      root.removeEventListener("htmx:beforeRequest", sent);
+      root.removeEventListener("htmx:afterRequest", finished);
+      root.removeEventListener("htmx:beforeSwap", answering);
+      root.removeEventListener("htmx:responseError", failed);
+      root.removeEventListener("htmx:sendError", failed);
+      document.removeEventListener("keydown", leave);
       if (owner) owner.removeEventListener("submit", writeOrder, { capture: true });
       document.removeEventListener("keydown", cancel, { capture: true });
       observer.disconnect();
       sortable.destroy();
       status.remove();
+    },
+
+    // The mode of an on-demand list, begun and ended by the controls a page places.
+    startMode() {
+      if (!onDemand() || state.active) return;
+      fire("start", "mode");
+      state.active = true;
+      applyMode();
+    },
+
+    endMode() {
+      if (!onDemand() || !state.active) return;
+      state.active = false;
+      applyMode();
+      fire("end", "mode");
     },
 
     moveUp(button) {
@@ -263,6 +407,18 @@ function reorder() {
   };
 }
 
+// One handler for every control, so a control works for a list an answer has replaced.
 export function registerReorder(Alpine) {
   Alpine.data("mvpReorder", reorder);
+  document.addEventListener("click", (event) => {
+    const control = event.target.closest("[data-mvp-reorder-start], [data-mvp-reorder-end]");
+    if (!control) return;
+    const starting = control.hasAttribute("data-mvp-reorder-start");
+    const id = control.getAttribute(starting ? "data-mvp-reorder-start" : "data-mvp-reorder-end");
+    const target = document.getElementById(id);
+    if (!target || !target.matches("[data-mvp-reorder]")) return;
+    const list = Alpine.$data(target);
+    if (starting) list.startMode();
+    else list.endMode();
+  });
 }

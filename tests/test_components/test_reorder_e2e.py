@@ -6,6 +6,7 @@ test-only page, ``/reorder-test/``, drawn at desktop width.
 """
 
 import json
+import threading
 
 import pytest
 from django.http import HttpResponse, JsonResponse
@@ -176,6 +177,108 @@ def save(request, project_id):
     return HttpResponse(html)
 
 
+ON_DEMAND_ROWS = """
+  <c-mvp.reorder.row value="a" label="Alpha">Alpha</c-mvp.reorder.row>
+  <c-mvp.reorder.row value="b" label="Beta">Beta</c-mvp.reorder.row>
+  <c-mvp.reorder.row value="c" label="Gamma">Gamma</c-mvp.reorder.row>
+"""
+
+MODE_PAGE = (
+    """
+{% extends "mvp/base.html" %}
+{% block content %}
+<button type="button" id="start" data-mvp-reorder-start="steps">Edit</button>
+<button type="button" id="end" data-mvp-reorder-end="steps">Done</button>
+<c-mvp.reorder id="steps" label="Steps" mode="on-demand">"""
+    + ON_DEMAND_ROWS
+    + """</c-mvp.reorder>
+{% endblock %}
+"""
+)
+
+DIALOG_PAGE = (
+    """
+{% extends "mvp/base.html" %}
+{% block content %}
+<dialog id="box">
+  <button type="button" id="start" data-mvp-reorder-start="steps">Edit</button>
+  <c-mvp.reorder id="steps" label="Steps" mode="on-demand">"""
+    + ON_DEMAND_ROWS
+    + """</c-mvp.reorder>
+</dialog>
+{% endblock %}
+"""
+)
+
+SCRIPT_LIST = """
+<c-mvp.reorder id="steps" label="Steps" mode="on-demand"
+               url="/reorder-test/script/" data-answer="{{ answered }}">
+  {% for value in values %}
+    <c-mvp.reorder.row value="{{ value }}" label="{{ value }}">{{ value }}</c-mvp.reorder.row>
+  {% endfor %}
+</c-mvp.reorder>
+"""
+
+SCRIPT_PAGE = (
+    """
+{% extends "mvp/base.html" %}
+{% block content %}
+<button type="button" id="start" data-mvp-reorder-start="steps">Edit</button>
+<button type="button" id="end" data-mvp-reorder-end="steps">Done</button>
+"""
+    + SCRIPT_LIST
+    + "{% endblock %}"
+)
+
+
+class Script:
+    """What the posts to the scripted list do, and what they carried."""
+
+    actions = []
+    posted = []
+    release = threading.Event()
+
+
+@pytest.fixture
+def script():
+    """Reset the scripted list's answers; release any stalled post on exit."""
+    Script.actions = []
+    Script.posted = []
+    Script.release = threading.Event()
+    yield Script
+    Script.release.set()
+
+
+def mode_page(request):
+    """Draw the on-demand list with its two controls."""
+    return render_page(MODE_PAGE, request)
+
+
+def dialog_page(request):
+    """Draw the on-demand list inside a dialog."""
+    return render_page(DIALOG_PAGE, request)
+
+
+def script_page(request):
+    """Draw the on-demand list that posts to the scripted view."""
+    return render_page(SCRIPT_PAGE, request, values=["a", "b", "c"], answered="")
+
+
+def script_save(request):
+    """Take the next scripted action: refuse, stall until released, or answer."""
+    order = request.POST.getlist("order")
+    Script.posted.append(order)
+    action = Script.actions.pop(0) if Script.actions else "answer"
+    if action == "refuse":
+        return HttpResponse(status=400)
+    if action == "stall":
+        Script.release.wait(10)
+    template = engines["django"].from_string(CottonCompiler().process(SCRIPT_LIST))
+    return HttpResponse(
+        template.render({"values": order, "answered": len(Script.posted)}, request)
+    )
+
+
 @pytest.fixture(autouse=True)
 def reorder_test_urls(settings):
     settings.ROOT_URLCONF = urlconf_of(
@@ -188,6 +291,10 @@ def reorder_test_urls(settings):
         path("reorder-test/echo/", echo),
         path("reorder-test/post/<int:project_id>/", post_page),
         path("reorder-test/save/<int:project_id>/", save),
+        path("reorder-test/mode/", mode_page),
+        path("reorder-test/dialog/", dialog_page),
+        path("reorder-test/script/page/", script_page),
+        path("reorder-test/script/", script_save),
         *demo_urls.urlpatterns,
     )
 
@@ -872,3 +979,366 @@ class TestFewRows:
         )
 
         expect(page.locator("#steps [data-mvp-reorder-handle]")).to_be_hidden()
+
+
+def open_at(page, live_server, address):
+    page.set_default_timeout(5000)
+    page.set_viewport_size(VIEWPORT)
+    page.goto(f"{live_server.url}{address}")
+    page.wait_for_function("window.Alpine !== undefined")
+
+
+RECORD = """
+() => {
+  window.seen = [];
+  for (const kind of ["start", "end"]) {
+    document.addEventListener("mvp:reorder-" + kind, (event) => {
+      const rows = [...document.querySelectorAll(
+        "#steps [data-mvp-reorder-row]:not(.mvp-reorder-held)")];
+      window.seen.push([
+        kind,
+        event.detail.source,
+        rows.map((row) => row.dataset.mvpReorderValue).join(""),
+        event.target.id,
+      ]);
+    });
+  }
+}
+"""
+
+
+SHOW_HANDLES = """() => document.querySelectorAll("#steps [data-mvp-reorder-handle]")
+  .forEach((handle) => { handle.hidden = false; })"""
+
+
+def seen(page):
+    return page.evaluate("window.seen")
+
+
+class TestReorderMode:
+    def open_mode(self, page, live_server):
+        open_at(page, live_server, "/reorder-test/mode/")
+
+    def test_outside_the_mode_the_list_shows_no_handles_and_no_buttons(
+        self, page, live_server
+    ):
+        self.open_mode(page, live_server)
+
+        for hook in ("up", "down", "handle"):
+            expect(
+                page.locator(f"#steps [data-mvp-reorder-{hook}]").first
+            ).to_be_hidden()
+        assert page.locator("#steps[data-reordering]").count() == 0
+
+    def test_dragging_outside_the_mode_moves_nothing(self, page, live_server):
+        self.open_mode(page, live_server)
+        page.evaluate(SHOW_HANDLES)
+
+        drag(page, "a", "c")
+
+        assert values(page) == ["a", "b", "c"]
+
+    def test_the_start_control_shows_the_handles_and_buttons(self, page, live_server):
+        self.open_mode(page, live_server)
+
+        page.click("#start")
+
+        for hook in ("up", "down", "handle"):
+            expect(
+                page.locator(f"#steps [data-mvp-reorder-{hook}]").first
+            ).to_be_visible()
+        expect(page.locator("#steps[data-reordering]")).to_have_count(1)
+
+    def test_a_drag_and_a_button_move_rows_inside_the_mode(self, page, live_server):
+        self.open_mode(page, live_server)
+        page.click("#start")
+
+        drag(page, "a", "c")
+        page.locator(
+            '#steps [data-mvp-reorder-value="a"] [data-mvp-reorder-up]'
+        ).click()
+
+        assert values(page) == ["b", "a", "c"]
+
+    def test_the_end_control_hides_them_again(self, page, live_server):
+        self.open_mode(page, live_server)
+        page.click("#start")
+
+        page.click("#end")
+
+        expect(page.locator("#steps [data-mvp-reorder-handle]").first).to_be_hidden()
+        assert page.locator("#steps[data-reordering]").count() == 0
+        page.evaluate(SHOW_HANDLES)
+        drag(page, "a", "c")
+        assert values(page) == ["a", "b", "c"]
+
+    def test_escape_ends_the_mode(self, page, live_server):
+        self.open_mode(page, live_server)
+        page.click("#start")
+
+        page.keyboard.press("Escape")
+
+        expect(page.locator("#steps [data-mvp-reorder-handle]").first).to_be_hidden()
+        assert page.locator("#steps[data-reordering]").count() == 0
+
+    def test_escape_during_a_drag_cancels_the_drag_and_keeps_the_mode(
+        self, page, live_server
+    ):
+        self.open_mode(page, live_server)
+        page.click("#start")
+        x, y = centre(page, handle("a"))
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x, y + 140, steps=12)
+
+        page.keyboard.press("Escape")
+        page.mouse.up()
+
+        assert values(page) == ["a", "b", "c"]
+        expect(page.locator("#steps[data-reordering]")).to_have_count(1)
+
+    def test_escape_inside_an_open_dialog_closes_the_dialog_and_ends_no_mode(
+        self, page, live_server
+    ):
+        open_at(page, live_server, "/reorder-test/dialog/")
+        page.evaluate(RECORD)
+        page.evaluate("document.getElementById('box').showModal()")
+        page.click("#start")
+
+        page.keyboard.press("Escape")
+
+        assert page.evaluate("document.getElementById('box').open") is False
+        assert [event[0] for event in seen(page)] == ["start"]
+
+    def test_the_controls_only_name_their_own_list(self, page, live_server):
+        self.open_mode(page, live_server)
+        page.evaluate(
+            """() => {
+              const other = document.createElement("button");
+              other.id = "other";
+              other.dataset.mvpReorderStart = "nothing";
+              document.body.append(other);
+            }"""
+        )
+
+        page.dispatch_event("#other", "click")
+
+        expect(page.locator("#steps [data-mvp-reorder-handle]").first).to_be_hidden()
+
+
+class TestReorderEvents:
+    def test_a_drag_fires_a_start_before_the_change_and_an_end_after_it(
+        self, page, live_server
+    ):
+        open_at(page, live_server, "/reorder-test/")
+        page.evaluate(RECORD)
+
+        drag(page, "a", "c")
+
+        assert seen(page) == [
+            ["start", "drag", "abc", "steps"],
+            ["end", "drag", "bca", "steps"],
+        ]
+
+    def test_a_button_move_fires_a_pair_around_the_move(self, page, live_server):
+        open_at(page, live_server, "/reorder-test/")
+        page.evaluate(RECORD)
+
+        page.locator(
+            '#steps [data-mvp-reorder-value="a"] [data-mvp-reorder-down]'
+        ).click()
+
+        assert seen(page) == [
+            ["start", "button", "abc", "steps"],
+            ["end", "button", "bac", "steps"],
+        ]
+
+    def test_a_refused_button_move_fires_nothing(self, page, live_server):
+        open_at(page, live_server, "/reorder-test/")
+        page.evaluate(RECORD)
+
+        page.locator(
+            '#steps [data-mvp-reorder-value="a"] [data-mvp-reorder-up]'
+        ).dispatch_event("click")
+
+        assert seen(page) == []
+
+    def test_a_mode_fires_one_pair_around_the_whole_mode(self, page, live_server):
+        open_at(page, live_server, "/reorder-test/mode/")
+        page.evaluate(RECORD)
+
+        page.click("#start")
+        page.locator(
+            '#steps [data-mvp-reorder-value="a"] [data-mvp-reorder-down]'
+        ).click()
+        page.click("#end")
+
+        assert [event[:2] for event in seen(page)] == [
+            ["start", "mode"],
+            ["start", "button"],
+            ["end", "button"],
+            ["end", "mode"],
+        ]
+
+    def test_ending_a_mode_twice_fires_one_end(self, page, live_server):
+        open_at(page, live_server, "/reorder-test/mode/")
+        page.evaluate(RECORD)
+
+        page.click("#start")
+        page.click("#start")
+        page.click("#end")
+        page.click("#end")
+
+        assert [event[:2] for event in seen(page)] == [
+            ["start", "mode"],
+            ["end", "mode"],
+        ]
+
+
+class TestRefusedOrFailedPost:
+    def open_script(self, page, live_server):
+        open_at(page, live_server, "/reorder-test/script/page/")
+        page.click("#start")
+
+    def move_down(self, page, value):
+        page.locator(
+            f'#steps [data-mvp-reorder-value="{value}"] [data-mvp-reorder-down]'
+        ).click()
+
+    def test_a_refused_post_returns_the_rows_and_says_it_was_not_saved(
+        self, page, live_server, script
+    ):
+        script.actions = ["refuse"]
+        self.open_script(page, live_server)
+
+        self.move_down(page, "a")
+
+        expect(page.locator("#steps [role=alert]")).to_be_visible()
+        assert values(page) == ["a", "b", "c"]
+        assert page.locator("#steps [role=status]").text_content().strip()
+
+    def test_a_request_that_cannot_be_sent_returns_the_rows_and_says_so(
+        self, page, live_server, script
+    ):
+        page.route("**/reorder-test/script/", lambda route: route.abort())
+        self.open_script(page, live_server)
+
+        self.move_down(page, "a")
+
+        expect(page.locator("#steps [role=alert]")).to_be_visible()
+        assert values(page) == ["a", "b", "c"]
+
+    def test_the_notice_stays_until_the_next_move(self, page, live_server, script):
+        script.actions = ["refuse", "stall"]
+        self.open_script(page, live_server)
+        self.move_down(page, "a")
+        expect(page.locator("#steps [role=alert]")).to_be_visible()
+
+        self.move_down(page, "b")
+
+        expect(page.locator("#steps [role=alert]")).to_be_hidden()
+
+    def test_the_rows_return_to_the_last_confirmed_order(
+        self, page, live_server, script
+    ):
+        script.actions = ["answer", "refuse"]
+        self.open_script(page, live_server)
+        self.move_down(page, "a")
+        page.wait_for_selector("#steps[data-answer='1']")
+        assert values(page) == ["b", "a", "c"]
+
+        self.move_down(page, "b")
+
+        expect(page.locator("#steps [role=alert]")).to_be_visible()
+        assert values(page) == ["b", "a", "c"]
+
+    def test_a_second_move_aborts_the_post_in_flight_and_the_latest_order_wins(
+        self, page, live_server, script
+    ):
+        script.actions = ["stall"]
+        failed = []
+        page.on(
+            "requestfailed",
+            lambda request: (
+                failed.append(request.url) if "/script/" in request.url else None
+            ),
+        )
+        self.open_script(page, live_server)
+        self.move_down(page, "a")
+        while len(script.posted) < 1:
+            page.wait_for_timeout(50)
+        self.move_down(page, "a")
+
+        page.wait_for_selector("#steps[data-answer='2']")
+        script.release.set()
+        page.wait_for_timeout(300)
+
+        assert script.posted == [["b", "a", "c"], ["b", "c", "a"]]
+        assert values(page) == ["b", "c", "a"]
+        assert len(failed) == 1
+
+    def test_a_drag_start_aborts_the_post_and_a_drag_without_change_posts_again(
+        self, page, live_server, script
+    ):
+        script.actions = ["stall"]
+        failed = []
+        page.on(
+            "requestfailed",
+            lambda request: (
+                failed.append(request.url) if "/script/" in request.url else None
+            ),
+        )
+        self.open_script(page, live_server)
+        self.move_down(page, "a")
+        x, y = centre(page, handle("b"))
+
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x, y + 6, steps=6)
+        page.mouse.up()
+
+        page.wait_for_selector("#steps[data-answer='2']")
+        assert script.posted == [["b", "a", "c"], ["b", "a", "c"]]
+        assert len(failed) == 1
+
+    def test_the_mode_survives_the_answer_and_fires_no_event_for_the_swap(
+        self, page, live_server, script
+    ):
+        open_at(page, live_server, "/reorder-test/script/page/")
+        page.evaluate(RECORD)
+        page.click("#start")
+
+        self.move_down(page, "a")
+        page.wait_for_selector("#steps[data-answer='1']")
+
+        expect(page.locator("#steps[data-reordering]")).to_have_count(1)
+        expect(page.locator("#steps [data-mvp-reorder-handle]").first).to_be_visible()
+        assert [event[:2] for event in seen(page)] == [
+            ["start", "mode"],
+            ["start", "button"],
+            ["end", "button"],
+        ]
+
+    def test_the_controls_still_work_for_the_list_the_answer_brought(
+        self, page, live_server, script
+    ):
+        self.open_script(page, live_server)
+        self.move_down(page, "a")
+        page.wait_for_selector("#steps[data-answer='1']")
+
+        page.click("#end")
+
+        assert page.locator("#steps[data-reordering]").count() == 0
+        expect(page.locator("#steps [data-mvp-reorder-handle]").first).to_be_hidden()
+
+    def test_a_list_the_answer_brought_still_drags_and_moves(
+        self, page, live_server, script
+    ):
+        self.open_script(page, live_server)
+        self.move_down(page, "a")
+        page.wait_for_selector("#steps[data-answer='1']")
+
+        drag(page, "c", "b", below=False)
+
+        page.wait_for_selector("#steps[data-answer='2']")
+        assert script.posted[-1] == ["c", "b", "a"]

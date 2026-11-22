@@ -123,6 +123,84 @@ A move that leaves the rows as they were posts nothing. The up and down buttons
 get ids built from the list's `id` and the row's `value`, so focus returns to the
 button that was used after the answer arrives.
 
+## Reorder only on request
+
+Use this when a list is read most of the time and a person should move rows
+only after pressing an Edit control.
+
+1. Set `mode="on-demand"` on the list and give it an `id`. Until the mode
+   starts, the list shows no handles and no buttons and cannot be dragged.
+
+    ```html
+    <c-mvp.reorder id="steps" label="Steps" mode="on-demand" url="{% url 'step-order' project.pk %}">
+      ...
+    </c-mvp.reorder>
+    ```
+
+2. Place a control that starts the mode, and one that ends it, anywhere on the
+   page, for example in the page's actions. Each names the list's `id` in its
+   `data-mvp-reorder-start` or `data-mvp-reorder-end` attribute.
+
+    ```html
+    <c-mvp.page.title title="Steps">
+      <c-slot name="actions">
+        <button type="button" class="btn" data-mvp-reorder-start="steps">Edit order</button>
+        <button type="button" class="btn btn-primary" data-mvp-reorder-end="steps">Done</button>
+      </c-slot>
+    </c-mvp.page.title>
+    ```
+
+3. Press the start control. The handles and the buttons appear and the list's
+   root carries `data-reordering`, which your CSS can use. The end control, or
+   Escape, ends the mode and they go again.
+
+A control placed anywhere on the page works for any list with that `id`,
+including one the server draws again after a post. Escape does not end the mode
+while a drag is under way, where it cancels the drag, and does not end it for a
+list inside an open dialog, where the dialog takes the key.
+
+## Listen for a list being reordered
+
+Use this when something else on the page should react while a list is being
+moved, for example to pause a refresh or to dim a panel.
+
+1. Listen on the list or on any element around it. The list's root dispatches
+   `mvp:reorder-start` and `mvp:reorder-end`, and both bubble.
+
+    ```js
+    document.addEventListener("mvp:reorder-start", (event) => {
+      document.body.classList.add("is-reordering");
+      console.log(`${event.target.id} started, by ${event.detail.source}`);
+    });
+
+    document.addEventListener("mvp:reorder-end", (event) => {
+      document.body.classList.remove("is-reordering");
+    });
+    ```
+
+2. Read `event.detail.source`, which tells the three kinds of move apart.
+
+| `detail.source` | Fired |
+| --- | --- |
+| `drag` | Around one drag: the start when the row is picked up, the end after it is dropped or cancelled. |
+| `button` | Around one use of an up or a down button. A button that does nothing fires nothing. |
+| `mode` | Once around the whole mode of an `on-demand` list. Drags and button moves inside the mode fire their own pairs. |
+
+The start arrives before the rows change and the end after they have changed.
+The server's answer replacing a list is not a move and fires nothing, and the
+mode carries over to the list that replaces it.
+
+## When a post fails
+
+A list with a `url` shows the order the server last drew. When the server
+answers with an error status, or the request cannot be sent, the rows go back to
+that order, a visible message says the change was not saved, and the same
+sentence is announced to a screen reader. The message stays until the next move.
+
+A new move, or the start of a drag, drops a post still in flight. The latest
+order is the one shown and sent, and a late answer for an older order is
+ignored. A drag that ends where it began sends the current order again.
+
 ## Save a received order
 
 Use this when a request arrives carrying the identifiers of a list's records in
@@ -182,6 +260,7 @@ script.
 | `name` | The field name that carries the order. Defaults to `order`. |
 | `form` | Each row's identifier is submitted by the surrounding form under `name`. |
 | `url` | An address the order is posted to on every change. Needs an `id`. |
+| `mode` | `always` (the default) or `on-demand`. An `on-demand` list needs an `id`. |
 | `class`, other attributes | Pass to the root element. |
 
 ### `<c-mvp.reorder.row>`
@@ -193,6 +272,11 @@ One row. Its content is the row's title.
 | `value` | The identifier of the item. |
 | `label` | The item's name, used in the accessible names of the row's buttons and handle. |
 | `class` | Extra classes on the row. |
+
+A list's root dispatches `mvp:reorder-start` and `mvp:reorder-end`, and
+carries `data-reordering` during the mode of an `on-demand` list. An element
+with `data-mvp-reorder-start="<id>"` or `data-mvp-reorder-end="<id>"` starts or
+ends that list's mode when clicked.
 
 Every row carries `data-mvp-reorder-row` and, when it has a value,
 `data-mvp-reorder-value`. The buttons carry `data-mvp-reorder-up` and
