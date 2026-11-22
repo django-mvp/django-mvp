@@ -77,3 +77,10 @@ and its new position is announced, so a keyboard or screen reader user can follo
 
 Rows that slide into place are motion a person may have asked their system to avoid. With
 reduced motion requested, rows take their new places without animation.
+
+## Design review of the plan
+
+One review round. Every finding but one was applied as the plan's "Corrections from the design
+review". Not adopted: merging the ADR task into the row set's layout task, because the ledger
+already holds the task rows and the merge saves nothing. All other notes were sweeps of wording.
+**ADR:** none, local to this feature.

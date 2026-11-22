@@ -160,3 +160,58 @@ records in the new order. The developer's queryset is the access rule (D2).
 One ADR: reordering a row set moves elements and writes `ORDER`, and never re-indexes. It follows
 ADR 0004 and is written in Group 3. The number is the next free one on `origin/main` when the
 branch is pushed for the merge gate.
+
+## Corrections from the design review
+
+These bind the build and override anything above that they contradict.
+
+- **Which rows get an `ORDER` value.** The server marks each row that needs one with a `data-`
+  attribute: the row's index is below `initial_form_count` or `form.has_changed()` is true
+  (Django's own rule). `mvpReorder` writes `ORDER` for marked rows and for rows whose fields
+  differ from their defaults, and clears the others. A new row the person filled in, shown again
+  after an invalid submission, keeps its place.
+- **Focus after a posted answer.** The up and down buttons carry ids built from the list's `id`
+  and the row's `value`, so htmx's own focus restore returns focus after the answer. `id` is
+  required for `url` lists as well as `on-demand` ones.
+- **The mode survives an answer.** The outgoing component hands its active state to the incoming
+  one by the list's `id` (on `htmx:beforeSwap`, read in `init`). Neither fires a mode start or
+  end because of the swap. `destroy()` removes the Sortable instance and its listeners.
+- **The move cluster.** `row.html` of the row set opens its header whenever the set can order (a
+  `can-order` prop passed from `index.html`, as `can-delete` is). In tabular layout the cluster
+  sits in that header below `sm` and in the trailing track from `sm`. One Cotton component, the
+  move cluster, is ported once and used by `c-mvp.reorder.row` and by the row set's row. T003
+  introduces it and T007 reuses it. `mvpReorder` creates its live region and alert in `init`.
+- **`noscript` `ORDER`.** Rendered exactly once per row, after the hidden `ORDER` input and
+  outside the duplicated clusters. Without scripts a typed value wins.
+- **Escape cancel.** The synthetic end event matches the instance's branch: `pointerup` when
+  `supportPointer` is true, `mouseup` otherwise. A second event is a no-op. The handler listens in
+  the capture phase and calls `preventDefault`, so an open dialog stays open.
+- **Scope.** `mvpReorder` keeps a reference to its own root taken in `init` and never reads
+  `this.$root` or `this.$el` in a method. Row controls pass the element they act on. No member
+  reuses a name from `mvpFormset` or `mvpFormsetRow`. A T006 browser test drives the buttons
+  inside a row set row.
+- **`save_order`** also refuses an identifier the primary key cannot convert.
+- **`url` and `only`.** The `url` prop's annotation and `docs/reorder.md` say a posting list is
+  not rendered with `only`. T004 renders the documented usage and asserts the token input carries
+  a value.
+- **Overlapping posts.** `onStart` of a drag aborts a post in flight. If the drag ends with no
+  change, the current order is posted again.
+- **Refresh.** Observe `childList` on the list and `style` on its direct row children only. Write
+  an attribute only when its value changes. `rows()` also excludes the fallback clone, which stays
+  inside the list.
+- **Engine filter.** A non-primary pointer, or a touch with more than one finger, starts no drag.
+- **Strings.** Template strings reach `mvpReorder` through `|escapejs` or `data-` attributes.
+  Announcements and the alert are written with `textContent`.
+
+### Test changes
+
+- T002: no new test class. Add `sortablejs` to the existing `LIBRARY_MARKERS` check; T015 runs the
+  existing remote-request watcher on the reorder demo page.
+- T009: touch cases run in a `has_touch` context with trusted touches sent through the Chromium
+  DevTools protocol, asserting on `window.scrollY`.
+- T010: no position-number assertion; FR-015 is met by the counter.
+- T014: Escape during a drag inside an open dialog leaves it open with the original order. Typed
+  `ORDER` submitted with scripts off, in both layouts, is followed by `ordered_forms`.
+- T015: one browser test over the four demo lists and 390 and 1280 px: a button move, submit or
+  post, reload, saved order matches.
+- T001: the `position` field carries plain `verbose_name` and `help_text`, and no index.
