@@ -29,6 +29,7 @@ import { registerPageSideColumn } from "./page_side_column.js";
 import { startRail } from "./rail.js";
 import { registerReorder } from "./reorder.js";
 import { startSearch } from "./search.js";
+import { registerSheet } from "./sheet.js";
 import { startThemeColor } from "./theme_color.js";
 import { startThemeCycle } from "./theme_cycle.js";
 
@@ -101,6 +102,9 @@ registerPageSideColumn(Alpine);
 
 // The install page's device detection and install button. See assets/js/install.js.
 registerInstallPage(Alpine);
+
+// The sheet and its trigger. See assets/js/sheet.js.
+registerSheet(Alpine);
 
 // The reorderable list's drag and move buttons. See assets/js/reorder.js.
 registerReorder(Alpine);
