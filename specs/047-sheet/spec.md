@@ -48,8 +48,9 @@ All answered from the issue and the agreed design. The reasoning for each is in 
   limit that leaves the page visible above it. Its full height fills the screen below its top
   edge (D2).
 - Q: Can a sheet whose content already shows in full at its resting height be dragged taller? →
-  A: No. It follows the finger a little and settles back, as a platform sheet sized to its
-  content does. It has nothing more to show (D3).
+  A: Yes. On a phone every sheet can be dragged up to its full height, as the platform sheets'
+  resting and full detents can. A developer can fix a sheet at its resting height instead, and
+  that sheet follows the finger a little and settles back (D3).
 - Q: Where does a drag start? → A: On the grab bar and the sheet's head. A drag inside the body
   scrolls the body, so lists, sliders and fields inside a sheet keep working (D4).
 - Q: How does a flick decide where the sheet goes? → A: A release settles at the nearest height,
@@ -84,7 +85,7 @@ it they put a menu of actions, each an icon and words, as links or as buttons th
 with a destructive action marked as such; or a short form; or several named views, which any
 element in the sheet switches between, such as a menu and a confirmation. They choose the buttons
 at its foot, or leave the default one that closes it. They can ask for it to open at its full
-height, or to be wider on a wide screen. From anywhere on the page they can open a sheet at one of
+height, to stay at its resting height, or to be wider on a wide screen. From anywhere on the page they can open a sheet at one of
 its views, and from inside a sheet they can open another, naming where focus returns when it
 closes.
 
@@ -127,11 +128,13 @@ the first is shown, and the foot holds the developer's buttons in place of the d
     the trigger itself when none is named.
 11. **Given** a sheet the developer asks to open at its full height, **When** it opens on a
     narrow screen, **Then** it is at its full height.
-12. **Given** a sheet the developer asks to be wide, **When** it renders, **Then** it carries the
+12. **Given** a sheet the developer fixes at its resting height, **When** it renders, **Then** its
+    grab bar offers no change of height, and it still closes when dragged down.
+13. **Given** a sheet the developer asks to be wide, **When** it renders, **Then** it carries the
     package's wide size for the centred dialog, and narrow screens are unaffected.
-13. **Given** a sheet placed inside a form, **When** any of its own closing controls is used,
+14. **Given** a sheet placed inside a form, **When** any of its own closing controls is used,
     **Then** the form is not submitted.
-14. **Given** a page with a sheet, **When** it loads, **Then** no script, stylesheet or font is
+15. **Given** a page with a sheet, **When** it loads, **Then** no script, stylesheet or font is
     requested from any origin other than the site's own.
 
 ---
@@ -199,8 +202,7 @@ it is closed.
 
 **Acceptance Scenarios**:
 
-1. **Given** a sheet at its resting height whose content is taller than that height, **When** the
-   user drags the grab bar up and lets go near the top, **Then** the sheet is at its full height.
+1. **Given** a sheet at its resting height, **When** the user drags the grab bar up and lets go near the top, **Then** the sheet is at its full height.
 2. **Given** a sheet at its full height, **When** the user drags it down and lets go nearer the
    resting height than the full one, **Then** the sheet is at its resting height and still open.
 3. **Given** a sheet at its resting height, **When** the user drags it down and lets go well below
@@ -213,13 +215,16 @@ it is closed.
    it closes.
 6. **Given** a sheet at its full height, **When** the user flicks it down a short distance,
    **Then** it is at its resting height and still open.
-7. **Given** a sheet whose content shows in full at its resting height, **When** the user drags it
-   up and lets go, **Then** it settles back at its resting height.
+7. **Given** a sheet whose content already shows in full at its resting height, **When** the user
+   drags it up and lets go near the top, **Then** it is at its full height. **Given** a sheet the
+   developer fixed at its resting height, **When** the user drags it up and lets go, **Then** it
+   settles back at its resting height.
 8. **Given** a sheet at its full height, **When** the user drags inside its body, **Then** the body
    scrolls and the sheet keeps its height.
 9. **Given** the user is dragging a sheet, **When** the finger moves, **Then** the sheet follows
    it and the page behind does not scroll.
-10. **Given** a sheet at either height whose content is taller than its resting height, **When**
+10. **Given** a sheet at either height that the developer has not fixed at its resting height,
+    **When**
     the user taps the grab bar or activates it from the keyboard, **Then** the sheet switches to
     the other height, and the grab bar tells assistive technology which height the sheet is at.
 11. **Given** a sheet that was at its full height, **When** it closes and opens again, **Then** it
@@ -294,12 +299,14 @@ it is closed.
   sheet with the finger, and on release MUST settle it at the nearest of its full height, its
   resting height and closed, except that a release fast enough to be a flick MUST move it one step
   in the flick's direction. (US3)
-- **FR-016**: A sheet whose content shows in full at its resting height MUST NOT grow past it, and
-  MUST settle back there after a drag up. (US3)
+- **FR-016**: On a narrow screen every sheet MUST be able to reach its full height by a drag, a
+  flick or its grab bar, whether or not its content already fits at its resting height, unless the
+  developer fixes it at its resting height. A fixed sheet MUST settle back at its resting height
+  after a drag up and MUST still close when dragged or flicked down. (US1, US3)
 - **FR-017**: A drag inside the body MUST scroll the body and MUST NOT move the sheet. (US3)
-- **FR-018**: The grab bar MUST be a control that switches between the two heights when tapped or
-  activated from the keyboard, and MUST tell assistive technology which height the sheet is at.
-  (US3)
+- **FR-018**: The grab bar MUST be a control that, on a sheet not fixed at its resting height,
+  switches between the two heights when tapped or activated from the keyboard, and MUST tell
+  assistive technology which height the sheet is at. (US3)
 - **FR-019**: On a wide screen a sheet MUST be centred, MUST NOT show the grab bar and MUST NOT
   respond to dragging. A developer MUST be able to ask for it to be wider there. (US1, US2, US3)
 - **FR-020**: Every sheet MUST change between its narrow and wide forms at the same screen width.

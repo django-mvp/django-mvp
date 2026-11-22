@@ -10,7 +10,7 @@ Read on 2026-11-22.
 
 | Behaviour | iOS (`UISheetPresentationController`) | Android (Material `BottomSheetBehavior`, modal) | This specification |
 |---|---|---|---|
-| Heights a sheet rests at | Detents: medium (about half the screen) and large, or custom ones | Collapsed (peek height), half-expanded (0.5 by default) and expanded; `fitToContents` sizes the expanded state to the content | Resting (content height up to a limit) and full (D2, D3) |
+| Heights a sheet rests at | Detents: medium (about half the screen) and large, or custom ones | Collapsed (peek height), half-expanded (0.5 by default) and expanded; `fitToContents` sizes the expanded state to the content | Resting (content height up to a limit) and full, every sheet able to reach full unless the developer fixes it at resting (D2, D3) |
 | Closing by drag | Dragging down from the smallest detent dismisses, unless the sheet is modal-in-presentation | `hideable` is true for modal sheets: dragging below the lowest state hides it | Dragging or flicking down from resting closes (D5) |
 | Release | Settles at a detent, with velocity taken into account | Above the significant velocity threshold (500 px/s by default) the sheet moves in the fling's direction, otherwise to the nearest state | Nearest height by position, one step in the flick's direction when fast (D5) |
 | Drag from scrolling content | `prefersScrollingExpandsWhenScrolledToEdge`, on by default | `draggableOnNestedScroll`, on by default | Not taken: drags start on the grab bar and head (D4) |

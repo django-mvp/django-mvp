@@ -26,11 +26,15 @@ keeps the page visible above the sheet as both platforms do at their resting sta
 
 **ADR:** none. The limit itself is a planning decision.
 
-## D3: A sheet that already shows everything does not grow
+## D3: Every sheet can grow to its full height, unless the developer fixes it
 
-Material's sheets sized to their content (`fitToContents`) have no state taller than the content.
-Growing a three-item menu to the top of the screen would show empty space and nothing more. The
-sheet follows the finger a little, so the drag is felt, and settles back.
+The request is a sheet that is swiped up to grow, as the native sheet is. An iOS sheet with medium
+and large detents grows to large whatever its content, so every sheet on a phone can be dragged,
+flicked or switched by its grab bar to its full height, even when its content already shows in
+full at its resting height. A developer whose sheet has nothing to gain from more room, such as a
+two-item menu, fixes it at its resting height, which is an iOS sheet with only the medium detent.
+A fixed sheet follows the finger a little when dragged up, so the drag is felt, settles back, and
+still closes when dragged down.
 
 ## D4: Drags start on the grab bar and the head only
 
