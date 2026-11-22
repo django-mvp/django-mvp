@@ -100,3 +100,77 @@ sheet opened from a sheet, the full-height option and the fallback link are sett
 of building one, so they are scenarios under the first story. The drag is its own story because it
 was asked for in its own words and is something a user sets out to do: see more of the sheet, or
 put it away.
+
+## D12: The sheet is drawn in daisy-cotton's `c-modal`, not wrapped in `c-mvp.modal`
+
+`c-mvp.modal` draws its own heading row from `title`, names the dialog with `aria-label`, and
+places its actions in a row of its own. The sheet's head (grab bar, art, title, the line under
+it) and foot replace all three, and the dialog is named by the sheet's own title so a description
+can sit beside it. Both draw on the same thing, daisy-cotton's `c-modal` with daisyUI's modal box,
+which is what FR-002 asks for. The `search` dialog already uses `c-modal` directly for the same
+reason.
+
+**ADR:** none. Local to this component.
+
+## D13: The trigger, the menu and the open event are the public surface
+
+FS-048 places the trigger and the menu in a sheet on touch screens, so both are components with
+documented properties. Opening a sheet from anywhere is one window event, `mvp-sheet-open`, with
+the sheet's `id` and optionally a `view` and the id of the element to return focus to. The trigger
+uses it, and so can any other element a developer writes.
+
+**ADR:** none. It follows from FR-003, FR-004 and FR-006.
+
+## D14: No gesture library
+
+A drag here is one pointer on the grab bar and the head, along one axis, settling at one of three
+places. Pointer events with pointer capture do it in about a hundred lines. A library for it would
+ship to every page, and the packages that do bottom sheets are framework components, not
+something that attaches to a native `<dialog>`.
+
+**ADR:** none.
+
+## D15: The menu wraps `c-menu`
+
+daisy-cotton's `c-menu` and `c-menu.item` render a link or a button with an icon and words. The
+sheet's menu is `c-mvp.sheet.menu` (the list) and `c-mvp.sheet.menu.item` (a row), thin wrappers
+that add the sheet's row height and a `danger` mark, so nothing a row renders is written twice.
+
+**ADR:** none.
+
+## D16: The gesture's numbers
+
+- A release at 500 px/s or more is a flick, Material's `significantVelocityThreshold`.
+- The resting height is the content's height up to half the screen, the iOS medium and Material
+  half-expanded detents.
+- The full height is the screen below a gap of 2.5rem plus the top safe area, so the page shows
+  above it as it does above an iOS large detent.
+- A release settles at the nearest of full, resting and closed, measured on the sheet's top edge;
+  a drag past the resting height by more than a quarter of it counts as nearer closed.
+- A fixed sheet follows a drag up by a quarter of the distance, capped at 1.5rem, and settles
+  back.
+- The settle is 250 ms with an ease-out curve and none under reduced motion.
+
+None is pinned in the specification. They are named constants at the top of `sheet.js` and the
+tests drive the sheet through them.
+
+**ADR:** none.
+
+## D17: The keyboard offset is read from `visualViewport`
+
+On iOS and, since Chrome 108, on Android, the on-screen keyboard shrinks the visual viewport and
+leaves the layout viewport alone, so a bottom-anchored box stays under it. While a sheet is open
+it reads `window.visualViewport` and gives the box the difference as a bottom offset, and shrinks
+its maximum height by it. This is the smallest thing that works in both and uses no API only one
+engine has.
+
+**ADR:** none.
+
+## D18: Five templates and one script
+
+`sheet`, `sheet.view`, `sheet.trigger`, `sheet.menu` and `sheet.menu.item` are templates; the
+sheet's behaviour is one registered Alpine component, `mvpSheet`, in `assets/js/sheet.js`. A
+trigger and a view are template markup using Alpine's own bindings and the window event, so they
+need no component of their own.
+
+**ADR:** none.
