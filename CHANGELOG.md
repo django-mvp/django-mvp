@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The prebuilt stylesheet styles the classes django-mvp-forms builds in Python. A chosen card now shows its coloured edge and tint, and a chosen pill or chip its colour, in every colour the form can state. The pills' heights and the chip's checkmark are styled too.
+
 ## [v0.36.0] - 2026-11-23
 
 ### Added
