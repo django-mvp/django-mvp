@@ -39,10 +39,11 @@ sheet's test does (T004); two main actions through `c-mvp.list.row` raise, as do
 - [ ] T013 [US1] Review fix: the row's `id` lands on the item, the ⋯ icon call carries `only`
 - [ ] T014 [US1] Review fix: a neutral id in the browser tests' sheet fixture
 - [ ] T015 [US2] Review fix: comment length, line length and test tidying
+- [ ] T016 [US2] A browser test waits for the menu to return to the dropdown after the sheet closes
 
 ## Order
 
-T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 → T010 → T011 → T012 → T013 → T014 → T015.
+T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 → T010 → T011 → T012 → T013 → T014 → T015 → T016.
 
 ---
 

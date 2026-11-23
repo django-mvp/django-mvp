@@ -15,6 +15,7 @@ from django.template import engines
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from django_cotton.compiler_regex import CottonCompiler
+from playwright.sync_api import expect
 
 from demo import urls as demo_urls
 from mvp.config import MVP_CONFIG
@@ -354,16 +355,14 @@ class TestMenuWithATouch:
             "() => !document.getElementById('report-sheet').open"
         )
 
-        assert (
-            touch_page.locator("[data-mvp-row-sheet-body] [data-mvp-row-menu]").count()
-            == 0
-        )
-        assert (
+        expect(
+            touch_page.locator("[data-mvp-row-sheet-body] [data-mvp-row-menu]")
+        ).to_have_count(0)
+        expect(
             touch_page.locator(
                 ".mvp-row-dropdown .dropdown-content [data-mvp-row-menu]"
-            ).count()
-            == 1
-        )
+            )
+        ).to_have_count(1)
 
 
 class TestMenuWithAKeyboard:
