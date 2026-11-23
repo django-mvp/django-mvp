@@ -61,6 +61,8 @@ Get these right before writing anything. Each one is a mistake that looks like i
 | [`../../docs/icons.md`](../../docs/icons.md) | Registering icon names, changing icon set, or an icon is not drawing |
 | [`../../docs/views.md`](../../docs/views.md) | Building template, home, list, detail, create, update or delete views — attributes, hooks, context keys |
 | [`../../docs/formsets.md`](../../docs/formsets.md) | A parent record and its related rows, or a formset with no parent |
+| [`../../docs/developer/sheets.md`](../../docs/developer/sheets.md) | Putting a menu, a short form or a few steps in a sheet: its trigger, views, heights, grab bar and the `mvp-sheet-open` event |
+| [`../../docs/developer/list-rows.md`](../../docs/developer/list-rows.md) | Giving a list row its actions once, as a menu with a mouse and a sheet on a touch screen, with a swipe on touch: the action and row components, the main action, an action that leaves, `mvpRows.off` and `on` |
 | [`../../docs/components.md`](../../docs/components.md) | Choosing a component or checking an attribute — the full catalogue |
 | [`../../docs/styling.md`](../../docs/styling.md) | Writing CSS classes, the two build tiers, or the shell's class hooks |
 | [`../../docs/theming.md`](../../docs/theming.md) | Picking a theme or writing one from scratch |

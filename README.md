@@ -45,14 +45,24 @@ the box. **Things should just work.**
   (pydata-sphinx-theme style): sidebar collapse breakpoint, offcanvas, icon-rail or
   no collapse, and navbar widgets are all `MVP_CONFIG` keys.
 - **A Cotton component library** — cards, grids, menu entries, dropdowns, pagination,
-  hero sections and more, with small consistent attribute APIs. The basic components, such
+  hero sections, reorderable lists and more, with small consistent attribute APIs. The basic components, such
   as the button, the alert and the menu, come from
   [daisy-cotton](https://github.com/django-mvp/daisy-cotton), which is installed with it. Need more control?
   Override the component's template in your project — that's the intended extension
   path, not a bigger API.
+- **Sheets** — a dialog that rises from the foot of a phone's screen, with a grab bar to
+  drag it taller or shorter, and is centred on a wider one. It holds a menu, a short
+  form or a few steps, and its trigger is a real link where scripts do not run.
+- **List rows with actions** — write a row's actions once and they are offered by swipe
+  on a touch screen and from a menu: a dropdown with a mouse, a sheet on a touch screen.
+  A long swipe runs the row's main action, and a keyboard reaches every action through
+  the menu.
 - **Views that do the boring parts** — list pages with admin-style search, whitelisted
   ordering and pagination; form pages rendered with crispy-forms; delete
   flows with related-object summaries and type-to-confirm; styled error pages.
+- **One site search** — a navbar field and dialog, opened with Ctrl K, that searches
+  every kind of result a project registers (its models, its pages, a package's
+  content) and shows one group per kind. Each kind decides what a visitor may see.
 - **Menus in Python** — sidebar and mobile-dock navigation via
   [django-flex-menus](https://github.com/SamuelJennings/django-flex-menus), with active
   states, icons and badges handled for you.

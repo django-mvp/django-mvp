@@ -214,9 +214,57 @@ class TaskInline(InlineFormSet):
 
 This is display only. The rows a submission validates and saves are unaffected by
 `sort_forms` — reordering that too would change which submitted row maps to which record, so
-it never does. `sort_forms` is also a different feature from Django's own `can_order`.
-`can_order` lets the *user* reorder rows through the form (reached through `factory_kwargs`,
-above), and `sort_forms` lets the *developer* fix the sequence a set always renders in.
+it never does. `sort_forms` lets the *developer* fix the sequence a set first renders in. A set
+built with `can_order` lets the *person* put the rows in their own sequence, and an invalid
+submission is drawn again in that sequence, whatever `sort_forms` returns; see
+[Let people reorder the rows](#let-people-reorder-the-rows).
+
+## Let people reorder the rows
+
+A set built with Django's `can_order` draws a drag handle and up and down buttons on every
+row, and keeps the order the person chose when the page is submitted. The controls are the
+ones [`<c-mvp.reorder>`](reorder.md) draws for a list.
+
+1. Build the set with `can_order`, through `factory_kwargs`:
+
+   ```python
+   class TaskInline(InlineFormSet):
+       model = ProjectTask
+       fields = ["title"]
+       factory_kwargs = {"can_order": True}
+   ```
+
+2. Read the order once the set is valid. Django's `ordered_forms` lists the rows in the
+   person's order and leaves out rows marked for removal. Django does not store the order for
+   you, so write each row's place to your own field after the set is saved:
+
+   ```python
+   for position, form in enumerate(formset.ordered_forms):
+       form.instance.position = position
+       form.instance.save(update_fields=["position"])
+   ```
+
+3. Draw the set as usual with `<c-mvp.form.formset>`. Nothing else changes in the template;
+   both the stacked and the tabular layout carry the controls.
+
+What the person sees and what the set submits:
+
+- **`ORDER` is not a typed number.** The set's `ORDER` field is a hidden input in each row, and
+  the browser fills it in when rows are moved or the form is submitted. A tabular set has no
+  `ORDER` column.
+- **A blank extra row stays blank.** Rows that were saved, and rows with a changed field, are
+  numbered in the order shown. A blank extra row is left without a number, so Django still
+  ignores it and the set stays valid.
+- **A new row joins at the end.** A row added with the add control lands last and moves like the
+  others. Removing a row skips it for the buttons and for dragging.
+- **No row is renumbered.** Moving rows changes where a row sits on the page and the value of
+  its `ORDER`, never its position in the form's indexes, so `TOTAL_FORMS` and every field name
+  stay as they were. See
+  [ADR 0044](adr/0044-reordering-a-row-set-moves-rows-and-writes-order.md).
+- **An invalid submission comes back in the person's order**, with every value kept, including
+  the number of a new row the person had filled in.
+- **Without scripts, a typed number is offered.** Each row shows its `ORDER` as a number field
+  instead of the controls, and the typed number is the order.
 
 ## The rows-only page
 

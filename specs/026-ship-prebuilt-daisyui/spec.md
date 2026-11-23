@@ -280,6 +280,9 @@ button, and the border colour of the sidebar and of a rule.
 - A project sets a theme and also loads its own theme file using the same name, intending to replace a
   prebuilt theme's colours. The project's file wins, per US-3 scenario 3.
 - A visitor has JavaScript disabled. The configured theme must still apply; only the switching is lost.
+- A project offers only one theme: its dark theme is its default theme and it declares no set, or its
+  declared set names only the default. The packaged switcher is not shown, because there is no other
+  theme to switch to.
 
 ## Requirements *(mandatory)*
 

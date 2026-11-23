@@ -17,11 +17,15 @@ configuration through Django settings, customization through template overrides.
 | [Layout](layout.md) | The app shell — template blocks, breadcrumbs, per-page overrides, full-height pages |
 | [Components](components.md) | The Cotton component library reference |
 | [Navigation](navigation.md) | Sidebar and mobile-dock menus via django-flex-menus |
+| [Search](developer/search.md) | One search across the kinds of result a site has: registering a kind, choosing which are searched, running a search from Python |
+| [Sheets](developer/sheets.md) | A menu, a short form or a few steps in a dialog that rises from the foot of a phone's screen: opening one, switching views, the heights and the grab bar, and every property of its five components |
 | [Icons](icons.md) | How a name resolves, what the packaged set defines, and using a different one |
 | [Mounted apps](mounted-apps.md) | Running one django-mvp app inside another project: declaring, mounting, the host's menu entry, and what changes on the app's pages |
 | [Account Center](account-center.md) | The account area any installed app can add a page to |
 | [Views](views.md) | List/form/detail/delete views and mixins |
 | [Formsets](formsets.md) | A parent record and its related rows, and the standalone formset case |
+| [Reorder a list](reorder.md) | Lists a person puts in their own order: the three ways to keep the result, the on-demand mode, lists in dialogs, and the `save_order` reference |
+| [List rows with actions](developer/list-rows.md) | A list row that offers its actions once, as a menu with a mouse and a sheet on a touch screen: writing an action, its properties, the main action, an action that takes the row out of the list, switching swiping off, and why the menu is the keyboard path |
 | [Styling](styling.md) | Tailwind/DaisyUI, the two build tiers, and the shell's class hooks |
 | [Theming](theming.md) | Every theme variable, why the theme plugin computes nothing, and writing a custom theme from scratch |
 | [Utility Classes](utility-classes.md) | Every Tailwind utility and daisyUI component the packaged stylesheet ships pre-built |

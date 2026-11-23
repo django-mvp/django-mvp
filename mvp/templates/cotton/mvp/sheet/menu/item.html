@@ -1,0 +1,16 @@
+{# @description One action of a sheet's menu: a link when it has an href and a button otherwise, with its icon hidden from assistive technology and its words as its name. Attributes not listed here, such as @click, land on the link or button. #}
+{# @prop text:text | required | description:"The action's words." #}
+{# @prop icon:text | description:"The icon's name, drawn before the words." #}
+{# @prop href:text | description:"Link address. Without it the row is a button that does not submit a form." #}
+{# @prop danger:boolean | description:"Mark the action as destructive." #}
+{# @prop type:select['button','submit','reset'] | default:"button" | description:"The button's type, for a row without an href." #}
+{# @prop class:text | description:"Extra classes added to the link or button." #}
+<c-vars text icon href danger type="button" class />
+<c-menu.item text="{{ text }}"
+             icon="{{ icon }}"
+             href="{{ href }}"
+             type="{{ type }}"
+             class="mvp-sheet-item {{ class }}"
+             :data-mvp-sheet-danger="danger"
+             :attrs="attrs"
+             only />

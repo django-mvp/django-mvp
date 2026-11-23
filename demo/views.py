@@ -10,9 +10,11 @@ from pathlib import Path
 
 from django.core.paginator import Paginator
 from django.forms import modelformset_factory
-from django.http import Http404
+from django.http import Http404, HttpResponse, HttpResponseBadRequest
+from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
+from django.views import View
 from markdown_it import MarkdownIt
 
 from demo.component_docs import COMPONENTS, COMPONENTS_BY_SLUG
@@ -27,6 +29,7 @@ from demo.models import (
 )
 from demo.tables import ColumnBehaviourTable, ProductTable
 from mvp.integrations.django_tables.views import MVPTableView
+from mvp.ordering import InvalidOrder, save_order
 from mvp.views import (
     InlineFormSet,
     MVPCreateView,
@@ -138,6 +141,122 @@ class ComponentDocView(DemoTemplateView):
                 queryset=OrderLine.objects.none(), prefix="tabular"
             )
         return context
+
+
+class ReorderDemoData:
+    """The tasks each list on the reorder page shows, seeded on first use."""
+
+    TITLES = (
+        "Draft the brief",
+        "Agree the budget",
+        "Book the venue",
+        "Send the invitations",
+        "Order the catering",
+        "Print the programme",
+    )
+
+    def tasks(self, name):
+        """Return the tasks of the project behind one list, creating them once.
+
+        Args:
+            name: Which list the tasks are for.
+
+        Returns:
+            The project's tasks in their saved order.
+        """
+        project, created = Project.objects.get_or_create(name=f"Reorder demo: {name}")
+        if created:
+            ProjectTask.objects.bulk_create(
+                ProjectTask(project=project, title=title, position=position)
+                for position, title in enumerate(self.TITLES)
+            )
+        return project.tasks.all()
+
+
+class ReorderDemoView(ReorderDemoData, ComponentDocView):
+    """The reorder page: four lists, two of which save with their own form."""
+
+    def tasks_formset_class(self):
+        """Return the model formset class of the row set list."""
+        return modelformset_factory(
+            ProjectTask, fields=["title"], extra=0, can_order=True
+        )
+
+    def get_context_data(self, **kwargs):
+        """Add the four lists' data, with the row set bound after an invalid post."""
+        context = super().get_context_data(**kwargs)
+        context["set_formset"] = getattr(
+            self, "bound_set", None
+        ) or self.tasks_formset_class()(queryset=self.tasks("row set"))
+        context["form_tasks"] = self.tasks("form")
+        context["live_tasks"] = self.tasks("live")
+        context["mode_tasks"] = self.tasks("mode")
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """Save the row set or the form list, then show the page again."""
+        if request.POST.get("list") == "set":
+            tasks = self.tasks("row set")
+            formset = self.tasks_formset_class()(request.POST, queryset=tasks)
+            if not formset.is_valid():
+                self.bound_set = formset
+                return self.render_to_response(self.get_context_data())
+            formset.save()
+            save_order(tasks, [form.instance.pk for form in formset.ordered_forms])
+        else:
+            try:
+                save_order(self.tasks("form"), request.POST.getlist("order"))
+            except InvalidOrder:
+                return HttpResponseBadRequest()
+        return redirect(request.path)
+
+
+class ReorderDemoSaveView(ReorderDemoData, View):
+    """Receive the order a list posts, and answer with the list drawn again.
+
+    Attributes:
+        pinned: Whether the first task is fixed in place, so that an order which
+            moves it is refused and the list goes back as it was.
+    """
+
+    pinned = False
+
+    def post(self, request):
+        """Save the posted order, or refuse it with a 400."""
+        name = "live" if self.pinned else "mode"
+        tasks = self.tasks(name)
+        ids = request.POST.getlist("order")
+        if self.pinned and ids[:1] != [str(tasks[0].pk)]:
+            return HttpResponse(status=400)
+        try:
+            save_order(tasks, ids)
+        except InvalidOrder:
+            return HttpResponse(status=400)
+        return render(
+            request,
+            "demo/components/reorder-answer.html",
+            {"tasks": self.tasks(name), "pinned": self.pinned},
+        )
+
+
+class ListRowDemoAnswerView(View):
+    """Answer a row action's request with nothing, so the row that sent it goes."""
+
+    http_method_names = ["post"]
+
+    def post(self, request):
+        """Return an empty answer that replaces the row with nothing."""
+        return HttpResponse()
+
+
+class ListRowDemoFailView(View):
+    """Refuse a row action's request, so the row that folded away comes back."""
+
+    http_method_names = ["post"]
+
+    def post(self, request):
+        """Return a server error."""
+        return HttpResponse(status=500)
 
 
 _DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"

@@ -119,6 +119,7 @@ own ordering; comma-separated names are aliases for one glyph.
 | `grid-view`, `grid` | `bi bi-grid-3x3-gap` |
 | `list-view` | `bi bi-view-list` |
 | `more`, `options`, `kebab` | `bi bi-three-dots-vertical` |
+| `ellipsis` | `bi bi-three-dots` |
 | `external-link` | `bi bi-box-arrow-up-right` |
 | `install` | `bi bi-download` |
 | `install.share` | `bi bi-box-arrow-up` |

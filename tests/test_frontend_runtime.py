@@ -82,6 +82,8 @@ class TestShippedFrontEndRuntime:
         # placement strings would have been the obvious choice and are useless
         # here, because assets/js/dropdown.js writes the same literals itself.
         "@floating-ui/dom": "clippingAncestors",
+        # The author line of the licence comment the build keeps in the bundle.
+        "sortablejs": "RubaXa",
     }
 
     @pytest.mark.parametrize("package,marker", sorted(LIBRARY_MARKERS.items()))
@@ -90,4 +92,14 @@ class TestShippedFrontEndRuntime:
             f"{package} is missing from the built bundle (no {marker!r}) — "
             "either it was dropped from assets/js/index.js, or the committed "
             "artifact is stale and needs `invoke build-js`"
+        )
+
+
+class TestRowActionsReachTheBundle:
+    def test_the_row_component_is_registered_in_the_committed_bundle(self):
+        bundle = TestShippedFrontEndRuntime.BUNDLE.read_text()
+
+        assert "mvpRowActions" in bundle, (
+            "the list row's component is missing from the built bundle — "
+            "run `npm run build:js:prod`"
         )

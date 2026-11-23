@@ -17,7 +17,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.template import Context, Template
 from django.test.utils import isolate_apps
 from django.urls import path
-from django.utils.safestring import SafeData
+from django.utils.safestring import SafeData, mark_safe
 from django.views.generic import TemplateView
 
 from tests.conftest import urlconf_of
@@ -395,3 +395,29 @@ class TestRootAttr:
         from django.utils.safestring import mark_safe
 
         assert self._attr(mark_safe('<aside data-x="start"></aside>')) == "start"
+
+
+class TestSingleMainAction:
+    def test_markup_with_one_main_action_is_returned_unchanged(self):
+        html = mark_safe('<a data-mvp-row-main href="/a/">A</a><a href="/b/">B</a>')
+
+        assert _render("{{ html|single_main_action:'row' }}", {"html": html}) == html
+
+    def test_markup_with_no_main_action_is_returned_unchanged(self):
+        html = mark_safe('<a href="/b/">B</a>')
+
+        assert _render("{{ html|single_main_action:'row' }}", {"html": html}) == html
+
+    def test_two_main_actions_raise_naming_the_row(self):
+        html = (
+            '<a data-mvp-row-main href="/a/">A</a><button data-mvp-row-main>B</button>'
+        )
+
+        with pytest.raises(ImproperlyConfigured, match="orders-4"):
+            _render("{{ html|single_main_action:'orders-4' }}", {"html": html})
+
+    def test_an_empty_id_raises(self):
+        html = mark_safe('<a href="/b/">B</a>')
+
+        with pytest.raises(ImproperlyConfigured, match="id"):
+            _render("{{ html|single_main_action:'' }}", {"html": html})

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- The timezone on the preferences page is django-timezone-field's `TimeZoneFormField`, drawn by django-mvp-forms' searchable `TimeZoneSelect`. django-mvp now requires `django-mvp-forms[timezone]>=0.10.0` and `django-object-preferences>=0.3.1`, and a person's timezone preference reads as a `zoneinfo.ZoneInfo`.
+- The timezone on the preferences page is django-timezone-field's `TimeZoneFormField`, drawn by django-mvp-forms' searchable `TimeZoneSelect`. django-mvp now requires `django-mvp-forms[timezone]>=0.11.0` and `django-object-preferences>=0.3.1`, and a person's timezone preference reads as a `zoneinfo.ZoneInfo`.
 - A preferences page for signed-in people at `/account/preferences/` (URL name `account-preferences`), reached from the Account Center menu and landing page. It shows every group of preferences registered for the user model, each as a fieldset with one Save button that saves them together. Any installed app adds a group by registering a form for the user model in its own `preferences.py`, and reads a person's values with `registry.get_preferences`. See `docs/developer/preferences.md`.
 - A `locale` group of preferences holding a person's timezone and language, declared by django-mvp as `mvp.preferences.LocalePreferences`. The language switcher saves a signed-in person's choice to it through the `mvp-set-language` URL.
 - `mvp.middleware.PreferencesMiddleware` shows a signed-in person times in their timezone and pages in their language. List it directly below `AuthenticationMiddleware`.
@@ -18,6 +18,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Breaking:** a project's user model now needs `mvp.models.PreferencesMixin`, or a `PreferencesField` under another name if it already has an attribute called `preferences`, followed by `makemigrations`. Add `"object_preferences"` to `INSTALLED_APPS` and `"mvp.middleware.PreferencesMiddleware"` below `AuthenticationMiddleware` in `MIDDLEWARE`. Without the field, startup stops with `ImproperlyConfigured` saying what to add.
+
+## [v0.35.3] - 2026-11-23
+
+### Added
+
+- `c-mvp.sheet`, with `c-mvp.sheet.view`, `c-mvp.sheet.trigger`, `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item`: a dialog that rises from the foot of a phone's screen and is centred on a wider one, for a menu of actions, a short form or a few steps. On a phone it has a grab bar and can be dragged between its resting and full heights or down to close it. A trigger inside a sheet that names no `returns` gives focus back to the element that opened that sheet. See `docs/developer/sheets.md`.
+- `c-mvp.card` takes an `href`. The title becomes the card's one link, stretched over the whole card, so a click or tap anywhere on it opens the address while buttons, menus and links inside the card keep working. A keyboard user reaches one link, named by the title. See `docs/components.md`.
+- A message can carry one action, a link or a button that posts, given with `mvp.utils.action_tags` as the message's `extra_tags`. A message with an action stays until it is used or dismissed, and one without keeps today's auto-dismiss. `c-mvp.messages` takes `oob="true"` so an htmx response can carry the list and have it replace the one in the page, and its toast now has the id `mvp-messages`. See `docs/components.md`.
+- `<c-mvp.reorder>` and `<c-mvp.reorder.row>` draw a list whose rows a person puts in their own order, by dragging a handle or pressing up and down buttons, with touch, keyboard and screen reader support. The order can go to a surrounding form, be posted to an address on every change (a refused post puts the rows back), or only be announced through the `mvp:reorder-start` and `mvp:reorder-end` events. `mode="on-demand"` shows the controls only after a button starts the mode, and a list in a dialog returns to its order when the dialog is closed without submitting.
+- A formset built with `can_order` now reorders its rows with the same controls, and writes the `ORDER` values itself. Without scripts the typed `ORDER` fields appear instead.
+- `mvp.ordering.save_order` saves an order received from a list into an integer position field in one transaction, and refuses an order that names a record twice, names one outside the queryset or leaves one out.
+- `<c-mvp.list.row>` and `<c-mvp.list.row.action>` draw a list row that offers its actions once. A touch screen reaches them by swiping the row towards the start of the line, and a long swipe runs the row's `main` action. A mouse or a keyboard reaches them from a "more" control that opens a dropdown, and a touch screen can open the same menu in a sheet. An action marked `leaves` folds its row away and puts it back when its htmx request fails. `window.mvpRows` switches the swiping of a list off and on and shuts the open row, rows pause while a `c-mvp.reorder` list is being reordered, and rows that arrive by htmx work with no further code. See `docs/developer/list-rows.md`.
+- The `ellipsis` icon name, drawn as the "more" control of a row.
+- The demo site has a List row page showing each kind of action. See `docs/developer/list-rows.md`.
+- The demo site has a Reorder page showing a row set, a list in a form, a list that posts as it changes and an on-demand list. See `docs/reorder.md`.
+
+### Changed
+
+- `c-mvp.modal` draws its heading, body and actions directly on daisyUI's modal box, where it drew a card inside a transparent box. Its props and slots do the same as before, and a tall body now scrolls inside the box while the heading and the actions stay in view. `class` goes on the modal box instead of the card, and the dialog no longer contains a `.card` element.
+- django-mvp-forms 0.11.0 is the minimum. The shipped stylesheet now styles its choice widgets drawn as a scale, pills, chips or cards, and the characters-left count under a text field.
+
+### Fixed
+
+- Every page declares the language it is shown in. The page layout wrote `lang="en"` whatever the active language was, so a German page was read by a screen reader with English pronunciation and offered for translation by the browser. It now writes the active language, and `dir="rtl"` for a right-to-left language, as the email layout already did for the language alone and now does for the direction too.
+
+## [v0.35.2] - 2026-11-13
+
+### Added
+
+- A sidebar `MenuGroup` can leave out the divider line above its heading with `"divider": False` in its `extra_context`, for a sidebar whose headings already set the groups apart. A group that does not set it keeps the line. See `docs/navigation.md`.
+
+## [v0.35.1] - 2026-11-13
+
+### Fixed
+
+- The site search's results page fits a phone screen when the kind it is narrowed to has several pages of results. It drew the full row of numbered page links at every width, which pushed the page wider than a 390px screen. It now ends with the same pager as a list page: the numbered links from medium width, and Previous, the page count and Next below it.
+
+## [v0.35.0] - 2026-11-13
+
+### Added
+
+- A site search. Register the kinds of result a project has, with `mvp.search.register` from `AppConfig.ready`, as a function, a `Kind` subclass or a `ModelKind` over a model indexed with `modelsearch`, then mount `path("search/", include("mvp.search.urls"))`. `mvp.actions.search` puts a search field and a dialog in the navbar, opened with Ctrl K, and a results page lists one group per kind. Each kind decides from the request what a visitor may see, and `MVP_CONFIG["search"]["kinds"]` chooses and orders the kinds searched. `manage.py check` reports a mistaken setup as `mvp.E004` to `mvp.E009`. The package now depends on `modelsearch`. See `docs/developer/search.md`.
+- The demo searches its products, its articles and its component pages, and shows draft articles only to staff.
+
+### Changed
+
+- **Breaking:** `c-mvp.actions.search` opens the site search instead of drawing an input wired to nothing, and needs `path("search/", include("mvp.search.urls"))` mounted. A project that lists `mvp.actions.search` in `layout.navbar.end` without mounting the pages gets the system check `mvp.E009`. Mount the pages, or remove the widget.
+
+## [v0.34.3] - 2026-11-13
+
+### Fixed
+
+- The theme control, `c-mvp.actions.theme-controller`, renders nothing when only one theme is reachable: `MVP_CONFIG["theme"]["dark"]` names the same theme as `default` and `choices` is empty, or `choices` names only `default`. Before, the sidebar footer and the navbar showed a toggle that switched the page to the theme it was already on.
 
 ## [v0.34.2] - 2026-11-09
 

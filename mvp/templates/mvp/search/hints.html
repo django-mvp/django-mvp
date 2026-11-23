@@ -1,0 +1,9 @@
+{% load i18n %}<div class="mvp-search-hints">
+  <p class="mvp-search-label">{% trans "Search for" %}</p>
+  <ul class="mvp-search-kinds">
+    {% for kind in kinds %}
+      <li><c-icon name="{{ kind.icon }}" aria-hidden="true" only /> <span>{{ kind.label }}{% if kind.description %} <span class="mvp-search-kind-description">{{ kind.description }}</span>{% endif %}</span></li>
+    {% endfor %}
+  </ul>
+  <p class="mvp-search-keys" aria-hidden="true"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> {% trans "to move" %} · <kbd class="kbd kbd-xs">Enter</kbd> {% trans "to open" %} · <kbd class="kbd kbd-xs">Esc</kbd> {% trans "to close" %}</p>
+</div>

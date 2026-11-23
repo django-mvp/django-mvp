@@ -1,0 +1,22 @@
+{# @description One search result: a link with its title, where it comes from and a passage. Compact in the search dialog, with the kind's icon on the results page. #}
+{# @prop result:object | description:"The mvp.search.Result to draw." #}
+{# @prop compact:boolean | description:"Draw it as an option in the dialog's listbox, without the icon." #}
+{# @prop icon:text | description:"The icon name of the result's kind. Drawn when not compact." #}
+{% load i18n %}
+<c-vars result compact icon />
+{% if compact %}
+  <a href="{{ result.url }}" class="mvp-search-hit" role="option" data-mvp-search-hit>
+    <span class="mvp-search-hit-title">{{ result.title }}</span>
+    <span class="mvp-search-hit-where">{{ result.where }}</span>
+    {% if result.passage %}<span class="mvp-search-hit-passage">{{ result.passage }}</span>{% endif %}
+  </a>
+{% else %}
+  <a href="{{ result.url }}" class="mvp-search-result">
+    {% if icon %}<span class="mvp-search-result-icon"><c-icon name="{{ icon }}" aria-hidden="true" only /></span>{% endif %}
+    <span class="mvp-search-result-text">
+      <span class="mvp-search-hit-title">{{ result.title }}</span>
+      <span class="mvp-search-hit-where">{{ result.where }}</span>
+      {% if result.passage %}<span class="mvp-search-hit-passage">{{ result.passage }}</span>{% endif %}
+    </span>
+  </a>
+{% endif %}

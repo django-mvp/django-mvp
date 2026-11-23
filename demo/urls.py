@@ -35,6 +35,7 @@ urlpatterns = [
     path("", DemoHomeView.as_view(), name="home"),
     path("admin/", admin.site.urls),
     path("", include("mvp.urls")),
+    path("search/", include("mvp.search.urls")),
     mount("library/", library),
     path("layout/", views.layout_demo, name="layout"),
     path("layout/sidebar/", views.layout_sidebar_demo, name="layout-sidebar"),
@@ -46,6 +47,32 @@ urlpatterns = [
     path("theme/", views.theme_customization_demo, name="customization"),
     path("theme/preview/", views.theme_preview_demo, name="theme-preview"),
     path("components/", views.components_demo, name="custom-components"),
+    path(
+        "components/reorder/",
+        views.ReorderDemoView.as_view(),
+        {"slug": "reorder"},
+        name="component-doc-reorder",
+    ),
+    path(
+        "components/reorder/live/",
+        views.ReorderDemoSaveView.as_view(pinned=True),
+        name="reorder-demo-live",
+    ),
+    path(
+        "components/reorder/mode/",
+        views.ReorderDemoSaveView.as_view(pinned=False),
+        name="reorder-demo-mode",
+    ),
+    path(
+        "components/list-row/answer/",
+        views.ListRowDemoAnswerView.as_view(),
+        name="list-row-demo-answer",
+    ),
+    path(
+        "components/list-row/fail/",
+        views.ListRowDemoFailView.as_view(),
+        name="list-row-demo-fail",
+    ),
     path(
         "components/<slug:slug>/",
         views.ComponentDocView.as_view(),

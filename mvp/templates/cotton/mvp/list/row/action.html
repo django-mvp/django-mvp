@@ -1,0 +1,23 @@
+{# @description One action of a list row, written once. The row draws it as an item of its menu, and its script builds the swipe's button from it, so a link, form or htmx request on the action is the one that runs. Attributes not listed here, such as id, form and hx-post, land on the link or button. #}
+{# @prop text:text | required | description:"The action's words." #}
+{# @prop icon:text | description:"The icon's name, drawn before the words." #}
+{# @prop href:text | description:"Link address. Without it the action is a button that does not submit a form." #}
+{# @prop danger:boolean | description:"Mark the action as destructive." #}
+{# @prop main:boolean | description:"The action a long swipe runs. At most one per row." #}
+{# @prop leaves:boolean | description:"Pressing it takes the row out of the list, so the row folds away." #}
+{# @prop label:text | description:"What a screen reader hears, when the words alone do not name the row." #}
+{# @prop type:select['button','submit','reset'] | default:"button" | description:"The button's type, for an action without an href." #}
+{# @prop class:text | description:"Extra classes added to the link or button." #}
+<c-vars text icon href danger main leaves label type="button" class />
+<c-mvp.sheet.menu.item text="{{ text }}"
+                       icon="{{ icon }}"
+                       href="{{ href }}"
+                       type="{{ type }}"
+                       class="{{ class }}"
+                       :danger="danger"
+                       data-mvp-row-action
+                       :data-mvp-row-main="main"
+                       :data-mvp-row-leaves="leaves"
+                       :aria-label="label"
+                       :attrs="attrs"
+                       only />

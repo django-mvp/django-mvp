@@ -168,6 +168,89 @@
   }
 }
 
+/* The reorderable list: <c-mvp.reorder>, <c-mvp.reorder.row> and the move
+   cluster. The held row is SortableJS's fallback clone, which stays inside the
+   list, so it takes no number of its own. */
+@layer components {
+  .mvp-reorder {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: mvp-reorder;
+    overscroll-behavior: contain;
+  }
+
+  .mvp-reorder-row {
+    counter-increment: mvp-reorder;
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3.25rem;
+    border-block-start: 1px solid var(--color-base-300);
+    background: var(--color-base-100);
+  }
+
+  .mvp-reorder-row:first-child {
+    border-block-start: 0;
+  }
+
+  .mvp-reorder-row::before {
+    content: counter(mvp-reorder);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    color: color-mix(in oklab, var(--color-base-content) 64%, transparent);
+  }
+
+  .mvp-reorder-moves {
+    display: flex;
+    align-items: center;
+  }
+
+  .mvp-reorder-handle {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.5rem;
+    touch-action: none;
+    cursor: grab;
+    color: color-mix(in oklab, var(--color-base-content) 64%, transparent);
+  }
+
+  .mvp-reorder-handle:active {
+    cursor: grabbing;
+  }
+
+  .mvp-reorder-ghost {
+    opacity: 0.35;
+  }
+
+  .mvp-reorder-chosen {
+    background: var(--color-base-200);
+  }
+
+  .mvp-reorder-held {
+    counter-increment: none;
+    z-index: 5;
+    background: var(--color-base-100);
+    box-shadow: 0 10px 24px -8px color-mix(in oklab, var(--color-base-content) 35%, transparent);
+    border-radius: var(--radius-field);
+    cursor: grabbing;
+  }
+
+  .mvp-reorder-sorting {
+    user-select: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mvp-reorder-row {
+      transition: none !important;
+    }
+  }
+}
+
 /* Safelist: the header's and dock's classes are named in mvp/config.py, which a
    project's own build does not scan. */
 @source inline("mvp-{header,dock}-bg");
@@ -1369,5 +1452,635 @@ html {
     font-size: 0.75rem;
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+}
+
+/* Site search: the dialog's panel and the results page. */
+/* Unlayered on purpose: daisyUI draws .modal-top and .input in its utilities
+   layer, which a rule in the components layer can never override. */
+.mvp-search-field {
+  width: 100%;
+  height: 2.5rem;
+  min-height: 2.5rem;
+  background: color-mix(in oklab, var(--color-base-content) 7%, transparent);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.mvp-search-field:hover {
+  border-color: var(--color-base-300);
+}
+
+.mvp-search-modal {
+  justify-items: center;
+}
+
+.modal-top .modal-box.mvp-search-box,
+.mvp-search-box {
+  --modal-tl: var(--radius-box);
+  --modal-tr: var(--radius-box);
+  border-radius: var(--radius-box);
+  margin-block-start: 12dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 76dvh;
+}
+
+@media (max-width: 40rem) {
+  .modal-top .modal-box.mvp-search-box,
+  .mvp-search-box {
+    margin-block-start: 0.5rem;
+    width: calc(100% - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+}
+
+.mvp-search-input {
+  border: 0;
+  border-block-end: 1px solid var(--color-base-300);
+  border-radius: 0;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.mvp-search-results {
+  overflow-y: auto;
+  padding: 0.5rem 0.5rem 0.75rem;
+}
+
+.mvp-search-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+  padding: 0.6rem 0.6rem 0.3rem;
+}
+
+.mvp-search-total {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.mvp-search-kinds {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem 0.5rem;
+}
+
+.mvp-search-kinds li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: color-mix(in oklab, var(--color-base-content) 80%, transparent);
+}
+
+.mvp-search-kind-description {
+  font-size: 0.78rem;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+}
+
+.mvp-search-keys {
+  padding: 0.5rem 0.6rem 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+}
+
+.mvp-search-keys kbd {
+  margin-inline-end: 0.15rem;
+}
+
+@media (pointer: coarse) {
+  .mvp-search-keys {
+    display: none;
+  }
+}
+
+.mvp-search-empty {
+  padding: 1rem 0.6rem;
+}
+
+.mvp-search-hit,
+.mvp-search-more,
+.mvp-search-all {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-field, 0.5rem);
+}
+
+.mvp-search-hit:hover,
+.mvp-search-hit.is-current,
+.mvp-search-more:hover,
+.mvp-search-more.is-current,
+.mvp-search-all:hover,
+.mvp-search-all.is-current {
+  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+}
+
+.mvp-search-hit-title {
+  font-weight: 600;
+}
+
+.mvp-search-hit-where {
+  font-size: 0.78rem;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+}
+
+.mvp-search-hit-passage {
+  font-size: 0.85rem;
+  color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mvp-search-more {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+}
+
+.mvp-search-all {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--color-base-300);
+  border-radius: 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.mvp-search-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.mvp-search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mvp-search-form > svg {
+  position: absolute;
+  inset-inline-start: 1rem;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.mvp-search-form .input {
+  padding-inline-start: 2.75rem;
+}
+
+.mvp-search-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mvp-search-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.85rem;
+  border: 1px solid var(--color-base-300);
+  border-radius: calc(infinity * 1px);
+  font-size: 0.875rem;
+}
+
+.mvp-search-chip:hover {
+  background: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+}
+
+.mvp-search-chip[aria-current="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.mvp-search-chip-count {
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+  margin-inline-start: 0.35rem;
+}
+
+.mvp-search-group-page {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.mvp-search-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.mvp-search-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.mvp-search-group-title svg {
+  opacity: 0.7;
+}
+
+.mvp-search-result-list {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.mvp-search-result {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  padding: 0.6rem;
+  border-radius: var(--radius-box, 0.75rem);
+}
+
+.mvp-search-result:hover {
+  background: color-mix(in oklab, var(--color-base-content) 6%, transparent);
+}
+
+.mvp-search-result-icon {
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+}
+
+.mvp-search-result-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+/* Sheet (FS-047): a dialog that rises from the foot of a phone's screen and sits
+   centred from the sm breakpoint up. The script sets data-height on the dialog
+   and --mvp-sheet-keyboard while an on-screen keyboard is up. */
+.mvp-sheet {
+  --mvp-sheet-rest: 50dvh;
+  --mvp-sheet-full: calc(100dvh - 2.5rem - env(safe-area-inset-top));
+  --mvp-sheet-keyboard: 0px;
+}
+
+.mvp-sheet > .mvp-sheet-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+  padding: 0 1rem 0;
+  margin-block-end: var(--mvp-sheet-keyboard);
+  max-height: min(
+    var(--mvp-sheet-rest),
+    calc(100dvh - var(--mvp-sheet-keyboard))
+  );
+}
+
+@media not (min-width: 40rem) {
+  .mvp-sheet[data-height="full"] > .mvp-sheet-box {
+    height: min(
+      var(--mvp-sheet-full),
+      calc(100dvh - var(--mvp-sheet-keyboard))
+    );
+    max-height: min(
+      var(--mvp-sheet-full),
+      calc(100dvh - var(--mvp-sheet-keyboard))
+    );
+  }
+}
+
+.mvp-sheet-grab {
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mvp-sheet-grab::before {
+  content: "";
+  width: 2.5rem;
+  height: 0.3rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-base-content) 25%, transparent);
+}
+
+.mvp-sheet-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-block-end: 0.85rem;
+  border-block-end: 1px solid
+    color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  touch-action: none;
+}
+
+.mvp-sheet-art {
+  flex: none;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  overflow: hidden;
+  border-radius: var(--radius-field);
+  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+}
+
+.mvp-sheet-art > * {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.mvp-sheet-names {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.mvp-sheet-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.mvp-sheet-lead {
+  font-size: 0.85rem;
+  color: color-mix(in oklab, var(--color-base-content) 64%, transparent);
+  overflow-wrap: anywhere;
+}
+
+.mvp-sheet-description {
+  flex: none;
+  font-size: 0.875rem;
+}
+
+.mvp-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mvp-sheet-foot {
+  flex: none;
+  padding-block: 0.5rem calc(1rem + env(safe-area-inset-bottom));
+}
+
+.mvp-sheet-menu {
+  padding: 0;
+}
+
+.mvp-sheet-menu > li > .mvp-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3.25rem;
+  padding-inline: 0.25rem;
+  font-size: 1rem;
+}
+
+.mvp-sheet-menu > li > .mvp-sheet-item > :first-child:is(svg, i, span) {
+  flex: none;
+  width: 1.5rem;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.mvp-sheet-menu > li > .mvp-sheet-item[data-mvp-sheet-danger] {
+  color: var(--color-error);
+}
+
+@media (min-width: 40rem) {
+  .mvp-sheet-grab {
+    display: none;
+  }
+
+  .mvp-sheet > .mvp-sheet-box {
+    width: 91.666667%;
+    max-width: 32rem;
+    max-height: calc(100dvh - 5rem - var(--mvp-sheet-keyboard));
+    padding-block-start: 1.25rem;
+  }
+
+  .mvp-sheet-wide > .mvp-sheet-box {
+    max-width: 42rem;
+  }
+}
+
+/* daisyUI sets its slide and fade with selectors this rule cannot outrank. */
+@media (prefers-reduced-motion: reduce) {
+  .mvp-sheet,
+  .mvp-sheet > .mvp-sheet-box,
+  .mvp-sheet > .modal-backdrop {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation-duration: 0s !important;
+  }
+}
+
+/* Row actions (FS-048): a row narrows on a swipe to show the buttons built under it.
+   The script sets --mvp-row-x (px, negative while open) and the state classes
+   is-open, is-dragging, is-hinting, is-committing, is-folded and is-full. */
+.mvp-row {
+  --mvp-row-x: 0px;
+  --mvp-row-ease: cubic-bezier(0.22, 0.9, 0.3, 1);
+  position: relative;
+  isolation: isolate;
+  touch-action: pan-y;
+  transition:
+    height 0.22s var(--mvp-row-ease),
+    opacity 0.22s;
+  /* The face carries the list row's grid and padding; this item keeps its divider. */
+  display: block;
+  padding: 0;
+}
+
+.mvp-row > .mvp-row-face {
+  position: relative;
+  z-index: 1;
+  /* The row narrows rather than slides, so the start of its content stays where it was
+     and the reader can still see which row the buttons act on. */
+  width: calc(100% + var(--mvp-row-x));
+  transition:
+    width 0.28s var(--mvp-row-ease),
+    background-color 0.15s;
+  border-radius: inherit;
+}
+
+.mvp-row > .mvp-row-face::after {
+  content: none;
+}
+
+.mvp-row:is(.is-open, .is-dragging) > .mvp-row-face {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.mvp-row.is-dragging > .mvp-row-face {
+  transition: background-color 0.15s;
+  user-select: none;
+}
+
+.mvp-row.is-hinting > .mvp-row-face {
+  transition-duration: 0.42s;
+}
+
+.mvp-row.is-committing > .mvp-row-face {
+  transition-duration: 0.18s;
+}
+
+.mvp-row.is-folded {
+  opacity: 0;
+}
+
+/* Clipped only while it moves, so the row's own menu can open past its edges. */
+.mvp-row:is(.is-open, .is-dragging, .is-hinting, .is-committing, .is-folded),
+.mvp-row:is(.is-open, .is-dragging, .is-hinting, .is-committing, .is-folded)
+  > .mvp-row-face {
+  overflow: hidden;
+}
+
+/* The face never lies over the buttons, so its hover and current colours move from the
+   row to the face and stop where the buttons start. */
+.mvp-row:hover,
+.mvp-row[aria-current="true"] {
+  background: transparent;
+}
+
+@media (hover: hover) {
+  .mvp-row:hover > .mvp-row-face {
+    background: var(--color-base-300);
+  }
+}
+
+.mvp-row[aria-current="true"] > .mvp-row-face {
+  background: color-mix(in oklab, var(--color-primary) 14%, transparent);
+}
+
+.mvp-row > .mvp-row-under {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: calc(-1 * var(--mvp-row-x));
+  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-start-end-radius: inherit;
+  border-end-end-radius: inherit;
+  transition: width 0.28s var(--mvp-row-ease);
+}
+
+.mvp-row.is-dragging > .mvp-row-under {
+  transition: none;
+}
+
+.mvp-row.is-hinting > .mvp-row-under {
+  transition-duration: 0.42s;
+}
+
+.mvp-row.is-committing > .mvp-row-under {
+  transition-duration: 0.18s;
+}
+
+.mvp-row-button {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition: flex-grow 0.2s var(--mvp-row-ease);
+}
+
+.mvp-row-button > :is(i, svg) {
+  font-size: 1.2rem;
+}
+
+.mvp-row-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
+}
+
+.mvp-row-button-neutral {
+  background: color-mix(in oklab, var(--color-base-content) 14%, var(--color-base-100));
+  color: var(--color-base-content);
+}
+
+.mvp-row-button-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.mvp-row-button-danger {
+  background: var(--color-error);
+  color: var(--color-error-content);
+}
+
+/* Past most of the row, the full button takes the whole width and its word moves to the
+   row's edge with the finger. */
+.mvp-row.is-full .mvp-row-button:not([data-mvp-row-full]) {
+  flex-grow: 0;
+}
+
+.mvp-row.is-full .mvp-row-button[data-mvp-row-full] {
+  flex-grow: 1;
+  align-items: flex-start;
+  padding-inline-start: 1.5rem;
+}
+
+/* A row's ⋯ is a dropdown with a mouse and a sheet with a finger. Both offer the one menu
+   the row holds, so each is left out where the other is shown. The sheet takes over only
+   once the script has set the row up: a page without it keeps the dropdown everywhere. */
+.mvp-row-sheet-trigger {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  [data-mvp-row-ready] .mvp-row-dropdown {
+    display: none;
+  }
+
+  [data-mvp-row-ready] .mvp-row-sheet-trigger {
+    display: inline-flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mvp-row,
+  .mvp-row > .mvp-row-face,
+  .mvp-row > .mvp-row-under,
+  .mvp-row-button {
+    transition-duration: 0.01s !important;
   }
 }

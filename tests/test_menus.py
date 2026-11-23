@@ -8,6 +8,7 @@ so each gets an assertion.
 """
 
 import pytest
+from bs4 import BeautifulSoup
 from django.test import RequestFactory, override_settings
 from django.urls import include, path
 from flex_menu import Menu, MenuItem
@@ -182,3 +183,36 @@ class TestAccountMenuContribution:
     ):
         names = self._visible_names(RequestFactory().get("/", {CHECKED_FLAG: "1"}))
         assert "fixture_checked" in names
+
+
+def _divider_before_heading(html, heading):
+    """Whether an empty ``<li>``, which DaisyUI draws as a divider, comes
+    straight before the group heading reading ``heading``."""
+    soup = BeautifulSoup(html, "html.parser")
+    title = soup.find("li", class_="menu-title", string=lambda s: s and heading in s)
+    before = title.find_previous_sibling("li")
+    return before is not None and not before.get_text(strip=True) and not before.find()
+
+
+class TestAGroupsDividerAboveItsHeading:
+    @staticmethod
+    def _group(**context):
+        return MenuGroup(
+            name="admin",
+            extra_context={"label": "AdminSection", **context},
+            children=[
+                MenuItem(name="users", url="/users/", extra_context={"label": "Users"})
+            ],
+        )
+
+    def test_a_group_draws_a_divider_above_its_heading_by_default(self):
+        html = _sidebar_html(self._group())
+
+        assert _divider_before_heading(html, "AdminSection")
+
+    def test_a_group_asking_for_no_divider_draws_its_heading_alone(self):
+        html = _sidebar_html(self._group(divider=False))
+
+        assert not _divider_before_heading(html, "AdminSection")
+        assert "AdminSection" in html
+        assert 'href="/users/"' in html

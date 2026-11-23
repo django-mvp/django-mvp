@@ -36,3 +36,10 @@ class TestIconAnswersDaisyCottonComponents:
         icon = soup.select_one("[role='alert'] i")
         assert icon is not None
         assert "bi" in icon["class"]
+
+
+class TestEllipsisIcon:
+    def test_the_ellipsis_name_draws_three_dots(self, cotton_render_string_soup):
+        soup = cotton_render_string_soup('<c-icon name="ellipsis" />')
+
+        assert "bi-three-dots" in soup.find("i")["class"]

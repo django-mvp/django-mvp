@@ -1,11 +1,5 @@
-{# @description Navbar search input; renders an input that is not wired to a form or a view — it submits nothing on its own. #}
+{# @description The site search in the navbar: a search field on a wide screen, a button on a narrow one, and the dialog both open. Ctrl K opens it from anywhere. Needs the search's addresses mounted with include("mvp.search.urls"). #}
 {% load i18n %}
-<c-join only>
-  <c-icon name="search"
-          class="join-item btn btn-square btn-ghost" />
-  <c-form.input size="sm"
-                class="join-item w-full"
-                placeholder="{% trans "Search..." %}"
-                aria-label="{% trans "Search" %}"
-                only />
-</c-join>
+<c-mvp.search.field />
+<c-mvp.search.button />
+<c-mvp.search.dialog />

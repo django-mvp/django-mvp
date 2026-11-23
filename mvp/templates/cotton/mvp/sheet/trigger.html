@@ -1,0 +1,35 @@
+{# @description The button that opens a sheet. With an href it is a link to the item's own page, which the browser follows where scripts do not run or the sheet is not on the page. Without one it is a button and needs scripts. With no words in its slot it is an icon-only button named for the item. #}
+{# @prop for:text | required | description:"The id of the sheet it opens." #}
+{# @prop href:text | description:"The page that offers the same actions, followed when the sheet cannot open." #}
+{# @prop label:text | description:"What the item is called. The icon-only button is named More for that item, and a worded one adds it to its name." #}
+{# @prop view:text | description:"The name of the sheet's view to open at." #}
+{# @prop returns:text | description:"The id of the element focus returns to when the sheet closes. Leave empty for the trigger itself." #}
+{# @prop icon:text | default:"more" | description:"The icon of the icon-only button." #}
+{# @prop id:text | description:"The trigger's own id, so focus can return to it." #}
+{# @prop class:text | description:"Extra classes added to the link or button." #}
+{# @slot Rename — Optional. The trigger's words. Leave empty for an icon-only button. #}
+{% load i18n %}
+<c-vars for href view="" returns id icon="more" label class />
+{% if href %}
+<a href="{{ href }}"
+   class="btn btn-ghost{% if not slot.strip %} btn-sm btn-square{% endif %} {{ class }}"
+   {% if id %}id="{{ id }}"{% endif %}
+   aria-haspopup="dialog"
+   {% if not slot.strip and label %}aria-label="{% blocktranslate with name=label %}More for {{ name }}{% endblocktranslate %}"{% endif %}
+   data-for="{{ for }}"
+   data-view="{{ view }}"
+   data-returns="{{ returns }}"
+   x-data="mvpSheetTrigger"
+   {{ attrs }}>{% if slot.strip %}{{ slot }}{% if label %}<span class="sr-only"> {{ label }}</span>{% endif %}{% else %}<c-icon name="{{ icon }}" aria-hidden="true" />{% endif %}</a>
+{% else %}
+<button type="button"
+        class="btn btn-ghost{% if not slot.strip %} btn-sm btn-square{% endif %} {{ class }}"
+        {% if id %}id="{{ id }}"{% endif %}
+        aria-haspopup="dialog"
+        {% if not slot.strip and label %}aria-label="{% blocktranslate with name=label %}More for {{ name }}{% endblocktranslate %}"{% endif %}
+        data-for="{{ for }}"
+        data-view="{{ view }}"
+        data-returns="{{ returns }}"
+        x-data="mvpSheetTrigger"
+        {{ attrs }}>{% if slot.strip %}{{ slot }}{% if label %}<span class="sr-only"> {{ label }}</span>{% endif %}{% else %}<c-icon name="{{ icon }}" aria-hidden="true" />{% endif %}</button>
+{% endif %}

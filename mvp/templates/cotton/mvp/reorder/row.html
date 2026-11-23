@@ -1,0 +1,14 @@
+{# @description One row of a c-mvp.reorder list: its position number, its title, the move buttons and the handle. #}
+{# @prop value:text | description:"The row's identifier, as the form or the post delivers it." #}
+{# @prop label:text | description:"The row's name, used in the controls' accessible names." #}
+{# @prop class:text | description:"Extra classes on the row." #}
+{# @slot The row's title. #}
+<c-vars value="" label class />
+<li class="mvp-reorder-row {{ class }}"
+    data-mvp-reorder-row
+    {% if value %}data-mvp-reorder-value="{{ value }}"{% endif %}
+    {{ attrs }}>
+  <div class="min-w-0 truncate">{{ slot }}</div>
+  {% if value %}<input type="hidden" value="{{ value }}" data-mvp-reorder-input>{% endif %}
+  <c-mvp.reorder.moves label="{{ label }}" only />
+</li>

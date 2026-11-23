@@ -32,6 +32,18 @@ A guarded Python module under `mvp.integrations` that builds on exactly one opti
 
 **Existing integrations:** `django_tables` (django-tables2). django-filter is not one: it is a dependency of the package, because every list page's search, sort and filters come from a filterset (ADR 0033).
 
+### Kind
+
+One sort of thing the site search can find, such as products, pages or people. A kind answers a query for one request and returns what it found; it decides what that request may see. Registered with `mvp.search.register` from `AppConfig.ready`, as a `Kind` subclass, a `ModelKind` over a model `modelsearch` indexes, or a plain function. Its `label` and `description` are shown to every visitor.
+
+### Result
+
+One thing a kind found: a title, an address, a short line saying where it comes from and an optional passage. `mvp.search.Result`.
+
+### Group
+
+What one kind found for one query: the kind, the results to show, the total found and the address of the kind's full list. The search shows one group per active kind and never ranks across groups. `mvp.search.Group`.
+
 ### Filterset
 
 The developer's django-filter class for one model's list, set on a list view as `filterset_class` (or generated from `filterset_fields`). It declares every way the list can be narrowed or ordered: the search (`mvp.filters.SearchFilter`), the sort (`mvp.filters.SortFilter`) and every filter. A list view has no other place to declare search or sort.
@@ -145,6 +157,48 @@ The height of the app header, published as the CSS custom property `--mvp-header
 and for a page with no header. Anything that has to clear the sticky header reads it, such as the
 side panel and the document's `scroll-padding-top`. See
 [Header height](docs/layout.md#header-height).
+
+### List row
+
+A `<c-mvp.list.row>`: one row of a list that offers its **row actions** by swipe on a touch screen
+and from its **row menu**. With no actions it is a plain list row. See
+[List rows with actions](docs/developer/list-rows.md).
+
+### Row action
+
+A `<c-mvp.list.row.action>`: one thing a **list row** offers, such as Open or Remove. It is written
+once and drawn once, as an item of the **row menu**. The swipe's buttons are built from these
+items and pressing one presses the item.
+
+### Main action
+
+The one **row action** marked `main`, which a long swipe runs. A row has at most one.
+
+### Row menu
+
+The menu of a **list row**'s actions. It sits in a dropdown with a mouse, moves into the row's
+sheet on a touch screen, and is the keyboard's way to the actions.
+
+### Reorderable list
+
+A `<c-mvp.reorder>`: a list whose rows a person puts in their own order, by dragging the **handle**
+of a row or by pressing its up and down buttons. It can hand the order on, and it is not the
+**Position field** that stores the order. See [Reorder a list](docs/reorder.md).
+
+### Handle
+
+The grip at the end of a **reorderable list**'s row. Only a drag that starts on it moves the row,
+so the rest of the row stays free for links and fields.
+
+### Reorder mode
+
+A **reorderable list** with `mode="on-demand"`: its move controls are hidden until the person
+starts reordering, and hidden again when they finish.
+
+### Position field
+
+The integer field on a record that holds where it sits in a list. `mvp.ordering.save_order` writes
+it from the order a request carries. See [Reorder a list](docs/reorder.md#save-a-received-order).
 
 ### Side block
 
@@ -305,7 +359,11 @@ c-mvp.actions.theme-controller
 c-mvp.actions.theme-cycle — one button: light, dark, then automatic (follows the device)
 c-mvp.actions.language-switcher
 c-mvp.actions.language-switcher-modal — the language choices in a dialog, for narrow slots
-c-mvp.actions.search
+c-mvp.actions.search    — the site search: a field or a button, and its dialog. Opens the search and needs `mvp.search.urls` mounted; it used to draw an input wired to nothing
+c-mvp.search.field      — the search field with its Ctrl K hint, shown on wide screens
+c-mvp.search.button     — the search button, shown on narrow screens
+c-mvp.search.dialog     — the dialog: a combobox input and a listbox of results
+c-mvp.search.result     — one result row
 c-mvp.actions.login     — navbar log-in button, renders only when anonymous
 ```
 
@@ -320,6 +378,11 @@ c-mvp.text              — styled text element
 c-mvp.data-field        — key-value display field
 c-mvp.messages          — Django messages flash list
 c-mvp.modal             — modal dialog overlay
+c-mvp.sheet             — a dialog that rises from the foot of a phone's screen and is centred on a wider one
+  c-mvp.sheet.view      — one step of a sheet, shown while the sheet's view is its name
+  c-mvp.sheet.trigger   — the button or link that opens a sheet
+  c-mvp.sheet.menu      — the list of actions in a sheet
+  c-mvp.sheet.menu.item — one action in that list
 c-mvp.dropdown          — dropdown menu trigger
 c-mvp.brand.logo        — brand logo image
 c-mvp.brand.icon        — brand icon glyph

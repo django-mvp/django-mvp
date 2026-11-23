@@ -201,6 +201,40 @@ class TestThemeControllerOfferedSetShape:
         )
 
 
+class TestThemeControllerWithOneReachableTheme:
+    @pytest.mark.django_db
+    def test_no_toggle_when_default_and_dark_are_the_same_theme(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "dark")
+        monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "dark")
+        content = client.get("/").content.decode()
+
+        assert "data-toggle-theme" not in content
+        assert "data-set-theme" not in content
+
+    @pytest.mark.django_db
+    def test_no_menu_when_choices_offer_only_the_default(self, client, monkeypatch):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "dark")
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["dark"])
+        content = client.get("/").content.decode()
+
+        assert "data-set-theme" not in content
+        assert "data-toggle-theme" not in content
+
+    @pytest.mark.django_db
+    def test_a_single_choice_other_than_the_default_keeps_the_menu(
+        self, cotton_render_string_soup, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["dracula"])
+
+        soup = cotton_render_string_soup(
+            "<c-mvp.actions.theme-controller />", context={"mvp_config": MVP_CONFIG}
+        )
+
+        assert soup.select_one('[data-set-theme="dracula"]') is not None
+
+
 class TestUnmatchedThemeNameFallsThrough:
     UNMATCHED_NAME = "totallynotarealtheme"
 

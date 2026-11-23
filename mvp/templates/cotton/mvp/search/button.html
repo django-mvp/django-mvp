@@ -1,0 +1,10 @@
+{# @description The site search's button on a narrow screen, where the search field does not fit. It opens the search dialog. #}
+{% load i18n %}
+{% firstof mvp_config.site_name request.site.name as site %}
+<button type="button"
+        commandfor="mvp-search"
+        command="show-modal"
+        class="mvp-search-button mvp-mobile-only btn btn-ghost btn-sm btn-square"
+        aria-label="{% if site %}{% blocktrans %}Search {{ site }}{% endblocktrans %}{% else %}{% trans "Search this site" %}{% endif %}">
+  <c-icon name="search" aria-hidden="true" only />
+</button>

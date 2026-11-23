@@ -293,13 +293,19 @@ root element.
 
 | Component | Attributes |
 | --- | --- |
-| `c-mvp.card` | `title`, `icon`, `tight` (remove body padding), `class`, `body_class`; slots: default, `badges`, `actions`, `footer`, `footer_end` |
+| `c-mvp.card` | `title`, `icon`, `href` (make the whole card a link, see [A card that is a link](#a-card-that-is-a-link)), `tight` (remove body padding), `class`, `body_class`; slots: default, `badges`, `actions`, `footer`, `footer_end` |
 | `c-mvp.card.wrapper` | `class` — the bare card surface (background, rounded corners, shadow), for a fully custom interior |
 | `c-icon` | `name` (required); every other attribute reaches the rendered icon element, so `class`, `height` and the rest are set on the tag |
 | `c-mvp.text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
 | `c-mvp.data-field` | `label`, `value`, `help_text` (a tooltip on the label), `missing` (default `–`) — key–value display; links the value when it has a URL |
-| `c-mvp.messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000) |
-| `c-mvp.modal` | `id` (for `showModal()`/`close()`), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` — a dialog laid out as a card, drawn inside daisy-cotton's `c-modal`; `title` is the card's heading and the dialog's accessible name; `icon` and the `actions`/`footer`/`footer_end` slots forward to the inner `c-mvp.card`. It holds no form of its own and its close controls are `type="button"`, so it can sit inside a form |
+| `c-mvp.messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000), `oob` (pass `oob="true"` on the copy an htmx response carries). A message can carry one action, see [A message with an action](#a-message-with-an-action) |
+| `c-mvp.modal` | `id` (for `showModal()`/`close()`), `title` (the heading, and the dialog's accessible name), `icon` (leading the heading), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` (added to the modal box) — a dialog drawn on daisyUI's own modal box, inside daisy-cotton's `c-modal`; the default slot is the body, `actions` sits at the end of the heading row, and `footer` and `footer_end` fill the actions row at its start and end. A body taller than the screen scrolls inside the box while the heading and the actions row stay in view. It holds no form of its own and its close controls are `type="button"`, so it can sit inside a form |
+| `c-mvp.sheet` | `id` and `title` (required; the title is the dialog's accessible name), `lead` (the line under the title), `icon` (before the title), `full` (open at the full height), `fixed` (keep the resting height), `wide` (the wide size for the centred dialog), `class`; slots `art`, `description` and `actions` — a dialog that rises from the foot of a phone's screen and is centred from the `sm` breakpoint up. See [Sheets](developer/sheets.md) |
+| `c-mvp.sheet.view` | `name` (required) — a panel of a sheet that shows while the sheet's view is its name; an element inside the sheet switches to it with `@click="show('name')"` |
+| `c-mvp.sheet.trigger` | `for` (the sheet's id, required), `href` (the page that offers the same actions), `label` (what the item is called), `view`, `returns` (the id of the element focus returns to), `icon` (default `more`), `id`, `class` — opens a sheet; see [Sheets](developer/sheets.md) |
+| `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item` | the list of actions in a sheet, built on `c-menu` and `c-menu.item`. A row takes `text`, `icon`, `href` (a link; without it a button), `danger` (marks a destructive action), `type` and `class`; its icon is hidden from assistive technology |
+| `c-mvp.list.row` | `id` (required with actions; names the sheet `{id}-sheet`), `label` (the sheet's title and the control's name), `lead`, `face_class`, `class`; slots: default (the content) and `actions` — a list row that offers its actions once, as a dropdown menu and as a sheet. With no actions it is a plain `c-list.row`. See [List rows with actions](developer/list-rows.md) |
+| `c-mvp.list.row.action` | `text` (required), `icon`, `href` (a link; without it a button), `danger`, `main` (the action a long swipe runs; at most one per row), `leaves` (the row leaves the list), `label` (the accessible name), `type`, `class`; other attributes land on the link or button — one action of a list row, built on `c-mvp.sheet.menu.item`. See [List rows with actions](developer/list-rows.md) |
 | `c-mvp.dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`), `full` (panel matches the trigger's width), `hover` (open on hover), `class`, `content_class`; slot `button` = trigger — see the placement note below |
 | `c-mvp.avatar` | `for` (default `request.user`), `src`, `alt` (default `User avatar`), `size` (`xs`/`sm`/`md`/`lg`/`xl`/`xxl` or a Tailwind width class, default `md`), `shape` (default `rounded-full`), `variant` (initials background colour, default `primary`), `status` (`online`/`offline`), `placeholder` (initials shown when there's no image), `class` |
 | `c-mvp.brand.logo` / `c-mvp.brand.icon` | `max-height`, `class` — brand images via the configured resolvers. Two `img` elements when a dark variant exists, one shown at a time |
@@ -340,6 +346,65 @@ fragments spread across the alert's width:
 
 Anything richer than a sentence — a heading, a paragraph and a list — goes in a `<div>`
 for the same reason.
+
+### A card that is a link
+
+Give `c-mvp.card` an `href` and its title becomes the card's one link, stretched over
+the whole card: a click or tap anywhere on the card opens the address, and a keyboard or
+screen-reader user reaches one link, named by the title. Buttons, menus, form controls
+and other links inside the card sit above the stretched link and do their own thing.
+
+```html
+<c-mvp.card title="Project Atlas" icon="folder" href="{% url 'project-detail' project.pk %}">
+  <c-slot name="actions">
+    <c-button text="Archive" size="sm" ghost />
+  </c-slot>
+  <c-mvp.text muted tight>Last changed yesterday.</c-mvp.text>
+</c-mvp.card>
+```
+
+The title is the link's name, so a card with an `href` and no `title` draws no link.
+
+### A message with an action
+
+A Django message can carry one action, a link or a button, so a page can say what it did
+and offer a way back. Pass the result of `mvp.utils.action_tags` as the message's
+`extra_tags`:
+
+```python
+from django.contrib import messages
+from django.urls import reverse
+from mvp.utils import action_tags
+
+messages.success(
+    request,
+    "Moved to the archive.",
+    extra_tags=action_tags("Undo", reverse("restore", args=[pk]), method="post"),
+)
+```
+
+`method="get"`, the default, draws a link to the address. `method="post"` draws a button in
+a form that posts there with the CSRF token. Give a post action a `target`, a selector
+its answer replaces, and `swap`, how it replaces it (default `outerHTML`), and the button
+is sent with htmx and the page does not reload. `action_tags` returns the whole of the
+message's `extra_tags`, so it replaces any others.
+
+A message with an action stays until it is used or dismissed, and always has a dismiss
+button. A message without one keeps the list's `delay`.
+
+To show such a message in an htmx response, draw the list in the response with
+`oob="true"`. htmx finds the list already in the page by its id and replaces it:
+
+```html
+{# The answer to an htmx request that removed a row #}
+<c-mvp.messages :messages="messages" dismissible oob="true" />
+```
+
+Draw it where a request context is available, as `render(request, ...)` does, so
+`messages` and the CSRF token are there. The shell's own list is drawn by `base.html`, and
+a project that overrides the `app.messages` block keeps the id by drawing `c-mvp.messages`.
+In a template of your own, `{{ message|message_action }}` (with `{% load mvp %}`) returns the
+action a message carries, or `None`.
 
 ### A dropdown opens where it was told, unless it cannot
 
@@ -444,7 +509,7 @@ unmet.
 | `c-mvp.actions.theme-cycle` | one square icon button that steps through `theme.default`, `theme.dark` and automatic, which follows the device's setting (`size`). Moves between the same two themes whether or not `theme.choices` is set. See [Theming](theming.md) |
 | `c-mvp.actions.language-switcher` | i18n language dropdown (needs `set_language` URL); renders only when `LocaleMiddleware` is installed **and** `set_language` reverses. Posts to `mvp-set-language` for a signed-in person, which also saves the choice as their preference |
 | `c-mvp.actions.language-switcher-modal` | the same switcher as a modal, better for narrow slots like the sidebar footer where a dropdown would be cramped — the variant the fixed sidebar footer uses (`id`, `size`); same preconditions as the dropdown switcher |
-| `c-mvp.actions.search` | navbar search input; renders an input that is not wired to a form or a view — it submits nothing on its own |
+| `c-mvp.actions.search` | the site search for the navbar: `c-mvp.search.field` (a pill with the Ctrl K hint, wide screens), `c-mvp.search.button` (narrow screens, `mvp-mobile-only`) and `c-mvp.search.dialog` (id `mvp-search`, a `role="search"` form with a combobox input and a listbox of results). Needs the search mounted (`mvp.search.urls`): drawn without it, the page raises `NoReverseMatch` |
 | `c-mvp.actions.login` | log-in button (needs `login` URL); renders only when anonymous and `account_login` or `login` reverses, and carries the current page as `next` so signing in returns the visitor there (not on the sign-in or sign-out page, or allauth's `account_signup` page) — used in the navbar and in the fixed sidebar footer (`variant`, `full`) |
 | `c-mvp.user.sidebar-menu` | account dropdown; part of the fixed sidebar footer. Its default slot lands between the account-centre entry and log out, so extra `<c-menu.item>` children land in the middle of the menu |
 | `c-mvp.user.display.compact` | avatar + name row |
@@ -456,7 +521,7 @@ unmet.
 | `c-mvp.form` | the `<form>` element: CSRF token (only when `method` is `post`), multipart detection, and an optional rendered form. `form-obj` renders through `c-mvp.form.render`; `formset` and `inlines` only detect that a multipart encoding is needed and are not rendered by `c-mvp.form` itself. `method`, `action`, `id` and anything else pass straight to the `<form>` element |
 | `c-mvp.form.render` | `form` — renders a Django form's fields, honouring its helper when it has one |
 | `c-mvp.form.formset` | whole Django formset: `formset` (required), `title` (defaults to the model in plural; left out for the only set on a [rows-only page](formsets.md#the-rows-only-page) unless passed), `description`, `add-label`, `remove-label`, `class` — see [Formsets](formsets.md) |
-| `c-mvp.form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `first`, `can-delete`, `remove-label`, `class` — placed by `c-mvp.form.formset`, which supplies `first` and `can-delete` from the set; write it by hand only for a custom set layout |
+| `c-mvp.form.formset.row` | one row of a formset: `form` (required), `label` (defaults to the object), `first`, `can-delete`, `can-order`, `keeps-order`, `remove-label`, `class` — placed by `c-mvp.form.formset`, which supplies `first`, `can-delete`, `can-order` and `keeps-order` from the set; write it by hand only for a custom set layout |
 
 A form is drawn through `<c-mvp.form>`. For a single field you write by hand, outside a
 Django form, compose daisy-cotton's form components. A fieldset with an `id` gives the
@@ -478,6 +543,16 @@ names them in `aria-describedby`:
 daisy-cotton also has `<c-form.textarea>`, `<c-form.select>`, `<c-form.checkbox>`,
 `<c-form.radio>`, `<c-form.toggle>` and `<c-form.file_input>`. Leave out `variant`,
 `aria-invalid` and `aria-describedby` when the field has no error.
+
+## Reorderable lists
+
+| Component | Attributes |
+| --- | --- |
+| `c-mvp.reorder` | a list whose rows a person drags or moves with buttons: `id`, `label` (the list's accessible name), `name` (the order's field name, default `order`), `form` (a surrounding form submits the order), `url` (the order is posted there; needs an `id`), `mode` (`always`, or `on-demand` to reorder only between a start and an end control; needs an `id`), `class` — see [Reorder a list](reorder.md) |
+| `c-mvp.reorder.row` | one row of that list: `value` (the item's identifier), `label` (the item's name, for the controls), `class` |
+| `c-mvp.reorder.moves` | the up and down buttons and the handle of one row: `label`. `c-mvp.reorder.row` places it; write it by hand only for a custom row |
+
+The demo site's Reorder page (`components/reorder/`) shows four lists at work.
 
 ## Add-ons
 

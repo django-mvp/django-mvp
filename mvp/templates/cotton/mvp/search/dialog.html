@@ -1,0 +1,38 @@
+{# @description The site search as a dialog: the field, and what it finds as the reader types, grouped by kind. Enter opens the highlighted result, or the full results page when none is. #}
+{% load i18n mvp %}
+{% firstof mvp_config.site_name request.site.name as site %}
+{% search_kinds as kinds %}
+<c-modal id="mvp-search"
+         placement="top"
+         class="mvp-search-modal"
+         content_class="mvp-search-box w-11/12 max-w-2xl p-0"
+         aria-label="{% if site %}{% blocktrans %}Search {{ site }}{% endblocktrans %}{% else %}{% trans "Search this site" %}{% endif %}">
+  <form role="search"
+        method="get"
+        action="{% url 'mvp-search' %}"
+        data-mvp-search-form
+        aria-label="{% trans "Search" %}">
+    <label class="input input-lg w-full mvp-search-input">
+      <c-icon name="search" class="opacity-70" aria-hidden="true" only />
+      <span class="sr-only">{% trans "Search" %}</span>
+      <input type="search"
+             name="q"
+             autocomplete="off"
+             autofocus
+             placeholder="{% if site %}{% blocktrans %}Search {{ site }}…{% endblocktrans %}{% else %}{% trans "Search this site…" %}{% endif %}"
+             role="combobox"
+             aria-expanded="false"
+             aria-controls="mvp-search-results"
+             aria-autocomplete="list"
+             hx-get="{% url 'mvp-search-panel' %}"
+             hx-trigger="input changed delay:180ms, search"
+             hx-target="#mvp-search-results"
+             hx-sync="this:replace" />
+      <kbd class="kbd kbd-sm hidden md:inline-flex" aria-hidden="true">Esc</kbd>
+    </label>
+  </form>
+  <div id="mvp-search-results"
+       class="mvp-search-results"
+       role="listbox"
+       aria-label="{% trans "Results" %}">{% include "mvp/search/hints.html" %}</div>
+</c-modal>
