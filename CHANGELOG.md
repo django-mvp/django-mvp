@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.35.3] - 2026-11-23
+
 ### Added
 
 - `c-mvp.sheet`, with `c-mvp.sheet.view`, `c-mvp.sheet.trigger`, `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item`: a dialog that rises from the foot of a phone's screen and is centred on a wider one, for a menu of actions, a short form or a few steps. On a phone it has a grab bar and can be dragged between its resting and full heights or down to close it. A trigger inside a sheet that names no `returns` gives focus back to the element that opened that sheet. See `docs/developer/sheets.md`.
