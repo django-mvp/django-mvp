@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from django.apps import apps
+from django.conf import settings
 from django.core import checks
 from django.core.checks import CheckMessage
 from django.core.exceptions import ImproperlyConfigured
@@ -13,6 +14,9 @@ from .email.brand import EmailBrand
 from .utils import title_layout_component
 
 HINT = 'List "daisy_cotton" in INSTALLED_APPS directly below "mvp".'
+
+AUTHENTICATION_MIDDLEWARE = "django.contrib.auth.middleware.AuthenticationMiddleware"
+PREFERENCES_MIDDLEWARE = "mvp.middleware.PreferencesMiddleware"
 
 
 def daisy_cotton_app_messages(app_names: Sequence[str]) -> list[CheckMessage]:
@@ -122,3 +126,79 @@ def check_email_brand(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
         checks.Warning(problem.message, hint=problem.hint, id=problem.id)
         for problem in problems
     ]
+
+
+def object_preferences_app_messages(app_names: Sequence[str]) -> list[CheckMessage]:
+    """Judge whether ``object_preferences`` is among the installed apps.
+
+    Args:
+        app_names: The names of the installed apps.
+
+    Returns:
+        An error when ``object_preferences`` is missing, and nothing otherwise.
+    """
+    if "object_preferences" in app_names:
+        return []
+    return [
+        checks.Error(
+            'The app "object_preferences" is not in INSTALLED_APPS.',
+            hint=(
+                'List "object_preferences" in INSTALLED_APPS, and add '
+                "mvp.models.PreferencesMixin to your user model."
+            ),
+            id="mvp.E004",
+        )
+    ]
+
+
+def check_object_preferences_app(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
+    """Tell the project when ``object_preferences`` is not installed.
+
+    Args:
+        app_configs: The app configs Django asks the check about. Unused.
+        **kwargs: Anything else Django passes a check. Unused.
+
+    Returns:
+        The messages from :func:`object_preferences_app_messages` for the installed apps.
+    """
+    return object_preferences_app_messages(
+        [config.name for config in apps.get_app_configs()]
+    )
+
+
+def preferences_middleware_messages(middleware: Sequence[str]) -> list[CheckMessage]:
+    """Judge where the preferences middleware sits in ``MIDDLEWARE``.
+
+    Args:
+        middleware: The dotted paths in ``MIDDLEWARE``, in order.
+
+    Returns:
+        A warning when the preferences middleware is missing or listed before
+        the authentication middleware, and nothing otherwise.
+    """
+    if PREFERENCES_MIDDLEWARE in middleware and (
+        AUTHENTICATION_MIDDLEWARE not in middleware
+        or middleware.index(PREFERENCES_MIDDLEWARE)
+        > middleware.index(AUTHENTICATION_MIDDLEWARE)
+    ):
+        return []
+    return [
+        checks.Warning(
+            f'"{PREFERENCES_MIDDLEWARE}" is missing from MIDDLEWARE, or listed before the authentication middleware.',
+            hint=f'List "{PREFERENCES_MIDDLEWARE}" in MIDDLEWARE below "{AUTHENTICATION_MIDDLEWARE}".',
+            id="mvp.W006",
+        )
+    ]
+
+
+def check_preferences_middleware(app_configs: Any, **kwargs: Any) -> list[CheckMessage]:
+    """Tell the project when the preferences middleware is missing or misplaced.
+
+    Args:
+        app_configs: The app configs Django asks the check about. Unused.
+        **kwargs: Anything else Django passes a check. Unused.
+
+    Returns:
+        The messages from :func:`preferences_middleware_messages` for ``MIDDLEWARE``.
+    """
+    return preferences_middleware_messages(list(settings.MIDDLEWARE))

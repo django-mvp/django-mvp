@@ -359,13 +359,18 @@ class TestAccountCenterView:
         assert (bar, site) == ("", "example.com")
         assert area
 
-    def test_signed_in_request_shows_no_cards(self, client, make_user):
+    def test_signed_in_request_shows_only_the_preferences_card(
+        self, client, make_user
+    ):
         user = make_user(username="accountcenteruser3", password="pass123!")
         client.force_login(user)
         content = client.get(reverse("account-center")).content.decode()
-        assert re.search(r'<div id="account-center-cards"[^>]*>\s*</div>', content), (
-            "the card region must render present but empty, not a fallback menu "
-            "listing and not omitted entirely"
+        soup = BeautifulSoup(content, "html.parser")
+        region = soup.find(id="account-center-cards")
+        (card,) = region.find_all(class_="card")
+        assert card.find("a", href=reverse("account-preferences")) is not None, (
+            "the only card is the one for the preferences page, not a fallback "
+            "menu listing"
         )
 
     def test_response_carries_a_single_unlinked_breadcrumb(self, client, make_user):
@@ -553,10 +558,13 @@ class TestAccountCenterCards:
         region = soup.find(id="account-center-cards")
         return region.find_all(class_="card")
 
-    def test_with_neither_app_installed_the_region_is_empty(self, client, make_user):
+    def test_with_neither_app_installed_the_region_holds_only_the_preferences_card(
+        self, client, make_user
+    ):
         self._login(client, make_user, "cardsuser0")
         response = client.get(reverse("account-center"))
-        assert self._cards(response.content.decode()) == []
+        (card,) = self._cards(response.content.decode())
+        assert card.find("a", href=reverse("account-preferences")) is not None
 
     def test_a_project_template_adds_its_card_to_the_region(
         self, client, make_user, settings
@@ -569,7 +577,7 @@ class TestAccountCenterCards:
 
         response = client.get(reverse("account-center"))
 
-        (card,) = self._cards(response.content.decode())
+        _, card = self._cards(response.content.decode())
         assert card.find(attrs={"data-testid": "project-account-card"}) is not None
 
 

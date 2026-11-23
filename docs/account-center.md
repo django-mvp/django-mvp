@@ -137,8 +137,43 @@ decides its own access rules, the same way any other view in your project does.
 ## What it looks like with nothing installed
 
 With no app contributing anything, the landing page renders its own heading and
-introduction, and an empty region where a contributed card will appear later. It does
+introduction, and one card in the region where contributed cards appear: the card for
+the [preferences page](#the-preferences-page). The landing page is never empty. It does
 not fall back to listing the menu — the menu is already in the sidebar.
+
+## The preferences page
+
+Every signed-in person can open `/account/preferences/` (URL name `account-preferences`)
+from the "Preferences" entry in the area's menu or from the card on the landing page.
+It shows the preferences your project and its installed apps declare for the user
+model, each group as a fieldset, with one Save button. The groups follow the order of
+`INSTALLED_APPS`. django-mvp declares one, the person's timezone and language, as the form
+`mvp.preferences.LocalePreferences` registered under the name `locale` and headed "Timezone
+and language". Each fieldset's heading is its group's `verbose_name`:
+
+- **Timezone** is django-timezone-field's `TimeZoneFormField` with django-mvp-forms' `TimeZoneSelect`: a searchable select of the timezones grouped by region, type to find one. It reads as a `zoneinfo.ZoneInfo`. A person who
+  has not chosen one gets your project's `TIME_ZONE`.
+- **Language** is a select of "Automatic" and the languages in `LANGUAGES`. Automatic
+  leaves language negotiation to Django, as for any visitor. A project that offers a
+  single language does not show this field.
+
+`mvp.views.preferences.AccountPreferencesView` serves it. The page is always about the person who is signed in. It requires sign-in, and nothing
+in the address or the submitted form can make it show or change someone else's
+preferences. Saving valid values returns to the page with a success message, and the
+very next page uses them. An invalid submission saves nothing and marks the field.
+
+The shell's language switcher saves a signed-in person's choice as this same language
+preference. For them it posts to the `mvp-set-language` URL (`/account/preferences/language/`,
+POST only) instead of Django's `set_language`, and the page shows what they picked. The view
+stores only a language your `LANGUAGES` offers, stores nothing when the project offers a
+single language, and then lets Django's `set_language` set the cookie and follow `next`.
+Anything you build that posts a language choice can post there too.
+
+The choices take effect through `mvp.middleware.PreferencesMiddleware`, which
+[Getting started](getting-started.md) asks you to list below `AuthenticationMiddleware`.
+
+An installed app adds its own group to the page from its `preferences.py`, as
+[Preferences](developer/preferences.md) describes.
 
 ## The sidebar in the area
 

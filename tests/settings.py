@@ -32,6 +32,11 @@ INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_mounted"]
 # its email the project's look with the package's code unchanged.
 INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_email"]
 
+# An installed app that adds its own preference group to the user model
+# (FS-045, tests/testapp_preferences/): proves the group appears on the
+# preferences page and saves with the others with no wiring in django-mvp.
+INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_preferences"]
+
 # An indexed model for the search's model kind (FS-046, tests/testapp_search/).
 INSTALLED_APPS = [*INSTALLED_APPS, "tests.testapp_search"]
 

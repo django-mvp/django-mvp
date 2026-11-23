@@ -16,7 +16,9 @@ class MvpConfig(AppConfig):
         from .checks import (
             check_daisy_cotton_app,
             check_email_brand,
+            check_object_preferences_app,
             check_page_title_layout,
+            check_preferences_middleware,
         )
         from .mounted import check_mounted_apps
         from .search.checks import check_search
@@ -26,3 +28,5 @@ class MvpConfig(AppConfig):
         checks.register(check_page_title_layout)
         checks.register(check_email_brand)
         checks.register(check_search, checks.Tags.urls)
+        checks.register(check_object_preferences_app)
+        checks.register(check_preferences_middleware)

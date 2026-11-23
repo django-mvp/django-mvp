@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     "django_cotton",   # Cotton template components
     "easy_icons",      # Icon system
     "flex_menu",       # Menu system
+    "object_preferences",  # Stores each person's preferences, installed with django-mvp
     "mvp",             # django-mvp
     "daisy_cotton",    # basic components, installed with django-mvp, listed below "mvp"
     "crispy_forms",    # Form rendering
@@ -43,7 +44,8 @@ then gets the one that looks icons up by name.
 
 When the line is missing or misplaced, Django tells you at start-up: `mvp.E002` is an
 error for a missing `daisy_cotton`, and `mvp.W001` is a warning for one listed above
-`mvp`. See [Troubleshooting](troubleshooting.md#start-up-checks).
+`mvp`. `object_preferences` can go anywhere in the list; `mvp.E004` is an error when it is
+missing. See [Troubleshooting](troubleshooting.md#start-up-checks).
 
 Templates in a directory listed under `TEMPLATES` `DIRS` sidestep the question entirely:
 that loader runs before any app is consulted, whatever the order.
@@ -70,6 +72,42 @@ Without `mvp.context_processors.mvp_config`, every settings-driven option resolv
 nothing: no theme applied on first paint, no sidebar breakpoint, empty navbar widget
 lists.
 
+## Your user model
+
+django-mvp stores each person's preferences, such as their timezone and language, on your
+user model, in a field provided by django-object-preferences. Add the mixin to your user
+model:
+
+```python
+# accounts/models.py
+from django.contrib.auth.models import AbstractUser
+
+from mvp.models import PreferencesMixin
+
+
+class User(PreferencesMixin, AbstractUser):
+    pass
+```
+
+Then run `python manage.py makemigrations`. The migration adds one column to your user
+table and nothing else.
+
+If your user model already has an attribute called `preferences`, add the field under
+another name instead. django-mvp finds it whatever it is called:
+
+```python
+from django.contrib.auth.models import AbstractUser
+from object_preferences.fields import PreferencesField
+
+
+class User(AbstractUser):
+    options = PreferencesField()
+```
+
+Django's own `auth.User` cannot carry the field, so a project that has not set
+`AUTH_USER_MODEL` needs a custom user model first. A user model with no field stops
+start-up with an `ImproperlyConfigured` error that names the mixin.
+
 ## Sites and the site name
 
 The shell prints `request.site.name` in the page `<title>` and the navbar. That
@@ -87,6 +125,21 @@ SITE_ID = 1
 
 Skip either piece and nothing raises — the site name in the title and navbar just
 renders empty.
+
+Add the preferences middleware too, below `AuthenticationMiddleware`, so that each
+person's choices apply to their requests:
+
+```python
+MIDDLEWARE = [
+    # ...
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "mvp.middleware.PreferencesMiddleware",
+    # ... the rest of your middleware
+]
+```
+
+Without it nothing fails and the choices have no effect. `mvp.W006` is a warning for a
+middleware that is missing or listed above `AuthenticationMiddleware`.
 
 ## Configure icons
 

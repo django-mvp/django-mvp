@@ -9,7 +9,7 @@ registered under ``FLEX_MENUS["renderers"]``.
 - ``MobileFooterMenu`` — the mobile dock. Ships with the sidebar toggle only.
 - ``AccountCenterMenu`` — the Account Center's own navigation, drawn in the
   sidebar on its pages, under a "Back to" link (see :mod:`mvp.mounted`). Ships
-  with the entry for its own landing page. An app that wants a page in the area
+  with the entries for its own landing page and its preferences page. An app that wants a page in the area
   appends to it the same way it extends ``AppMenu``::
 
       from flex_menu import MenuItem
@@ -169,8 +169,8 @@ MobileFooterMenu = Menu(
 )
 
 #: The Account Center's own navigation, drawn in the sidebar on its pages by
-#: the mounted-app mechanism. Ships with only the entry for its own landing page
-#: (FS-028) — everything else belongs to whichever app adds to it.
+#: the mounted-app mechanism. Ships with only the entries for its own landing page
+#: and its preferences page (FS-028) — everything else belongs to whichever app adds to it.
 AccountCenterMenu = Menu(
     "AccountCenterMenu",
     children=[
@@ -178,6 +178,11 @@ AccountCenterMenu = Menu(
             name="overview",
             view_name="account-center",
             extra_context={"label": _("Account Center"), "icon": "account_center"},
+        ),
+        MenuItem(
+            name="preferences",
+            view_name="account-preferences",
+            extra_context={"label": _("Preferences"), "icon": "settings"},
         ),
     ],
     extra_context={"label": _("Account navigation")},

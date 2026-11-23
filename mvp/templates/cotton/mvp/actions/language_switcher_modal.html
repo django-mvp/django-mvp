@@ -8,6 +8,7 @@
   {% get_available_languages as LANGUAGES %}
   {% url "set_language" as set_language_url %}
   {% if set_language_url %}
+    {% if request.user.is_authenticated %}{% url "mvp-set-language" as saving_url %}{% endif %}
     <c-button ghost
               icon="globe"
               size="{{ size }}"
@@ -18,7 +19,7 @@
              title="{% trans "Select a language" %}"
              icon="globe"
              closable only>
-      <form action="{{ set_language_url }}" method="post">
+      <form action="{{ saving_url|default:set_language_url }}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}" />
         <div class="grid max-h-[60vh] grid-cols-1 gap-2 overflow-y-auto pt-1 sm:grid-cols-2">

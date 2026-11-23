@@ -160,7 +160,7 @@ class TestAccountMenuContribution:
         self, testapp_account_entries
     ):
         names = self._visible_names(RequestFactory().get("/"))
-        assert names == ["overview", "fixture_plain", "fixture_group"]
+        assert names == ["overview", "preferences", "fixture_plain", "fixture_group"]
 
     def test_a_grouped_entry_renders_under_its_label(self, testapp_account_entries):
         processed = AccountCenterMenu.process(RequestFactory().get("/"))
