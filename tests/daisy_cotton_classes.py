@@ -31,7 +31,7 @@ CLASS_ATTRIBUTE = re.compile(
 SOURCE_INLINE = re.compile(r"@source\s+inline\(\s*\"([^\"]*)\"\s*\)")
 CSS_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 VARIABLE_MARK = "\x00"
-NAME_CHARACTER = re.compile(r"[A-Za-z0-9_\\-]")
+NAME_CHARACTER = re.compile(r"[A-Za-z0-9_\\\-\u0080-\U0010ffff]")
 
 
 def component_classes(templates_dir):
@@ -94,9 +94,10 @@ def component_classes(templates_dir):
 def unstyled_classes(classes, stylesheet):
     """Return the classes that have no selector in a stylesheet.
 
-    A selector is a dot, the class name with every character outside
+    A selector is a dot, the class name with every ASCII character outside
     ``[A-Za-z0-9_-]`` backslash-escaped, and then no further name character or
-    backslash. A name that starts with a digit is written the way CSS writes it,
+    backslash. CSS writes a character above U+007F, such as ``✓``, as it is. A
+    name that starts with a digit is written the way CSS writes it,
     with a code-point escape: ``2xl:drawer-open`` is ``.\\32 xl\\:drawer-open``.
 
     Args:
@@ -108,7 +109,9 @@ def unstyled_classes(classes, stylesheet):
     """
 
     def escape(name):
-        return re.sub(r"[^A-Za-z0-9_-]", lambda m: "\\" + m.group(), name)
+        return re.sub(
+            r"[^A-Za-z0-9_\-\u0080-\U0010ffff]", lambda m: "\\" + m.group(), name
+        )
 
     def has_selector(name):
         if name[0].isdigit():

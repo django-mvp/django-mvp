@@ -331,11 +331,13 @@ writing one from scratch.
   templates use. Removing those two `@source` lines silently shrinks Tier 1
   back down to the components mvp itself renders.
 - `assets/tailwind.css` does not scan the templates of daisy-cotton or
-  django-mvp-forms. A plain Tailwind utility either package writes is listed
-  there in an `@source inline()` entry. `tests/test_components/` holds a
-  coverage test for each package, which fails and names the class when a new
-  release writes one the committed stylesheet has no selector for. Add the
-  class to the list and rebuild.
+  django-mvp-forms, or django-mvp-forms' Python. A plain Tailwind utility
+  either package writes is listed there in an `@source inline()` entry. That
+  includes the classes django-mvp-forms builds in Python, such as the colour of
+  a chosen pill, chip or card, listed for every colour. `tests/test_components/`
+  holds a coverage test for each package, which fails and names the class when
+  a new release writes one the committed stylesheet has no selector for. Add
+  the class to the list and rebuild.
 - Build: `invoke build-stylesheet` (runs `npm run build:css:prod` and
   brotli-compresses the output). Both artifacts are committed.
 - CI: `.github/workflows/stylesheet.yml` rebuilds the CSS on every PR and

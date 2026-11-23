@@ -63,6 +63,18 @@
 @source inline("text-base-content/90");
 @source inline("whitespace-normal");
 
+/* django-mvp-forms also builds classes in Python: the colour a chosen pill,
+   chip or card takes from the form pack, and the classes its choice widgets
+   give their inputs. This build does not scan its Python either, so they are
+   listed here, every colour of each. A release that builds another fails the
+   coverage test by name. */
+@source inline("checked:{bg,border}-{neutral,primary,secondary,accent,info,success,warning,error}");
+@source inline("checked:text-{neutral,primary,secondary,accent,info,success,warning,error}-content");
+@source inline("has-checked:border-{neutral,primary,secondary,accent,info,success,warning,error}");
+@source inline("has-checked:bg-{neutral,primary,secondary,accent,info,success,warning,error}/10");
+@source inline("checked:before:content-['✓']");
+@source inline("h-{11,12}");
+
 /* Curated Tailwind utility pack (#190, second half): a consuming project
    composes these at template-authoring time, never in this package's own
    source, so the scanner needs an explicit safelist to find them. */
