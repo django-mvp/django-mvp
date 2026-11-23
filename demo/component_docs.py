@@ -53,6 +53,13 @@ COMPONENTS = [
         "A list a person puts in their own order by dragging or with buttons.",
     ),
     ComponentDoc(
+        "list-row",
+        "List row",
+        "list-ul",
+        "A list row that offers its actions once, by swipe on a touch screen and "
+        "from a menu.",
+    ),
+    ComponentDoc(
         "dropdown", "Dropdown", "list", "A trigger that reveals a floating panel."
     ),
     ComponentDoc("modal", "Modal", "layout", "A dialog overlay opened via JavaScript."),

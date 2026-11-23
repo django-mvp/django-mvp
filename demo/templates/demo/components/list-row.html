@@ -1,0 +1,73 @@
+{% extends "demo/components/base.html" %}
+{% block component.docs %}
+  <c-components.section title="Actions"
+                        description="Each row writes its actions once. On a touch screen swipe a row towards the start of the line to reach them, and swipe it a long way to run its main action. With a mouse, or from a keyboard, press the more button at the row's end. The first row's actions are a link, a button and a form action. The second row's Remove leaves the list: the demo view answers, so the row goes. The third row's Remove sends its request to a view that fails, so the row folds away and then comes back. The fourth row has no main action, and the last row has no actions at all.">
+    {% cotton:verbatim %}
+    <form id="row-demo-form" method="get"></form>
+    <ul class="list bg-base-100 rounded-box shadow-sm">
+      <c-mvp.list.row id="row-link" label="Agree the budget" lead="Edited yesterday">
+        <div class="list-col-grow">Agree the budget</div>
+        <c-slot name="actions">
+          <c-mvp.list.row.action id="row-link-open" text="Open" icon="view" href="/components/list-row/" main />
+          <c-mvp.list.row.action id="row-link-pin" text="Pin" icon="star" />
+          <c-mvp.list.row.action id="row-link-send" text="Send" icon="share" type="submit" form="row-demo-form" />
+        </c-slot>
+      </c-mvp.list.row>
+      <c-mvp.list.row id="row-answers" label="Book the venue" lead="Due on Friday">
+        <div class="list-col-grow">Book the venue</div>
+        <c-slot name="actions">
+          <c-mvp.list.row.action id="row-answers-open" text="Open" icon="view" href="/components/list-row/" />
+          <c-mvp.list.row.action id="row-answers-remove" text="Remove" icon="trash" danger leaves main
+                                 hx-post="{% url 'list-row-demo-answer' %}"
+                                 hx-target="closest [data-mvp-row]" hx-swap="outerHTML" />
+        </c-slot>
+      </c-mvp.list.row>
+      <c-mvp.list.row id="row-fails" label="Send the invitations" lead="Waiting on the guest list">
+        <div class="list-col-grow">Send the invitations</div>
+        <c-slot name="actions">
+          <c-mvp.list.row.action id="row-fails-remove" text="Remove" icon="trash" danger leaves
+                                 hx-post="{% url 'list-row-demo-fail' %}"
+                                 hx-target="closest [data-mvp-row]" hx-swap="outerHTML" />
+        </c-slot>
+      </c-mvp.list.row>
+      <c-mvp.list.row id="row-no-main" label="Order the catering" lead="Two quotes in">
+        <div class="list-col-grow">Order the catering</div>
+        <c-slot name="actions">
+          <c-mvp.list.row.action id="row-no-main-open" text="Open" icon="view" href="/components/list-row/" />
+          <c-mvp.list.row.action id="row-no-main-pin" text="Pin" icon="star" />
+        </c-slot>
+      </c-mvp.list.row>
+      <c-mvp.list.row id="row-none" label="Print the programme">
+        <div class="list-col-grow">Print the programme</div>
+      </c-mvp.list.row>
+    </ul>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Switching swiping off"
+                        description="A page switches the swiping of one list off and on again with mvpRows.off and mvpRows.on. While it is off a row stays where it is under a finger, and its menu still offers every action.">
+    {% cotton:verbatim %}
+    <div x-data class="flex gap-2 mb-2" role="toolbar" aria-label="Swiping">
+      <button type="button" class="btn btn-sm" data-mvp-rows-switch="off"
+              @click="mvpRows.off(document.getElementById('switch-rows'))">Switch swiping off</button>
+      <button type="button" class="btn btn-sm btn-primary" data-mvp-rows-switch="on"
+              @click="mvpRows.on(document.getElementById('switch-rows'))">Switch swiping on</button>
+    </div>
+    <ul id="switch-rows" class="list bg-base-100 rounded-box shadow-sm">
+      <c-mvp.list.row id="switch-one" label="Draft the brief" lead="Edited today">
+        <div class="list-col-grow">Draft the brief</div>
+        <c-slot name="actions">
+          <c-mvp.list.row.action text="Open" icon="view" href="/components/list-row/" main />
+          <c-mvp.list.row.action text="Pin" icon="star" />
+        </c-slot>
+      </c-mvp.list.row>
+      <c-mvp.list.row id="switch-two" label="Collect the quotes" lead="Edited today">
+        <div class="list-col-grow">Collect the quotes</div>
+        <c-slot name="actions">
+          <c-mvp.list.row.action text="Open" icon="view" href="/components/list-row/" />
+          <c-mvp.list.row.action text="Pin" icon="star" />
+        </c-slot>
+      </c-mvp.list.row>
+    </ul>
+  {% endcotton:verbatim %}
+  </c-components.section>
+{% endblock component.docs %}

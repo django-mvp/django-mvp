@@ -1,0 +1,35 @@
+{# @description A list row that offers its actions once: by swipe on a touch screen and from a menu, a dropdown with a mouse and a sheet on a touch screen. Without actions it is a plain list row. Write each action as an mvp.list.row.action in the actions slot. #}
+{# @prop id:text | description:"Required when the row has actions. It names the row's sheet." #}
+{# @prop label:text | description:"The row's name: the sheet's title and the control's accessible name." #}
+{# @prop lead:text | description:"The line under the sheet's title." #}
+{# @prop face_class:text | description:"Classes of the face, the part that holds the content." #}
+{# @prop class:text | description:"Extra classes added to the row." #}
+{# @slot Quarterly report — The row's content. #}
+{# @slot:actions <c-mvp.list.row.action text="Rename" icon="edit" /> — The row's actions, as mvp.list.row.action components. Leave empty for a plain row. #}
+{% load i18n mvp %}
+<c-vars id label lead face_class class actions="" />
+{% if actions.strip %}
+<c-list.row :id="id" class="mvp-row {{ class }}" x-data="mvpRowActions" data-mvp-row :attrs="attrs" only>
+  <div class="mvp-row-face list-row {{ face_class }}">
+    {{ slot }}
+    <div class="mvp-row-more">
+      <c-mvp.dropdown class="mvp-row-dropdown" halign="end" only>
+        <c-slot name="button">
+          <button type="button" class="btn btn-ghost btn-square btn-sm" tabindex="0" aria-label="{% blocktranslate with name=label %}More for {{ name }}{% endblocktranslate %}"><c-icon name="ellipsis" aria-hidden="true" only /></button>
+        </c-slot>
+        <c-mvp.sheet.menu data-mvp-row-menu only>{{ actions|single_main_action:id }}</c-mvp.sheet.menu>
+      </c-mvp.dropdown>
+      <c-mvp.sheet.trigger for="{{ id }}-sheet" label="{{ label }}" icon="ellipsis" class="mvp-row-sheet-trigger" only />
+    </div>
+  </div>
+  <c-mvp.sheet id="{{ id }}-sheet" title="{{ label }}" lead="{{ lead }}" only>
+    <div data-mvp-row-sheet-body></div>
+  </c-mvp.sheet>
+</c-list.row>
+{% else %}
+{% if id %}
+<c-list.row id="{{ id }}" class="{{ class }}" :attrs="attrs" only>{{ slot }}</c-list.row>
+{% else %}
+<c-list.row class="{{ class }}" :attrs="attrs" only>{{ slot }}</c-list.row>
+{% endif %}
+{% endif %}

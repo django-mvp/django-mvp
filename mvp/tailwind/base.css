@@ -1901,3 +1901,186 @@ html {
     animation-duration: 0s !important;
   }
 }
+
+/* Row actions (FS-048): a row narrows on a swipe to show the buttons built under it.
+   The script sets --mvp-row-x (px, negative while open) and the state classes
+   is-open, is-dragging, is-hinting, is-committing, is-folded and is-full. */
+.mvp-row {
+  --mvp-row-x: 0px;
+  --mvp-row-ease: cubic-bezier(0.22, 0.9, 0.3, 1);
+  position: relative;
+  isolation: isolate;
+  touch-action: pan-y;
+  transition:
+    height 0.22s var(--mvp-row-ease),
+    opacity 0.22s;
+  /* The face carries the list row's grid and padding; this item keeps its divider. */
+  display: block;
+  padding: 0;
+}
+
+.mvp-row > .mvp-row-face {
+  position: relative;
+  z-index: 1;
+  /* The row narrows rather than slides, so the start of its content stays where it was
+     and the reader can still see which row the buttons act on. */
+  width: calc(100% + var(--mvp-row-x));
+  transition:
+    width 0.28s var(--mvp-row-ease),
+    background-color 0.15s;
+  border-radius: inherit;
+}
+
+.mvp-row > .mvp-row-face::after {
+  content: none;
+}
+
+.mvp-row:is(.is-open, .is-dragging) > .mvp-row-face {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.mvp-row.is-dragging > .mvp-row-face {
+  transition: background-color 0.15s;
+  user-select: none;
+}
+
+.mvp-row.is-hinting > .mvp-row-face {
+  transition-duration: 0.42s;
+}
+
+.mvp-row.is-committing > .mvp-row-face {
+  transition-duration: 0.18s;
+}
+
+.mvp-row.is-folded {
+  opacity: 0;
+}
+
+/* Clipped only while it moves, so the row's own menu can open past its edges. */
+.mvp-row:is(.is-open, .is-dragging, .is-hinting, .is-committing, .is-folded),
+.mvp-row:is(.is-open, .is-dragging, .is-hinting, .is-committing, .is-folded)
+  > .mvp-row-face {
+  overflow: hidden;
+}
+
+/* The face never lies over the buttons, so its hover and current colours move from the
+   row to the face and stop where the buttons start. */
+.mvp-row:hover,
+.mvp-row[aria-current="true"] {
+  background: transparent;
+}
+
+@media (hover: hover) {
+  .mvp-row:hover > .mvp-row-face {
+    background: var(--color-base-300);
+  }
+}
+
+.mvp-row[aria-current="true"] > .mvp-row-face {
+  background: color-mix(in oklab, var(--color-primary) 14%, transparent);
+}
+
+.mvp-row > .mvp-row-under {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: calc(-1 * var(--mvp-row-x));
+  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-start-end-radius: inherit;
+  border-end-end-radius: inherit;
+  transition: width 0.28s var(--mvp-row-ease);
+}
+
+.mvp-row.is-dragging > .mvp-row-under {
+  transition: none;
+}
+
+.mvp-row.is-hinting > .mvp-row-under {
+  transition-duration: 0.42s;
+}
+
+.mvp-row.is-committing > .mvp-row-under {
+  transition-duration: 0.18s;
+}
+
+.mvp-row-button {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition: flex-grow 0.2s var(--mvp-row-ease);
+}
+
+.mvp-row-button > :is(i, svg) {
+  font-size: 1.2rem;
+}
+
+.mvp-row-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
+}
+
+.mvp-row-button-neutral {
+  background: color-mix(in oklab, var(--color-base-content) 14%, var(--color-base-100));
+  color: var(--color-base-content);
+}
+
+.mvp-row-button-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.mvp-row-button-danger {
+  background: var(--color-error);
+  color: var(--color-error-content);
+}
+
+/* Past most of the row, the full button takes the whole width and its word moves to the
+   row's edge with the finger. */
+.mvp-row.is-full .mvp-row-button:not([data-mvp-row-full]) {
+  flex-grow: 0;
+}
+
+.mvp-row.is-full .mvp-row-button[data-mvp-row-full] {
+  flex-grow: 1;
+  align-items: flex-start;
+  padding-inline-start: 1.5rem;
+}
+
+/* A row's ⋯ is a dropdown with a mouse and a sheet with a finger. Both offer the one menu
+   the row holds, so each is left out where the other is shown. The sheet takes over only
+   once the script has set the row up: a page without it keeps the dropdown everywhere. */
+.mvp-row-sheet-trigger {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  [data-mvp-row-ready] .mvp-row-dropdown {
+    display: none;
+  }
+
+  [data-mvp-row-ready] .mvp-row-sheet-trigger {
+    display: inline-flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mvp-row,
+  .mvp-row > .mvp-row-face,
+  .mvp-row > .mvp-row-under,
+  .mvp-row-button {
+    transition-duration: 0.01s !important;
+  }
+}

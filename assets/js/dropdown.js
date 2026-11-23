@@ -72,11 +72,18 @@ const DEFAULT_PLACEMENT = "bottom-start";
 // teardown never runs and its listeners would outlive the markup.
 const tracking = new Set();
 
-function upgrade(wrapper) {
+// One dropdown's upgrade, for a component that arrives after the page's own: a row an
+// htmx swap brings in is not covered by startDropdowns(). A panel already promoted is
+// left alone, so calling this twice is harmless.
+export function upgradeDropdown(wrapper) {
   const panel = wrapper.querySelector(":scope > .dropdown-content");
   const trigger = wrapper.firstElementChild;
 
-  if (!panel || !trigger || trigger === panel) {
+  if (!HTMLElement.prototype.showPopover) {
+    return;
+  }
+
+  if (!panel || !trigger || trigger === panel || panel.hasAttribute("popover")) {
     return;
   }
 
@@ -184,5 +191,5 @@ export function startDropdowns() {
   tracking.forEach((stop) => stop());
   tracking.clear();
 
-  document.querySelectorAll("[data-mvp-dropdown]").forEach(upgrade);
+  document.querySelectorAll("[data-mvp-dropdown]").forEach(upgradeDropdown);
 }

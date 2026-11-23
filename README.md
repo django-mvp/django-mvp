@@ -53,6 +53,10 @@ the box. **Things should just work.**
 - **Sheets** — a dialog that rises from the foot of a phone's screen, with a grab bar to
   drag it taller or shorter, and is centred on a wider one. It holds a menu, a short
   form or a few steps, and its trigger is a real link where scripts do not run.
+- **List rows with actions** — write a row's actions once and they are offered by swipe
+  on a touch screen and from a menu: a dropdown with a mouse, a sheet on a touch screen.
+  A long swipe runs the row's main action, and a keyboard reaches every action through
+  the menu.
 - **Views that do the boring parts** — list pages with admin-style search, whitelisted
   ordering and pagination; form pages rendered with crispy-forms; delete
   flows with related-object summaries and type-to-confirm; styled error pages.

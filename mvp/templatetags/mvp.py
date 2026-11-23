@@ -788,3 +788,27 @@ def search_kinds():
     from ..search import registry
 
     return registry.default_registry.active()
+
+
+@register.filter
+def single_main_action(actions: Any, row_id: Any):
+    """Return a row's rendered actions, refusing a second main action.
+
+    A list row has at most one action marked ``main``, the one a long swipe
+    runs. A template cannot raise, so the row passes its rendered ``actions``
+    through this filter, with its own id as the argument.
+
+    Raises:
+        ImproperlyConfigured: when ``row_id`` is empty or when the markup
+            carries more than one ``data-mvp-row-main``.
+    """
+    if not row_id:
+        raise ImproperlyConfigured(
+            "A list row with actions needs an id: it names the row's sheet."
+        )
+    if str(actions).count("data-mvp-row-main") > 1:
+        raise ImproperlyConfigured(
+            f"The list row {row_id!r} has more than one main action. "
+            "Mark one action main: it is the one a long swipe runs."
+        )
+    return actions

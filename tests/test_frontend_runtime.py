@@ -93,3 +93,13 @@ class TestShippedFrontEndRuntime:
             "either it was dropped from assets/js/index.js, or the committed "
             "artifact is stale and needs `invoke build-js`"
         )
+
+
+class TestRowActionsReachTheBundle:
+    def test_the_row_component_is_registered_in_the_committed_bundle(self):
+        bundle = TestShippedFrontEndRuntime.BUNDLE.read_text()
+
+        assert "mvpRowActions" in bundle, (
+            "the list row's component is missing from the built bundle — "
+            "run `npm run build:js:prod`"
+        )

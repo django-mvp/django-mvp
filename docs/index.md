@@ -25,6 +25,7 @@ configuration through Django settings, customization through template overrides.
 | [Views](views.md) | List/form/detail/delete views and mixins |
 | [Formsets](formsets.md) | A parent record and its related rows, and the standalone formset case |
 | [Reorder a list](reorder.md) | Lists a person puts in their own order: the three ways to keep the result, the on-demand mode, lists in dialogs, and the `save_order` reference |
+| [List rows with actions](developer/list-rows.md) | A list row that offers its actions once, as a menu with a mouse and a sheet on a touch screen: writing an action, its properties, the main action, an action that takes the row out of the list, switching swiping off, and why the menu is the keyboard path |
 | [Styling](styling.md) | Tailwind/DaisyUI, the two build tiers, and the shell's class hooks |
 | [Theming](theming.md) | Every theme variable, why the theme plugin computes nothing, and writing a custom theme from scratch |
 | [Utility Classes](utility-classes.md) | Every Tailwind utility and daisyUI component the packaged stylesheet ships pre-built |
