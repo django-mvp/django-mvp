@@ -25,6 +25,7 @@ from django.template import Context, Engine, engines
 from django.template.loader import get_template, render_to_string
 from django.template.loader_tags import BlockNode, ExtendsNode
 from django.test import RequestFactory, override_settings
+from django.utils import translation
 
 from demo import urls as demo_urls
 from tests.conftest import urlconf_of
@@ -1287,3 +1288,31 @@ class TestProjectTitleLayout:
         soup = render_filled_page("page", {block: ""}, page_title_layout=OWN_LAYOUT)
 
         assert own_layout_slot(soup, block).get_text(strip=True) == ""
+
+
+@pytest.mark.django_db
+class TestPageLanguageDeclaration:
+    """``<html>`` declares the active language and its writing direction."""
+
+    @staticmethod
+    def root(language):
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+        with translation.override(language):
+            html = render_to_string("mvp/base.html", request=request)
+        return BeautifulSoup(html, "html.parser").html
+
+    def test_a_german_page_is_declared_german(self):
+        assert self.root("de")["lang"] == "de"
+
+    def test_an_english_page_is_declared_english(self):
+        assert self.root("en")["lang"] == "en"
+
+    def test_a_left_to_right_language_sets_no_direction(self):
+        assert self.root("de").get("dir") is None
+
+    def test_a_right_to_left_language_sets_the_direction(self):
+        root = self.root("ar")
+
+        assert root["lang"] == "ar"
+        assert root["dir"] == "rtl"

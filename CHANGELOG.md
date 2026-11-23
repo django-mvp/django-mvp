@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.35.3] - 2026-11-23
+
 ### Added
 
 - `c-mvp.sheet`, with `c-mvp.sheet.view`, `c-mvp.sheet.trigger`, `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item`: a dialog that rises from the foot of a phone's screen and is centred on a wider one, for a menu of actions, a short form or a few steps. On a phone it has a grab bar and can be dragged between its resting and full heights or down to close it. A trigger inside a sheet that names no `returns` gives focus back to the element that opened that sheet. See `docs/developer/sheets.md`.
@@ -24,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `c-mvp.modal` draws its heading, body and actions directly on daisyUI's modal box, where it drew a card inside a transparent box. Its props and slots do the same as before, and a tall body now scrolls inside the box while the heading and the actions stay in view. `class` goes on the modal box instead of the card, and the dialog no longer contains a `.card` element.
 - django-mvp-forms 0.11.0 is the minimum. The shipped stylesheet now styles its choice widgets drawn as a scale, pills, chips or cards, and the characters-left count under a text field.
+
+### Fixed
+
+- Every page declares the language it is shown in. The page layout wrote `lang="en"` whatever the active language was, so a German page was read by a screen reader with English pronunciation and offered for translation by the browser. It now writes the active language, and `dir="rtl"` for a right-to-left language, as the email layout already did for the language alone and now does for the direction too.
 
 ## [v0.35.2] - 2026-11-13
 

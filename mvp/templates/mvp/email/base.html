@@ -1,8 +1,8 @@
-{% load i18n mvp_email %}{% get_current_language as LANG %}{% email_brand as brand %}{% email_url "/" as site_url %}{% email_site_name as site_name %}{% comment %}
+{% load i18n mvp_email %}{% get_current_language as LANG %}{% get_current_language_bidi as BIDI %}{% email_brand as brand %}{% email_url "/" as site_url %}{% email_site_name as site_name %}{% comment %}
 The layout every branded email extends. Fill the preheader, body and footer blocks.
 Styles are written once, as rules in the style element, and {% email_inline %} writes them onto the markup while the template renders: Gmail and Outlook drop or ignore most of a style element. Only what cannot be inlined stays in it: the dark scheme and the phone width.
 {% endcomment %}{% email_inline %}<!DOCTYPE html>
-<html lang="{{ LANG }}" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="{{ LANG }}"{% if BIDI %} dir="rtl"{% endif %} xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
