@@ -265,9 +265,9 @@ An MVP view draws the trail in the header from its `breadcrumbs` list. Start the
 first level below home, because the site icon already links there:
 
 ```python
-class ProductDetailView(MVPDetailView):
-    model = Product
-    breadcrumbs = [{"text": "Products", "href": "/products/"}, {"text": "Widget"}]
+class AboutView(MVPTemplateView):
+    template_name = "about.html"
+    breadcrumbs = [{"text": "Company", "href": "/company/"}, {"text": "About"}]
 ```
 
 The header folds a trail that does not fit into a "…" menu, so any depth works. See

@@ -2,7 +2,7 @@
 {# @prop items:text | description:"A list of dicts, each with text, an optional href and an optional icon. The last one is the current page." #}
 {# @prop class:text | description:"Extra classes on the nav." #}
 {# @prop aria-label:text | description:"Accessible name of the trail. Defaults to a translated Breadcrumbs." #}
-{# @slot — The trail's steps as mvp.breadcrumbs.item (or breadcrumbs.item) components, used when no items are given. #}
+{# @slot — The trail's steps as c-mvp.breadcrumbs.item components, used when no items are given. #}
 {% load i18n %}
 <c-vars items class aria-label />
 <nav class="mvp-crumbs {{ class }}"
