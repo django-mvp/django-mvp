@@ -1,9 +1,9 @@
 """Tests for the breadcrumb trail a page declares, as the header draws it.
 
-The trail and its crumbs are this package's components. What it promises is that the header hands the
-declared entries over: one crumb per entry in order, a link where an entry has an address, the current page where
-it has none, extra attributes on the crumb, and the address written once
-(#127).
+The trail and its crumbs are this package's components. What it promises is
+that the header hands the declared entries over: one crumb per entry in order,
+a link where an entry has an address, the current page where it has none,
+extra attributes on the crumb, and the address written once (#127).
 
 Source: mvp/templates/cotton/app/navbar.html
 """

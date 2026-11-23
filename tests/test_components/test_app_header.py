@@ -10,7 +10,6 @@ here are which element exists, where it sits in the tree, and which classes it
 carries, and all three fail loudly in HTML.
 """
 
-import re
 
 import pytest
 

@@ -11,7 +11,6 @@ project chooses to mount it.
 """
 
 import copy
-import re
 from pathlib import Path
 
 import pytest

@@ -581,9 +581,9 @@ class TestShellBreadcrumbsBlock:
     def test_an_empty_block_draws_the_trail_the_view_declared(self):
         trail = trail_soup(page=VIEW_TRAIL).select_one(".mvp-header nav.mvp-crumbs")
 
-        assert [step.get_text(strip=True) for step in trail.select("li[data-mvp-crumb]")] == [
-            "From the view"
-        ]
+        steps = trail.select("li[data-mvp-crumb]")
+
+        assert [step.get_text(strip=True) for step in steps] == ["From the view"]
 
     def test_a_filled_block_is_drawn_as_the_steps_of_the_trail(self):
         trail = trail_soup(TEMPLATE_TRAIL).select_one(".mvp-header nav.mvp-crumbs")
