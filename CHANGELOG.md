@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.36.0] - 2026-11-23
+
 ### Added
 
 - The timezone on the preferences page is django-timezone-field's `TimeZoneFormField`, drawn by django-mvp-forms' searchable `TimeZoneSelect`. django-mvp now requires `django-mvp-forms[timezone]>=0.11.0` and `django-object-preferences>=0.3.1`, and a person's timezone preference reads as a `zoneinfo.ZoneInfo`.
