@@ -149,7 +149,7 @@ class TestTableViewTemplate:
         headings = soup.find_all("h1")
         assert len(headings) == 1
         assert "Products" in headings[0].get_text()
-        assert headings[0].find_parent("nav", class_="breadcrumbs") is None
+        assert headings[0].find_parent("nav", class_="mvp-crumbs") is None
 
     @pytest.mark.django_db
     def test_the_title_bar_is_the_only_row_above_the_table(self, rf, product):
@@ -157,7 +157,7 @@ class TestTableViewTemplate:
         bar = soup.find(class_="page-title")
         assert bar is not None
         assert bar.find("h1") is not None
-        trail = soup.find("nav", class_="breadcrumbs")
+        trail = soup.find("nav", class_="mvp-crumbs")
         assert trail is not None
         assert trail.find_parent(class_="mvp-header") is not None, (
             "the page body draws no trail of its own — the app header has it"

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `c-mvp.breadcrumbs` and `c-mvp.breadcrumbs.item`: a breadcrumb trail that measures the box it sits in, so it fits the header, a card, a sidebar or a panel. Steps that do not fit fold, from the middle outwards, into a "…" menu that lists them in order, while the first step, the parent and the current page stay. The current page is never folded. The menu opens through the dropdown upgrade, takes focus and closes on Escape, and its labels are translatable. Without JavaScript every step shows. See `docs/layout.md`.
+- A step of the trail takes an `icon`. On a narrow trail the first step shrinks to its icon before it folds into the menu.
+- Under 36rem of header width the trail takes its own row below the site icon and the buttons, so a phone has room to name the current page.
+- `docs/layout.md`, `docs/views.md` and `docs/getting-started.md` carry nine guidelines for a good trail, from Nielsen Norman Group's breadcrumb research.
+
+### Changed
+
+- The header draws its trail with `c-mvp.breadcrumbs` instead of daisy-cotton's `c-breadcrumbs`. A view's `breadcrumbs` list and its steps work unchanged. The trail's `<nav>` carries `mvp-crumbs` in place of daisyUI's `breadcrumbs` class, and its steps sit in an `<ol>`. A page that fills the `app.breadcrumbs` block with `<c-breadcrumbs.item>` steps should use `<c-mvp.breadcrumbs.item>` instead.
+- A trail that does not fit no longer shrinks every step and scrolls sideways. It folds steps into the "…" menu.
+- The demo's pages start their trails at the first level below home, since the header's site icon already links home.
+
+### Fixed
+
+- The header's search field is a fixed width, `clamp(12rem, 24vw, 20rem)`. It was `100%` of the header's trailing region, which spilled leftwards over a long breadcrumb trail.
+
 ## [v0.36.1] - 2026-11-23
 
 ### Fixed

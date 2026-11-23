@@ -1005,41 +1005,6 @@
   max-width: 32rem;
 }
 
-/* A long breadcrumb trail shrinks its crumbs instead of scrolling the header
-   (#354). `.breadcrumbs{overflow-x:auto}` is still there as the last resort
-   for a width where even truncated crumbs will not fit, but the header
-   should not reach for it while a crumb still has text to give up.
-
-   `min-width: 0` on the crumb <li> and its <a> is what lets flex shrinking
-   reach the text at all: a flex item's automatic minimum width is its
-   content's natural width, not zero, so without this every crumb refuses to
-   shrink below its full text and the trail overflows exactly as before. */
-.breadcrumbs li,
-.breadcrumbs li > a {
-  min-width: 0;
-}
-
-/* The crumb's text: the <a> of a crumb with an address, or the <span> that
-   marks the current page (daisy-cotton's breadcrumbs.item). Both are direct
-   children of the <li> and carry no class of their own, so the rule is written
-   against them. `overflow: hidden` also gives the element an automatic minimum
-   size of 0 as a flex item, the same fix the rule above makes explicit for its
-   ancestors. A crumb's slot content sits inside the same element, so it is
-   clipped with the text.
-
-   Specificity: daisyUI's `.breadcrumbs>ul>li>*` matches the same element and
-   sets `display: flex`. This selector has the same specificity and wins by
-   coming later in the built stylesheet, so keep it in this layer.
-   `cursor: inherit` stops the current page's span taking the pointer cursor
-   daisyUI's rule sets for a direct child, which that crumb has never had. */
-.breadcrumbs li > :is(a, span) {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: inherit;
-}
-
 /* The header's htmx indicator (cotton/app/navbar.html). htmx puts
    `htmx-request` on whichever element is making a request, so the spinner
    shows while any element on the page carries it. It is deliberately not
@@ -1458,13 +1423,22 @@ html {
 /* Site search: the dialog's panel and the results page. */
 /* Unlayered on purpose: daisyUI draws .modal-top and .input in its utilities
    layer, which a rule in the components layer can never override. */
+/* A set width: `width: 100%` resolved against the header's shrink-to-fit
+   trailing region, which then spilled leftwards over the breadcrumb trail. */
 .mvp-search-field {
-  width: 100%;
+  width: clamp(12rem, 24vw, 20rem);
+  white-space: nowrap;
   height: 2.5rem;
   min-height: 2.5rem;
   background: color-mix(in oklab, var(--color-base-content) 7%, transparent);
   border: 1px solid transparent;
   box-shadow: none;
+}
+
+.mvp-search-field > .grow {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mvp-search-field:hover {
@@ -2082,5 +2056,284 @@ html {
   .mvp-row > .mvp-row-under,
   .mvp-row-button {
     transition-duration: 0.01s !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Breadcrumbs (cotton/mvp/breadcrumbs, assets/js/breadcrumbs.js).
+
+   The trail fills the space it is given and decides from that width, not the
+   window's, how much of itself to show. Without the script it is a single
+   row whose crumbs shrink and ellipsise; with it, crumbs that do not fit fold
+   into a "…" menu, middle first, and the current page keeps its place.
+   --------------------------------------------------------------------------- */
+.mvp-crumbs {
+  position: relative;
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.mvp-crumbs > ol {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  white-space: nowrap;
+  overflow: clip;
+  overflow-clip-margin: 4px;
+}
+
+.mvp-crumbs > ol > li {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.mvp-crumbs.is-enhanced > ol > li {
+  flex: 0 0 auto;
+}
+
+.mvp-crumbs.is-enhanced > ol > li:last-child {
+  flex: 0 1 auto;
+}
+
+.mvp-crumbs > ol > li[hidden] {
+  display: none;
+}
+
+/* The chevron between steps, on every shown item but the first. */
+.mvp-crumbs > ol > li:not(:nth-child(1 of :not([hidden])))::before {
+  content: "";
+  flex-shrink: 0;
+  width: 0.375rem;
+  height: 0.375rem;
+  margin-inline: 0.25rem 0.375rem;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  rotate: 45deg;
+  opacity: 0.35;
+}
+
+[dir="rtl"] .mvp-crumbs > ol > li:not(:nth-child(1 of :not([hidden])))::before {
+  rotate: -135deg;
+}
+
+.mvp-crumbs > ol > li > a,
+.mvp-crumbs > ol > li > span[aria-current] {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  max-width: 14rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-field, 0.375rem);
+}
+
+.mvp-crumbs > ol > li > a {
+  color: color-mix(in oklab, var(--color-base-content) 68%, transparent);
+  text-decoration: none;
+  transition: color 0.12s, background-color 0.12s;
+}
+
+.mvp-crumbs > ol > li > a:hover {
+  color: var(--color-base-content);
+  background-color: color-mix(in oklab, var(--color-base-content) 7%, transparent);
+}
+
+.mvp-crumbs > ol > li > a:focus-visible,
+.mvp-crumbs-fold-button:focus-visible,
+.mvp-crumbs-fold-menu a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* The current page: full colour, a little weight, and all the room left. */
+.mvp-crumbs > ol > li > span[aria-current] {
+  max-width: none;
+  color: var(--color-base-content);
+  font-weight: 600;
+}
+
+.mvp-crumb-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mvp-crumb-icon {
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+}
+
+/* The first step shrunk to its icon. The label stays for a screen reader. */
+.mvp-crumbs > ol > li.is-compact .mvp-crumb-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.mvp-crumbs > ol > li.is-tight > a {
+  max-width: 7rem;
+}
+
+/* Measuring: every item at its natural width, out of flow so the nav keeps
+   its own size while the script reads them. Never painted. */
+.mvp-crumbs.is-measuring > ol {
+  position: absolute;
+  inset-inline-start: 0;
+  width: max-content;
+  overflow: visible;
+  visibility: hidden;
+}
+
+.mvp-crumbs.is-measuring > ol > li {
+  flex: 0 0 auto;
+}
+
+.mvp-crumbs.is-measuring > ol > li > span[aria-current] {
+  max-width: none;
+}
+
+/* The fold: the "…" that holds the steps that did not fit. */
+.mvp-crumbs-fold-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.75rem;
+  padding-inline: 0.5rem;
+  border-radius: var(--radius-field, 0.375rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: color-mix(in oklab, var(--color-base-content) 68%, transparent);
+  cursor: pointer;
+  transition: color 0.12s, background-color 0.12s;
+}
+
+.mvp-crumbs-fold-button:hover,
+.mvp-crumbs-fold-button[aria-expanded="true"] {
+  color: var(--color-base-content);
+  background-color: color-mix(in oklab, var(--color-base-content) 9%, transparent);
+}
+
+.mvp-crumbs-fold-heading {
+  padding: 0.25rem 0.625rem 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+}
+
+.mvp-crumbs-fold-menu {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The folded steps hang off one line with a dot for each, so the menu reads
+   as the path it is and stays the same width however deep the trail. The
+   line runs on past the last item, towards the steps still in the trail. */
+.mvp-crumbs-fold-menu li {
+  position: relative;
+  padding-inline-start: 1.125rem;
+}
+
+.mvp-crumbs-fold-menu li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.6875rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: color-mix(in oklab, var(--color-base-content) 22%, transparent);
+}
+
+.mvp-crumbs-fold-menu li:first-child::before {
+  top: 50%;
+}
+
+.mvp-crumbs-fold-menu li::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(0.6875rem - 3px);
+  top: calc(50% - 3.75px);
+  width: 7.5px;
+  height: 7.5px;
+  border-radius: 999px;
+  background: var(--color-base-100);
+  border: 1.5px solid color-mix(in oklab, var(--color-base-content) 45%, transparent);
+}
+
+.mvp-crumbs-fold-menu li > :is(a, span) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.4375rem 0.625rem;
+  border-radius: var(--radius-field, 0.375rem);
+  font-size: 0.875rem;
+  color: var(--color-base-content);
+  text-decoration: none;
+}
+
+.mvp-crumbs-fold-menu a:hover {
+  background-color: color-mix(in oklab, var(--color-base-content) 7%, transparent);
+}
+
+@media (pointer: coarse) {
+  .mvp-crumbs > ol > li > a {
+    padding-block: 0.375rem;
+  }
+
+  .mvp-crumbs-fold-button {
+    height: 2.25rem;
+    min-width: 2.5rem;
+  }
+
+  .mvp-crumbs-fold-menu a {
+    padding-block: 0.625rem;
+  }
+}
+
+/* The trail in the header gets its own row on a narrow header. Beside the site
+   icon and the header's buttons a phone leaves it a few dozen pixels, not
+   enough for the current page's name, which is the one thing the trail must
+   always say. Under 36rem the leading region stops being a box, so the site
+   icon and the buttons share the first row and the trail takes the whole of
+   the second. Measured on the header, not the window, because the sidebar
+   takes its share of the window on a tablet. */
+.mvp-header {
+  container: mvp-header / inline-size;
+}
+
+@container mvp-header (width < 36rem) {
+  .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) {
+    flex-wrap: wrap;
+    row-gap: 0;
+    padding-bottom: 0.375rem;
+  }
+
+  .mvp-header .navbar-start:has(> .mvp-crumbs) {
+    display: contents;
+  }
+
+  .mvp-header .navbar-start > .mvp-crumbs {
+    order: 10;
+    flex: 1 0 100%;
+  }
+
+  .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) > .navbar-end {
+    margin-inline-start: auto;
   }
 }

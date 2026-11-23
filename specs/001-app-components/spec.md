@@ -127,6 +127,42 @@ As a developer, I can fill a template block with the steps of a breadcrumb trail
 
 ---
 
+### User Story 6 - Place a Breadcrumb Trail That Fits Its Box (Priority: P2) [Developer]
+
+As a developer, I can place `c-mvp.breadcrumbs` in a card, a sidebar or a panel and it fits that box, so the same trail works wherever I need it and the visitor always sees where the page sits.
+
+**Audience**: Developer
+**Why this priority**: The header's trail used to shrink each step and then scroll sideways, which lost the parent and the current page first. A trail that measures the box it sits in serves the header, a card and a sidebar with one component.
+**Independent Test**: A developer places `c-mvp.breadcrumbs` with five steps in a box and narrows the box, and confirms the first step, the parent and the current page stay while the steps between them fold into a "…" menu that lists them in order.
+
+**Acceptance Scenarios**:
+
+1. **Given** a trail in a box wide enough for every step, **When** the page renders, **Then** every step is drawn and no "…" menu is shown.
+2. **Given** a trail in a box too narrow for every step, **When** the page renders, **Then** the steps between the first and the parent fold into a "…" menu, from the middle outwards, and the first step, the parent and the current page stay.
+3. **Given** a trail narrower still, **When** the box shrinks, **Then** the first step folds too, then the parent is cut short, and at the narrowest the trail shows the menu and the current page only. The current page is never folded.
+4. **Given** a folded trail, **When** a visitor presses the "…" button, **Then** a menu lists the folded steps in order as links, takes focus and closes on Escape. The button's label says how many steps it holds, and its labels are translatable.
+5. **Given** the browser runs no script, **When** the page renders, **Then** every step is drawn and each shrinks with an ellipsis.
+6. **Given** a trail in a right-to-left language, **When** the page renders, **Then** the separators between steps point the other way.
+7. **Given** a trail whose steps come from an `items` list or are written in a template, **When** the page renders, **Then** each step carries its position for the schema.org breadcrumb markup and the last step is marked as the current page.
+
+---
+
+### User Story 7 - Give a Breadcrumb Step an Icon (Priority: P3) [Developer]
+
+As a developer, I can give a step an `icon`, and on a narrow trail the first step shrinks to that icon, so a short, recognisable first step costs little room.
+
+**Audience**: Developer
+**Why this priority**: A trail that must fold would otherwise lose its first step as soon as room ran short. An icon lets that step stay.
+**Independent Test**: A developer gives the first step an `icon`, narrows the trail, and confirms the first step is shown as its icon alone before it folds into the menu, with its name still available to a screen reader.
+
+**Acceptance Scenarios**:
+
+1. **Given** a step with an `icon`, **When** the page renders, **Then** the icon is drawn before the step's label and hidden from a screen reader.
+2. **Given** a first step with an icon in a trail too narrow for its label, **When** the trail lays out, **Then** the first step shrinks to its icon before it folds into the menu, and its label stays available to a screen reader and as a tooltip.
+3. **Given** a trail with no icon on its first step, **When** the trail lays out, **Then** the first step never shrinks to an icon and folds into the menu instead.
+
+---
+
 ### Edge Cases
 
 - Integrator supplies unknown or misspelled layout attributes (handled by django-cotton behavior, not by this feature).

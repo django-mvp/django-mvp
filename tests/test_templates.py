@@ -576,39 +576,39 @@ def trail_soup(blocks="", **context):
 @pytest.mark.django_db
 class TestShellBreadcrumbsBlock:
     def test_an_empty_block_and_no_view_trail_draw_no_landmark(self):
-        assert trail_soup().select_one("nav.breadcrumbs") is None
+        assert trail_soup().select_one("nav.mvp-crumbs") is None
 
     def test_an_empty_block_draws_the_trail_the_view_declared(self):
-        trail = trail_soup(page=VIEW_TRAIL).select_one(".mvp-header nav.breadcrumbs")
+        trail = trail_soup(page=VIEW_TRAIL).select_one(".mvp-header nav.mvp-crumbs")
 
-        assert [step.get_text(strip=True) for step in trail.select("li")] == [
+        assert [step.get_text(strip=True) for step in trail.select("li[data-mvp-crumb]")] == [
             "From the view"
         ]
 
     def test_a_filled_block_is_drawn_as_the_steps_of_the_trail(self):
-        trail = trail_soup(TEMPLATE_TRAIL).select_one(".mvp-header nav.breadcrumbs")
+        trail = trail_soup(TEMPLATE_TRAIL).select_one(".mvp-header nav.mvp-crumbs")
 
-        assert trail.select_one("ul > li[data-filled='trail']") is not None
+        assert trail.select_one("ol > li[data-filled='trail']") is not None
 
     def test_a_filled_block_keeps_the_toggle_and_site_icon(self):
         start = trail_soup(TEMPLATE_TRAIL).select_one(".mvp-header .navbar-start")
 
         assert start.select_one(".mvp-navbar-brand") is not None
-        assert start.select_one("nav.breadcrumbs") is not None
+        assert start.select_one("nav.mvp-crumbs") is not None
 
     def test_a_filled_block_replaces_the_trail_the_view_declared(self):
         soup = trail_soup(TEMPLATE_TRAIL, page=VIEW_TRAIL)
 
-        steps = soup.select("nav.breadcrumbs li")
+        steps = soup.select("nav.mvp-crumbs ol > li:not([data-mvp-crumbs-fold])")
 
-        assert len(soup.select("nav.breadcrumbs")) == 1
+        assert len(soup.select("nav.mvp-crumbs")) == 1
         assert [step.get("data-filled") for step in steps] == ["trail"]
 
     def test_a_page_variable_named_like_the_slot_is_not_drawn(self):
         navbar = render_component("<c-app.navbar />", breadcrumbs="leaked-trail")
 
         assert "leaked-trail" not in navbar.get_text()
-        assert navbar.select_one("nav.breadcrumbs") is None
+        assert navbar.select_one("nav.mvp-crumbs") is None
 
 
 @pytest.mark.django_db

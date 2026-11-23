@@ -31,7 +31,7 @@ def _soup(client, url):
 class TestTheTrailLivesInTheHeader:
     def test_the_trail_renders_inside_the_header(self, client):
         soup = _soup(client, PAGE_WITH_TRAIL)
-        trail = soup.find("nav", class_="breadcrumbs")
+        trail = soup.find("nav", class_="mvp-crumbs")
         assert trail is not None, "a page declaring breadcrumbs must render a trail"
         assert trail.find_parent(class_="mvp-header") is not None, (
             "the trail belongs to the app header, not the page body"
@@ -39,11 +39,11 @@ class TestTheTrailLivesInTheHeader:
 
     def test_the_page_body_draws_no_second_trail(self, client):
         soup = _soup(client, PAGE_WITH_TRAIL)
-        assert len(soup.find_all("nav", class_="breadcrumbs")) == 1
+        assert len(soup.find_all("nav", class_="mvp-crumbs")) == 1
 
     def test_a_page_with_no_crumbs_renders_no_landmark(self, client):
         soup = _soup(client, PAGE_WITHOUT_TRAIL)
-        assert soup.find("nav", class_="breadcrumbs") is None
+        assert soup.find("nav", class_="mvp-crumbs") is None
 
 
 @pytest.mark.django_db
