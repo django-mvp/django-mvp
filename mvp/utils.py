@@ -142,6 +142,7 @@ BS5_ICONS = {
     "grid-view, grid": "bi bi-grid-3x3-gap",
     "list-view": "bi bi-view-list",
     "more, options, kebab": "bi bi-three-dots-vertical",
+    "ellipsis": "bi bi-three-dots",
     "external-link": "bi bi-box-arrow-up-right",
     # The install page
     "install": "bi bi-download",

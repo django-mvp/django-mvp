@@ -239,6 +239,26 @@ class ReorderDemoSaveView(ReorderDemoData, View):
         )
 
 
+class ListRowDemoAnswerView(View):
+    """Answer a row action's request with nothing, so the row that sent it goes."""
+
+    http_method_names = ["post"]
+
+    def post(self, request):
+        """Return an empty answer that replaces the row with nothing."""
+        return HttpResponse()
+
+
+class ListRowDemoFailView(View):
+    """Refuse a row action's request, so the row that folded away comes back."""
+
+    http_method_names = ["post"]
+
+    def post(self, request):
+        """Return a server error."""
+        return HttpResponse(status=500)
+
+
 _DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"
 
 

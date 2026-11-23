@@ -64,6 +64,16 @@ urlpatterns = [
         name="reorder-demo-mode",
     ),
     path(
+        "components/list-row/answer/",
+        views.ListRowDemoAnswerView.as_view(),
+        name="list-row-demo-answer",
+    ),
+    path(
+        "components/list-row/fail/",
+        views.ListRowDemoFailView.as_view(),
+        name="list-row-demo-fail",
+    ),
+    path(
         "components/<slug:slug>/",
         views.ComponentDocView.as_view(),
         name="component-doc",

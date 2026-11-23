@@ -158,6 +158,27 @@ and for a page with no header. Anything that has to clear the sticky header read
 side panel and the document's `scroll-padding-top`. See
 [Header height](docs/layout.md#header-height).
 
+### List row
+
+A `<c-mvp.list.row>`: one row of a list that offers its **row actions** by swipe on a touch screen
+and from its **row menu**. With no actions it is a plain list row. See
+[List rows with actions](docs/developer/list-rows.md).
+
+### Row action
+
+A `<c-mvp.list.row.action>`: one thing a **list row** offers, such as Open or Remove. It is written
+once and drawn once, as an item of the **row menu**. The swipe's buttons are built from these
+items and pressing one presses the item.
+
+### Main action
+
+The one **row action** marked `main`, which a long swipe runs. A row has at most one.
+
+### Row menu
+
+The menu of a **list row**'s actions. It sits in a dropdown with a mouse, moves into the row's
+sheet on a touch screen, and is the keyboard's way to the actions.
+
 ### Reorderable list
 
 A `<c-mvp.reorder>`: a list whose rows a person puts in their own order, by dragging the **handle**
