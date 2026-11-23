@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Default trails no longer start with `Home`. `MVPListViewMixin.get_breadcrumbs` returns the page title alone, because the header's site icon already links home. A project that wants a `Home` step overrides `get_breadcrumbs`.
 - The header draws its trail with `c-mvp.breadcrumbs` instead of daisy-cotton's `c-breadcrumbs`. A view's `breadcrumbs` list and its steps work unchanged. The trail's `<nav>` carries `mvp-crumbs` in place of daisyUI's `breadcrumbs` class, and its steps sit in an `<ol>`. A page that fills the `app.breadcrumbs` block with `<c-breadcrumbs.item>` steps should use `<c-mvp.breadcrumbs.item>` instead.
 - A trail that does not fit no longer shrinks every step and scrolls sideways. It folds steps into the "…" menu.
 - The demo's pages start their trails at the first level below home, since the header's site icon already links home.
