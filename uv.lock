@@ -837,7 +837,7 @@ requires-dist = [
     { name = "django-easy-icons", specifier = ">=0.6" },
     { name = "django-filter", specifier = ">=26.1,<27" },
     { name = "django-flex-menus", specifier = ">=0.4.5" },
-    { name = "django-mvp-forms", specifier = ">=0.8.0,<1.0" },
+    { name = "django-mvp-forms", specifier = ">=0.11.0,<1.0" },
     { name = "mergedeep", specifier = ">=1.3,<2.0" },
     { name = "modelsearch", specifier = ">=1.3.2,<2" },
     { name = "tinycss2", specifier = ">=1.5.1,<2" },
@@ -860,15 +860,15 @@ dev = [
 
 [[package]]
 name = "django-mvp-forms"
-version = "0.10.0"
+version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "django-crispy-forms" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/43/22db5ec1dc032395400851d91f0253b19dfab854fb36dda34322eeb0c14f/django_mvp_forms-0.10.0.tar.gz", hash = "sha256:6d8278052a4256c86db9e9aa0d2ca0296502c625f21692dc60ff2a2540067ef6", size = 225982, upload-time = "2026-11-10T16:18:01.242Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8b/7a/07852b996af6c59473a70990b5127a6b95847bacf20cf6cc493521757f73/django_mvp_forms-0.11.0.tar.gz", hash = "sha256:cdc7e690d0ce9f7668d4a5e884ec3997606f56d646a1469789cd0bc3b2580250", size = 245952, upload-time = "2026-11-23T13:06:34.38Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/bf/7a8783cfaf6376d99286b016c282e68d6da40c34110cfc9cbc6be1d89ef9/django_mvp_forms-0.10.0-py3-none-any.whl", hash = "sha256:71b35bfe94530f654c399e044b8d7e37e363523a0053b551200e2be8290aa66a", size = 183126, upload-time = "2026-11-10T16:17:59.557Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/a8/1f1a427d75ad7e02c35f78e67c5a3ce7100e2e7588b77b2e139e5c88ed3e/django_mvp_forms-0.11.0-py3-none-any.whl", hash = "sha256:29c77d28704469d7edc51645c505333e9369c46e0b5afd1d62e69c0c6986d650", size = 201040, upload-time = "2026-11-23T13:06:32.798Z" },
 ]
 
 [[package]]

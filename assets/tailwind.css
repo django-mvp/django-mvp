@@ -53,6 +53,15 @@
 @source inline("size-[1cap]");
 @source inline("top-1/2");
 @source inline("w-[0.125em]");
+@source inline("group-has-checked:bg-primary");
+@source inline("group-has-checked:text-base-content");
+@source inline("group-has-checked:text-primary-content");
+@source inline("has-disabled:cursor-not-allowed");
+@source inline("has-disabled:opacity-60");
+@source inline("has-focus-visible:outline");
+@source inline("min-h-12");
+@source inline("text-base-content/90");
+@source inline("whitespace-normal");
 
 /* Curated Tailwind utility pack (#190, second half): a consuming project
    composes these at template-authoring time, never in this package's own
