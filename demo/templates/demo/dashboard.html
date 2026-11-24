@@ -10,15 +10,24 @@
   <c-mvp.section title="Welcome" level="2">
     <p class="text-base-content/60">Here is an overview of your application.</p>
     <c-mvp.grid cols="1" md="3" gap="4">
-      <c-mvp.card title="Statistics" icon="chart-bar">
-        <p class="text-base-content/60">Add your stat widgets here.</p>
-      </c-mvp.card>
-      <c-mvp.card title="Tasks" icon="tasks">
-        <p class="text-base-content/60">Add your task widgets here.</p>
-      </c-mvp.card>
-      <c-mvp.card title="Notifications" icon="bell">
-        <p class="text-base-content/60">Add your notification widgets here.</p>
-      </c-mvp.card>
+      <c-card>
+        <c-card.header title="Statistics" icon="chart-bar" />
+        <c-card.body>
+          <p class="text-base-content/60">Add your stat widgets here.</p>
+        </c-card.body>
+      </c-card>
+      <c-card>
+        <c-card.header title="Tasks" icon="tasks" />
+        <c-card.body>
+          <p class="text-base-content/60">Add your task widgets here.</p>
+        </c-card.body>
+      </c-card>
+      <c-card>
+        <c-card.header title="Notifications" icon="bell" />
+        <c-card.body>
+          <p class="text-base-content/60">Add your notification widgets here.</p>
+        </c-card.body>
+      </c-card>
     </c-mvp.grid>
   </c-mvp.section>
 {% endblock page.content %}

@@ -1,0 +1,6 @@
+{# @description A card's body: daisyUI's padded card-body, a column with a small gap between its children. #}
+{# @prop tight:boolean | description:"Drop the padding, for content that brings its own edges, such as a table or a menu." #}
+{# @prop class:text | description:"Extra classes on the body." #}
+{# @slot The card's content. — #}
+<c-vars tight="" class:merge="card-body" />
+<div class="{{ class }}{% if tight %} mvp-card-body-tight{% endif %}" {{ attrs }}>{{ slot }}</div>

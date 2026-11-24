@@ -15,6 +15,7 @@
 <c-vars id title lead icon full fixed wide class art="" description="" actions="" />
 {% if description.strip %}{% firstof id|add:"-description" as described_by %}{% endif %}
 <c-modal id="{{ id }}"
+         size=""
          class="modal-bottom sm:modal-middle mvp-sheet{% if wide %} mvp-sheet-wide{% endif %} {{ class }}"
          content_class="mvp-sheet-box"
          aria-labelledby="{{ id }}-title"

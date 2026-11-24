@@ -16,64 +16,79 @@
     <a href="https://github.com/django-mvp/django-mvp/blob/main/docs/theming.md"
        class="link">the theming guide</a>.
   </c-mvp.text>
-  <c-mvp.card class="mt-6" title="Themes in this demo">
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Theme</th>
-            <th>Palette</th>
-            <th>What it changes in the shell</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for theme in themes %}
+  <c-card class="mt-6">
+    <c-card.header title="Themes in this demo" />
+    <c-card.body>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
             <tr>
-              <td>
-                <c-button text="{{ theme.name }}" size="sm" data-set-theme="{{ theme.name }}" only />
-              </td>
-              <td>{{ theme.palette }}</td>
-              <td>
-                {% for line in theme.sets %}
-                  <span class="block">{{ line }}</span>
-                {% empty %}
-                  <span class="text-base-content/70">Nothing</span>
-                {% endfor %}
-              </td>
+              <th>Theme</th>
+              <th>Palette</th>
+              <th>What it changes in the shell</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </c-mvp.card>
-  <c-mvp.card class="mt-6" title="Light, dark and automatic">
-    <div class="flex items-center gap-4">
-      <c-mvp.actions.theme-cycle size="md" />
-      <c-mvp.text muted tight>
-        One button that steps from the light theme to the dark one, then to
-        automatic, which follows your device's setting. List
-        "mvp.actions.theme-cycle" in the layout to use it.
-      </c-mvp.text>
-    </div>
-  </c-mvp.card>
+          </thead>
+          <tbody>
+            {% for theme in themes %}
+              <tr>
+                <td>
+                  <c-button text="{{ theme.name }}" size="sm" data-set-theme="{{ theme.name }}" only />
+                </td>
+                <td>{{ theme.palette }}</td>
+                <td>
+                  {% for line in theme.sets %}
+                    <span class="block">{{ line }}</span>
+                  {% empty %}
+                    <span class="text-base-content/70">Nothing</span>
+                  {% endfor %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </c-card.body>
+  </c-card>
+  <c-card class="mt-6">
+    <c-card.header title="Light, dark and automatic" />
+    <c-card.body>
+      <div class="flex items-center gap-4">
+        <c-mvp.actions.theme-cycle size="md" />
+        <c-mvp.text muted tight>
+          One button that steps from the light theme to the dark one, then to
+          automatic, which follows your device's setting. List
+          "mvp.actions.theme-cycle" in the layout to use it.
+        </c-mvp.text>
+      </div>
+    </c-card.body>
+  </c-card>
   <div class="mt-6 grid gap-4 md:grid-cols-3">
-    <c-mvp.card title="A card">
-      Cards are drawn on base-100, raised above the page on base-200. The
-      sidebar is sunk below it on base-300.
-    </c-mvp.card>
-    <c-mvp.card title="Buttons">
-      <div class="flex flex-wrap gap-2">
-        <c-button text="Primary" variant="primary" />
-        <c-button text="Secondary" variant="secondary" />
-        <c-button text="Accent" variant="accent" />
-        <c-button text="Neutral" variant="neutral" />
-      </div>
-    </c-mvp.card>
-    <c-mvp.card title="Messages">
-      <div class="flex flex-col gap-2">
-        <c-alert variant="info">Saved as a draft.</c-alert>
-        <c-alert variant="error">That name is taken.</c-alert>
-      </div>
-    </c-mvp.card>
+    <c-card>
+      <c-card.header title="A card" />
+      <c-card.body>
+        Cards are drawn on base-100, raised above the page on base-200. The
+        sidebar is sunk below it on base-300.
+      </c-card.body>
+    </c-card>
+    <c-card>
+      <c-card.header title="Buttons" />
+      <c-card.body>
+        <div class="flex flex-wrap gap-2">
+          <c-button text="Primary" variant="primary" />
+          <c-button text="Secondary" variant="secondary" />
+          <c-button text="Accent" variant="accent" />
+          <c-button text="Neutral" variant="neutral" />
+        </div>
+      </c-card.body>
+    </c-card>
+    <c-card>
+      <c-card.header title="Messages" />
+      <c-card.body>
+        <div class="flex flex-col gap-2">
+          <c-alert variant="info">Saved as a draft.</c-alert>
+          <c-alert variant="error">That name is taken.</c-alert>
+        </div>
+      </c-card.body>
+    </c-card>
   </div>
 {% endblock page.content %}

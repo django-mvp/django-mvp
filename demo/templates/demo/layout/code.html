@@ -7,45 +7,48 @@
       it, sidebar, header, footer and all.
     </c-mvp.text>
 
-    <c-mvp.card title="The code this page uses" icon="grid">
-      <div class="flex flex-col gap-5 md:flex-row md:items-start">
-        <div class="flex flex-col gap-3 md:w-64">
-          <p class="font-mono text-3xl font-semibold tracking-wider" id="layout-code-current">{{ layout_view }}</p>
-          {% if asked_code and not code_error %}
-            <p class="text-sm text-base-content/70">
-              Your project uses <code>{{ project_code }}</code>.
-              <a class="link" href="{% url 'layout-code' %}">Go back to it</a>
-            </p>
-          {% else %}
-            <p class="text-sm text-base-content/70">The project's own code.</p>
-          {% endif %}
-          <ul class="flex flex-col gap-1 text-sm" aria-label="Areas that stay in place">
-            {% for area in areas %}
-              <li class="flex items-center gap-2">
-                <c-icon name="{% if area.fixed %}pin{% else %}arrow-down-up{% endif %}" class="text-base-content/60" />
-                <span>{{ area.name }}</span>
-                <span class="text-base-content/60">{% if area.fixed %}stays in place{% else %}scrolls{% endif %}</span>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div role="figure" class="min-w-0 flex-1" aria-labelledby="layout-code-caption">
-          <div class="layout-code-diagram grid h-56 gap-1.5 rounded-box bg-base-200 p-1.5"
-               style="grid-template-columns: 5rem 1fr 4.5rem; grid-template-rows: 2.5rem 1fr 2.25rem; grid-template-areas: {{ parsed.areas }};">
-            {% for area in areas %}
-              <div class="flex items-center justify-center gap-1 rounded-field text-xs font-medium {% if area.key == 'page' %}bg-base-100 text-base-content/70{% elif area.key == 'left' or area.key == 'right' %}bg-primary/15 text-primary{% else %}bg-secondary/15 text-secondary{% endif %}"
-                   style="grid-area: {{ area.key }}">
-                {% if area.fixed %}<c-icon name="pin" />{% endif %}{{ area.name }}
-              </div>
-            {% endfor %}
+    <c-card>
+      <c-card.header title="The code this page uses" icon="grid" />
+      <c-card.body>
+        <div class="flex flex-col gap-5 md:flex-row md:items-start">
+          <div class="flex flex-col gap-3 md:w-64">
+            <p class="font-mono text-3xl font-semibold tracking-wider" id="layout-code-current">{{ layout_view }}</p>
+            {% if asked_code and not code_error %}
+              <p class="text-sm text-base-content/70">
+                Your project uses <code>{{ project_code }}</code>.
+                <a class="link" href="{% url 'layout-code' %}">Go back to it</a>
+              </p>
+            {% else %}
+              <p class="text-sm text-base-content/70">The project's own code.</p>
+            {% endif %}
+            <ul class="flex flex-col gap-1 text-sm" aria-label="Areas that stay in place">
+              {% for area in areas %}
+                <li class="flex items-center gap-2">
+                  <c-icon name="{% if area.fixed %}pin{% else %}arrow-down-up{% endif %}" class="text-base-content/60" />
+                  <span>{{ area.name }}</span>
+                  <span class="text-base-content/60">{% if area.fixed %}stays in place{% else %}scrolls{% endif %}</span>
+                </li>
+              {% endfor %}
+            </ul>
           </div>
-          <p id="layout-code-caption" class="mt-2 text-sm text-base-content/60">How the code places the areas. Each corner goes to the area its letter names.</p>
+          <div role="figure" class="min-w-0 flex-1" aria-labelledby="layout-code-caption">
+            <div class="layout-code-diagram grid h-56 gap-1.5 rounded-box bg-base-200 p-1.5"
+                 style="grid-template-columns: 5rem 1fr 4.5rem; grid-template-rows: 2.5rem 1fr 2.25rem; grid-template-areas: {{ parsed.areas }};">
+              {% for area in areas %}
+                <div class="flex items-center justify-center gap-1 rounded-field text-xs font-medium {% if area.key == 'page' %}bg-base-100 text-base-content/70{% elif area.key == 'left' or area.key == 'right' %}bg-primary/15 text-primary{% else %}bg-secondary/15 text-secondary{% endif %}"
+                     style="grid-area: {{ area.key }}">
+                  {% if area.fixed %}<c-icon name="pin" />{% endif %}{{ area.name }}
+                </div>
+              {% endfor %}
+            </div>
+            <p id="layout-code-caption" class="mt-2 text-sm text-base-content/60">How the code places the areas. Each corner goes to the area its letter names.</p>
+          </div>
         </div>
-      </div>
-      <c-slot name="footer">
+      </c-card.body>
+      <c-card.footer>
         <pre class="w-full overflow-x-auto rounded-box bg-base-200 px-4 py-3 text-sm"><code>MVP_CONFIG = {"layout": {"view": "{{ layout_view }}"}}</code></pre>
-      </c-slot>
-    </c-mvp.card>
+      </c-card.footer>
+    </c-card>
 
     <section aria-labelledby="try-heading" class="flex flex-col gap-3">
       <h2 id="try-heading" class="text-xl font-semibold">Try a code</h2>
