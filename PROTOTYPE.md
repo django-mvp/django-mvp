@@ -140,6 +140,37 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   its body scrolls inside it. (Sam)
 - 2026-11-24: Breaking existing projects is not a concern. (Sam, on
   https://github.com/django-mvp/django-mvp/issues/717)
+- 2026-11-25: The card is a header, body and footer, built from parts the caller declares, in
+  place of most of its props and slots. Simple cards get longer, and a project that wants the old
+  shorthand writes its own wrapper component. Existing cards break, and better now. (Sam)
+- 2026-11-25: The card goes back to `<c-card>`, overriding daisy-cotton's card, the way daisy-cotton
+  was meant to be customised. `<c-mvp.card>` goes, with no alias. (Sam)
+- 2026-11-25: The dialog does the same: `<c-modal>` overrides daisy-cotton's modal, built from
+  parts. `<c-mvp.modal>` goes, with no alias. (Sam)
+
+## Agreed, not built yet
+
+The next round builds this.
+
+- **`<c-card>`** with `<c-card.header>` (title, icon, badges, actions), `<c-card.body>` and
+  `<c-card.footer>`. It keeps daisy-cotton's styling options (`size`, `border`, `dash`, `side`,
+  `image-full`, the `figure` slot), so daisy-cotton's own docs still apply. `title` and `actions`
+  move into the header and footer parts.
+- **`<c-modal>`** with `<c-modal.header>`, `<c-modal.body>` and `<c-modal.footer>`. It keeps
+  `placement`, `closable` and `open`, and writes its own `<dialog>`, box, close button and
+  backdrop, since it can no longer call daisy-cotton's.
+- **`view` still turns the layout on.** The header and footer parts then take the layout's header
+  and footer places, with `<c-layout.sidebar>` and `<c-layout.page>` between them. The parts are
+  the shared component listed under Shared pieces.
+- **The new parts use django-cotton 2.9's `class:merge`** in `c-vars` from the start.
+- **Every use in django-mvp is converted:** the 39 `<c-mvp.card>` calls, the `<c-card>` call in
+  `demo/templates/demo/landing.html`, the `<c-mvp.modal>` calls, and the sheet
+  (`cotton/mvp/sheet/index.html`) and search dialog (`cotton/mvp/search/dialog.html`), which call
+  `<c-modal>` today.
+- **A new ADR supersedes `docs/adr/0030` for the card and the modal.** Both are deliberate
+  overrides of daisy-cotton's components, like `<c-icon>`, and rely on `mvp` being above
+  `daisy_cotton` in `INSTALLED_APPS`.
+- **django-mvp-accounts, compliance, community and payments break.** Nothing is changed in them.
 
 ## Decided on my own
 
