@@ -259,8 +259,8 @@
    .drawer-toggle beside it, as daisyUI's variants of the same names do, so an
    element follows its own drawer and never a project's drawer around it.
    :is() rather than daisyUI's :where() keeps the specificity the shell relies on. */
-@custom-variant is-drawer-open (&:is(.drawer-toggle:checked ~ .drawer-side, .drawer-toggle:checked ~ .drawer-side *));
-@custom-variant is-drawer-close (&:is(.drawer-toggle:not(:checked) ~ .drawer-side, .drawer-toggle:not(:checked) ~ .drawer-side *));
+@custom-variant is-drawer-open (&:is(.mvpl-sidebar:not([data-mvpl-rail]), .mvpl-sidebar:not([data-mvpl-rail]) *));
+@custom-variant is-drawer-close (&:is(.mvpl-sidebar[data-mvpl-rail], .mvpl-sidebar[data-mvpl-rail] *));
 
 /* Safelist: sidebar breakpoint classes are emitted by the sidebar_breakpoint_class
    templatetag (mvp/templatetags/mvp.py), so the scanner never sees them in source. */
@@ -359,11 +359,24 @@
    And scoped to the shell's own .drawer-content, the child of the element
    carrying data-mvp-breakpoint, so a project's drawer around the page keeps its
    own height. */
-[data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill) {
+[data-mvp-breakpoint]:has(.mvp-page-fill) {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
   height: 100dvh;
+}
+[data-mvp-breakpoint]:has(.mvp-page-fill) > .mvpl {
+  flex: 1;
+  min-height: 0;
+}
+[data-mvp-breakpoint]:has(.mvp-page-fill) > .mvpl > .mvpl-grid {
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+[data-mvp-breakpoint]:has(.mvp-page-fill) > .mvpl > .mvpl-grid > .mvpl-page {
+  display: flex;
+  flex-direction: column;
 }
 
 /* A ceiling as well as a floor, and the room to honour it.
@@ -379,7 +392,7 @@
    container it was supposed to be bounded by. Both rungs between the shell
    and <c-mvp.page.content> (which already carries `min-h-0`) have to release
    that, or the height stops at the top of the chain and never arrives. */
-[data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill) > main,
+[data-mvp-breakpoint]:has(.mvp-page-fill) > .mvpl > .mvpl-grid > .mvpl-page > main,
 .mvp-page-fill {
   min-height: 0;
 }
@@ -396,7 +409,7 @@
    content ends where the dock begins. `relative` rather than `static` so
    anything a project positions absolutely inside a dock item still anchors
    to it. */
-[data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill) .dock {
+[data-mvp-breakpoint]:has(.mvp-page-fill) .dock {
   position: relative;
 }
 
@@ -427,7 +440,7 @@
   display: none;
 }
 
-.drawer-toggle:not(:checked) ~ .drawer-side .mvp-sidebar--icons {
+.mvpl-sidebar[data-mvpl-rail] .mvp-sidebar--icons {
   /* A rail taller than the window scrolls on its own instead of making the
      page taller (#563). A scroll box clips everything drawn against it, so
      the tooltips and group fly-outs below are drawn against the window and
@@ -615,7 +628,7 @@
    (enough menu items to overflow) never widens the sidebar and reflows the
    main content (#179). Unlayered on purpose: the width must beat the
    `is-drawer-open:w-65` utility. */
-.drawer-toggle:checked ~ .drawer-side .mvp-sidebar {
+.mvpl-sidebar:not([data-mvpl-rail]) .mvp-sidebar {
   width: var(--mvp-sidebar-width, 16.25rem);
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -627,39 +640,9 @@
    again (#563). Where the sidebar is a persistent rail it never slides, so
    the translate goes, at and above each breakpoint only: below it the closed
    sidebar is an overlay drawer, and the slide is how it opens. */
-@media (min-width: 640px) {
-  [data-mvp-breakpoint="sm"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
-    translate: none;
-    will-change: auto;
-  }
-}
-
-@media (min-width: 768px) {
-  [data-mvp-breakpoint="md"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
-    translate: none;
-    will-change: auto;
-  }
-}
-
-@media (min-width: 1024px) {
-  [data-mvp-breakpoint="lg"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
-    translate: none;
-    will-change: auto;
-  }
-}
-
-@media (min-width: 1280px) {
-  [data-mvp-breakpoint="xl"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
-    translate: none;
-    will-change: auto;
-  }
-}
-
-@media (min-width: 1536px) {
-  [data-mvp-breakpoint="2xl"] > .drawer-toggle:not(:checked) ~ .drawer-side > .mvp-sidebar--icons {
-    translate: none;
-    will-change: auto;
-  }
+.mvpl-sidebar[data-mvpl-rail] > .mvpl-panel {
+  translate: none;
+  will-change: auto;
 }
 
 /* Touch sizing for the sidebar while it is an overlay drawer, which is how a
@@ -1401,7 +1384,7 @@ html {
     display: none !important;
   }
 
-  [data-mvp-breakpoint] > .drawer-content:has(.mvp-page-fill .mvp-table-region),
+  [data-mvp-breakpoint]:has(.mvp-page-fill .mvp-table-region),
   .mvp-page-fill:has(.mvp-table-region) {
     display: block;
     height: auto;
@@ -2336,4 +2319,25 @@ html {
   .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) > .navbar-end {
     margin-inline-start: auto;
   }
+}
+
+/* A card or a dialog laid out by a layout code (django-mvp-layout). The
+   sidebars sit on a tint of the surface, and the heading and actions rows
+   are ruled off from the body. */
+:is(.mvp-card-layout, .mvp-modal-layout) > .mvpl {
+  --mvpl-sidebar-bg: color-mix(in oklab, var(--color-base-200) 55%, var(--color-base-100));
+  --mvpl-line: var(--color-base-300);
+}
+.mvp-box-header {
+  border-bottom: 1px solid var(--color-base-300);
+  background-color: var(--color-base-100);
+}
+.mvp-box-footer {
+  border-top: 1px solid var(--color-base-300);
+  background-color: var(--color-base-100);
+}
+
+/* The shell's right sidebar, filled by a page's app.secondary_sidebar block. */
+.mvp-secondary-sidebar > .mvpl-panel {
+  padding: 1rem;
 }

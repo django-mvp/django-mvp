@@ -51,16 +51,24 @@ MVP_CONFIG = {
         "choices": [],
     },
     "layout": {
+        # The layout code that arranges the shell (django-mvp-layout): three
+        # groups of three letters for the top, middle and bottom rows, read
+        # left, centre and right. h header, l sidebar, p page, r secondary
+        # sidebar, f footer. A corner names the area that reaches it, and an
+        # upper-case letter keeps its area in place while the page scrolls.
+        "view": "lHh LpR lff",
         "sidebar": {
-            # Tailwind breakpoint at which the sidebar becomes persistent
-            # (below it, the sidebar is a mobile drawer):
-            # sm | md | lg | xl | 2xl | never
-            # "never" keeps the sidebar an off-canvas overlay at every width.
+            # Layout width below which the sidebar is a drawer over the page:
+            # sm | md | lg | xl | 2xl.
             "breakpoint": "lg",
-            # How the sidebar collapses when toggled at or above the breakpoint:
-            # "offcanvas" (slides fully away), "icons" (collapses to an icon rail)
-            # or "none" (always open there, with no toggle). No effect under "never".
+            # "auto" follows the breakpoint, "docked" keeps the sidebar beside
+            # the page at every width, "overlay" makes it a drawer at every width.
+            "behavior": "auto",
+            # How the sidebar closes beside the page: "offcanvas" (slides fully
+            # away), "icons" (an icon rail) or "none" (always open, no toggle).
             "collapse": "offcanvas",
+            # Its width while open.
+            "width": "16.25rem",
             # Text shown beside the brand icon in the sidebar header. Falsey
             # (the default) renders no title. Hidden while collapsed to an icon rail.
             "title": None,
@@ -70,6 +78,16 @@ MVP_CONFIG = {
             # scripts and third-party widgets see the page. Opt in once the
             # project's pages are happy being swapped rather than reloaded.
             "boost": False,
+        },
+        # The sidebar on the right of the page, drawn on a page that fills the
+        # app.secondary_sidebar block. The same keys as "sidebar", and a label.
+        "secondary_sidebar": {
+            "breakpoint": "xl",
+            "behavior": "auto",
+            "collapse": "offcanvas",
+            "width": "18rem",
+            # Its accessible name, and the name of the navbar button that opens it.
+            "label": "Page details",
         },
         "navbar": {
             # Cotton component names rendered at the end (right side) of the navbar,

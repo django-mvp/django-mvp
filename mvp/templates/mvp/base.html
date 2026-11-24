@@ -67,6 +67,10 @@
         load, so the UI does not depend on a third party staying up. Add
         your own Alpine plugins or htmx extensions by extending `head`.
       {% endcomment %}
+      {# The layout's stylesheet and script come from django-mvp-layout. Not #}
+      {# deferred: each layout mounts from a script right after its markup. #}
+      <link rel="stylesheet" href="{% static 'mvp_layout/layout.css' %}" />
+      <script src="{% static 'mvp_layout/layout.js' %}"></script>
       <script defer src="{% static 'js/django-mvp.js' %}"></script>
     {% endblock head %}
     {% comment %}
@@ -110,79 +114,111 @@
     {% endblock announcement %}
     {% block app %}
       {% comment %}
-        Resolved once here so every region agrees. A page overrides by
-        setting `breakpoint`/`collapse` in context (or a `{% with %}`
-        wrapping `{{ block.super }}`) — drawer, rail and toggle all follow.
+        The shell is one layout from django-mvp-layout, arranged by the
+        layout code in MVP_CONFIG["layout"]["view"]. A page changes the code
+        for itself with a layout_view context variable. Each sidebar is drawn
+        only when it has content: a page fills app.secondary_sidebar to get a
+        right sidebar. data-mvp-breakpoint keeps the shell's own responsive
+        classes (mvp-dock-only and the rest) keyed to the sidebar's breakpoint.
       {% endcomment %}
-      {% firstof breakpoint mvp_config.layout.sidebar.breakpoint as breakpoint %}
-      {% firstof collapse mvp_config.layout.sidebar.collapse as collapse %}
-      <c-app :breakpoint="breakpoint" :collapse="collapse">
-        <c-slot name="sidebar">
-          {% block app.sidebar %}
-            {% comment %}
-              A region block left empty draws the component's own default.
-              Fill one and its content replaces that region outright.
-            {% endcomment %}
-            <c-app.sidebar :collapse="collapse">
-              <c-slot name="header">
-                {% block app.sidebar.header %}
-                {% endblock app.sidebar.header %}
-              </c-slot>
-              <c-slot name="body">
-                {% block app.sidebar.body %}
-                {% endblock app.sidebar.body %}
-              </c-slot>
-              <c-slot name="footer">
-                {% block app.sidebar.footer %}
-                {% endblock app.sidebar.footer %}
-              </c-slot>
-            </c-app.sidebar>
-          {% endblock app.sidebar %}
-        </c-slot>
-        {% block app.header %}
-          <c-app.header :page="page">
-            {% block app.navbar %}
-              <c-app.navbar :page="page">
-                <c-slot name="start">
-                  {% block app.navbar.start %}
-                  {% endblock app.navbar.start %}
-                </c-slot>
-                <c-slot name="breadcrumbs">
-                  {% block app.breadcrumbs %}
-                  {% endblock app.breadcrumbs %}
-                </c-slot>
-                <c-slot name="center">
-                  {% block app.navbar.center %}
-                  {% endblock app.navbar.center %}
-                </c-slot>
-                <c-slot name="end">
-                  {% block app.navbar.end %}
-                  {% endblock app.navbar.end %}
-                </c-slot>
-              </c-app.navbar>
-            {% endblock app.navbar %}
-            <c-slot name="tray">
-              {% block app.header.tray %}
-              {% endblock app.header.tray %}
-            </c-slot>
-          </c-app.header>
-        {% endblock app.header %}
-        {% block app.main %}
-          <c-app.main>
-            {% block content %}
-            {% endblock content %}
-            {% block app.messages %}
-              <c-mvp.messages :messages="messages" dismissible />
-            {% endblock app.messages %}
-          </c-app.main>
-        {% endblock app.main %}
-        {% block app.footer %}
-          <c-app.footer />
-        {% endblock app.footer %}
-        {% block app.dock %}
-          <c-app.dock />
-        {% endblock app.dock %}
-      </c-app>
+      {% firstof layout_view mvp_config.layout.view as layout_view %}
+      {% with sb=mvp_config.layout.sidebar sec=mvp_config.layout.secondary_sidebar %}
+        <div class="contents"
+             data-mvp-breakpoint="{% if sb.behavior == 'overlay' %}never{% else %}{{ sb.breakpoint }}{% endif %}"
+             data-mvp-collapse="{{ sb.collapse }}">
+          <c-layout :view="layout_view" id="mvp-app" class="mvp-app">
+            {% block app.header %}
+              <c-layout.header class="mvp-header {{ mvp_config.layout.navbar.class }}">
+                <c-app.header :page="page">
+                  {% block app.navbar %}
+                    <c-app.navbar :page="page">
+                      <c-slot name="start">
+                        {% block app.navbar.start %}
+                        {% endblock app.navbar.start %}
+                      </c-slot>
+                      <c-slot name="breadcrumbs">
+                        {% block app.breadcrumbs %}
+                        {% endblock app.breadcrumbs %}
+                      </c-slot>
+                      <c-slot name="center">
+                        {% block app.navbar.center %}
+                        {% endblock app.navbar.center %}
+                      </c-slot>
+                      <c-slot name="end">
+                        {% block app.navbar.end %}
+                        {% endblock app.navbar.end %}
+                      </c-slot>
+                    </c-app.navbar>
+                  {% endblock app.navbar %}
+                  <c-slot name="tray">
+                    {% block app.header.tray %}
+                    {% endblock app.header.tray %}
+                  </c-slot>
+                </c-app.header>
+              </c-layout.header>
+            {% endblock app.header %}
+            <c-layout.sidebar side="left"
+                              :collapse="sb.collapse"
+                              :breakpoint="sb.breakpoint"
+                              :behavior="sb.behavior"
+                              :width="sb.width"
+                              persist="mvp-sidebar"
+                              class="mvp-sidebar-bg"
+                              label="{% trans 'Main navigation' %}">
+              {% block app.sidebar %}
+                {% comment %}
+                  A region block left empty draws the component's own default.
+                  Fill one and its content replaces that region outright.
+                {% endcomment %}
+                <c-app.sidebar :collapse="sb.collapse">
+                  <c-slot name="header">
+                    {% block app.sidebar.header %}
+                    {% endblock app.sidebar.header %}
+                  </c-slot>
+                  <c-slot name="body">
+                    {% block app.sidebar.body %}
+                    {% endblock app.sidebar.body %}
+                  </c-slot>
+                  <c-slot name="footer">
+                    {% block app.sidebar.footer %}
+                    {% endblock app.sidebar.footer %}
+                  </c-slot>
+                </c-app.sidebar>
+              {% endblock app.sidebar %}
+            </c-layout.sidebar>
+            {% block app.main %}
+              <c-layout.page>
+                <c-app.main>
+                  {% block content %}
+                  {% endblock content %}
+                  {% block app.messages %}
+                    <c-mvp.messages :messages="messages" dismissible />
+                  {% endblock app.messages %}
+                </c-app.main>
+              </c-layout.page>
+            {% endblock app.main %}
+            <c-layout.sidebar side="right"
+                              :collapse="sec.collapse"
+                              :breakpoint="sec.breakpoint"
+                              :behavior="sec.behavior"
+                              :width="sec.width"
+                              persist="mvp-secondary-sidebar"
+                              class="mvp-secondary-sidebar"
+                              :label="sec.label">
+              {% block app.secondary_sidebar %}
+              {% endblock app.secondary_sidebar %}
+            </c-layout.sidebar>
+            {% block app.footer %}
+              <c-layout.footer>
+                <c-app.footer />
+              </c-layout.footer>
+            {% endblock app.footer %}
+          </c-layout>
+          {% block app.dock %}
+            <c-app.dock />
+          {% endblock app.dock %}
+        </div>
+      {% endwith %}
     {% endblock app %}
     {% block extra_js %}
     {% endblock extra_js %}

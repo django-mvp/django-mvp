@@ -1,7 +1,18 @@
 {% load easy_icons %}
-<c-dock.item :label="label"
-             :icon="icon"
-             :href="url"
-             :active="selected"
-             :toggle="toggle"
-             :attrs="attrs" only />
+{% if toggle %}
+  {# The dock sits outside the shell's layout, so its sidebar item names the layout it toggles. #}
+  <button type="button"
+          data-mvpl-toggle="left"
+          data-mvpl-layout="mvp-app"
+          aria-label="{{ label }}"
+          aria-expanded="false">
+    {% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" only />{% endif %}
+    {% if label %}<span class="dock-label">{{ label }}</span>{% endif %}
+  </button>
+{% else %}
+  <c-dock.item :label="label"
+               :icon="icon"
+               :href="url"
+               :active="selected"
+               :attrs="attrs" only />
+{% endif %}
