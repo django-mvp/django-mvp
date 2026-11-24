@@ -6,12 +6,10 @@
 {# @slot:below — Content placed below the navbar row. #}
 {# @slot The navbar row. — Left empty, the header draws <c-app.navbar /> itself. #}
 {# @slot:tray — Content placed after the navbar row, e.g. a search tray. #}
-<c-vars :sticky="mvp_config.layout.navbar.sticky" :class="mvp_config.layout.navbar.class" page />
-{# The scroll handler writes to the layout store (assets/js/layout.js) #}
-{# instead of local component state, so other regions can read whether #}
-{# the header has scrolled. #}
-<div class="mvp-header w-full {{ class }}{% if sticky %} sticky z-10 top-0{% endif %}"
-     {% if sticky %}x-data @scroll.window="$store.mvp.header.stuck = window.scrollY > 0" :class="{ 'shadow-xs': $store.mvp.header.stuck }"{% endif %}>
+<c-vars :sticky="False" class="" page />
+{# The layout's header area holds this, and the layout code decides whether #}
+{# it stays in place while the page scrolls. #}
+<div class="w-full {{ class }}">
   {{ above }}
   {% if slot.strip %}
     {{ slot }}

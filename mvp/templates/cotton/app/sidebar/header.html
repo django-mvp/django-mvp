@@ -13,9 +13,9 @@
     </span>
     {% if title %}<span class="mvp-sidebar-title mvp-rail-hide truncate font-semibold">{{ title }}</span>{% endif %}
   </a>
-  <label for="mvp-app-toggle"
-         aria-label="{% trans "Toggle sidebar" %}"
-         class="mvp-sidebar-toggle btn btn-ghost btn-square">
+  <c-layout.toggle side="left"
+                   label="{% trans "Toggle sidebar" %}"
+                   class="mvp-sidebar-toggle btn btn-ghost btn-square">
     <c-icon name="sidebar-left" />
-  </label>
+  </c-layout.toggle>
 </div>

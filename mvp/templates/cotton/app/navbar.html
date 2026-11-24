@@ -22,15 +22,16 @@
       {# The sidebar toggle and site icon give way below the sidebar breakpoint, #}
       {# where the sidebar header already draws both — layout.navbar.mobile.sidebar_toggle #}
       {# puts the toggle back for a project without a mobile dock. #}
-      <c-drawer.button drawer="mvp-app-toggle"
-                       aria-label="{% trans "Open sidebar" %}"
-                       class="btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}"
-                       only>
+      <c-layout.toggle side="left"
+                       when="closed"
+                       label="{% trans "Open sidebar" %}"
+                       class="btn btn-ghost btn-square shrink-0{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}">
         <c-icon name="menu" />
-      </c-drawer.button>
+      </c-layout.toggle>
       <a href="/"
          aria-label="{% trans "Home" %}"
-         class="mvp-navbar-brand flex shrink-0 items-center px-1 mvp-sidebar-hidden-only">
+         data-dcl-when="left-closed"
+         class="mvp-navbar-brand flex shrink-0 items-center px-1">
         <c-mvp.brand.icon max-height="1.5rem" class="size-8 object-contain" />
       </a>
       {# The trail measures its own box and folds what does not fit (breadcrumbs.js). #}
@@ -56,5 +57,11 @@
     {% for widget in mvp_config.layout.navbar.end %}
       <c-component :is="widget" />
     {% endfor %}
+    {# Drawn only on a page with a secondary sidebar, and only while it can be toggled. #}
+    <c-layout.toggle side="right"
+                     label="{% trans "Page details" %}"
+                     class="btn btn-ghost btn-square shrink-0">
+      <c-icon name="sidebar-right" />
+    </c-layout.toggle>
   </div>
 </div>
