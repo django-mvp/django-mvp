@@ -1,0 +1,24 @@
+{# @description A layout arranged by a layout code: header, left and right sidebars, page and footer. Nests inside itself. #}
+{# @prop view:text | default:"hHh lpr fFf" | description:"The layout code: three groups of three letters, such as lHh LpR lff." #}
+{# @prop container:boolean | description:"Fill the box the layout is placed in and scroll inside it, instead of the window. Give the layout a height." #}
+{# @prop id:text | description:"The layout's id. Generated when not given." #}
+{# @slot The areas: c-layout.header, c-layout.sidebar, c-layout.page and c-layout.footer, in any order. #}
+{% load daisy_cotton_layout %}
+<c-vars view="" container="" id="" class="" style="" />
+{% layout_view view as lv %}
+{% if not id %}{% layout_uid "layout" as id %}{% endif %}
+<div id="{{ id }}"
+     class="dcl {{ class }}"
+     data-dcl
+     data-dcl-view="{{ lv.code }}"
+     {% if container %}data-dcl-container{% endif %}
+     {% if lv.header_fixed %}data-dcl-header-fixed{% endif %}
+     {% if lv.left_fixed %}data-dcl-left-fixed{% endif %}
+     {% if lv.right_fixed %}data-dcl-right-fixed{% endif %}
+     {% if lv.footer_fixed %}data-dcl-footer-fixed{% endif %}
+     style="--dcl-areas: {{ lv.areas }}; --dcl-left-top: {{ lv.left_top }}; --dcl-left-bottom: {{ lv.left_bottom }}; --dcl-right-top: {{ lv.right_top }}; --dcl-right-bottom: {{ lv.right_bottom }};{% if style %} {{ style }}{% endif %}"
+     {{ attrs }}>
+  <div class="dcl-grid">{{ slot }}</div>
+</div>
+{# Mounted as soon as it is parsed, so the sidebars and their toggles are right before the first paint. #}
+<script>window.DaisyCottonLayout && window.DaisyCottonLayout.mount(document.getElementById("{{ id }}"));</script>

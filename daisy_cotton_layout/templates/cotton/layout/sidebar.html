@@ -1,0 +1,31 @@
+{# @description A sidebar on the left or right of the page. Drawn only when it has content. #}
+{# @prop side:text | default:"left" | description:"left or right: the l or r area of the layout code." #}
+{# @prop collapse:text | default:"offcanvas" | description:"How it closes beside the page: offcanvas slides it away, icons leaves an icon rail, none keeps it open." #}
+{# @prop breakpoint:text | default:"lg (left), xl (right)" | description:"The layout width below which it becomes a drawer over the page: sm, md, lg, xl or 2xl." #}
+{# @prop behavior:text | default:"auto" | description:"auto follows the breakpoint, docked keeps it beside the page at every width, overlay makes it a drawer at every width." #}
+{# @prop width:text | default:"16rem" | description:"Its width while open." #}
+{# @prop rail-width:text | default:"4rem" | description:"Its width as an icon rail." #}
+{# @prop closed:boolean | description:"Start closed. A remembered state wins." #}
+{# @prop persist:text | description:"A name to remember its open or closed state under, across pages and visits." #}
+{# @prop label:text | description:"Its accessible name, such as Main navigation." #}
+{% load daisy_cotton_layout %}
+<c-vars side="left" collapse="offcanvas" breakpoint="" behavior="auto" width="" rail-width="" closed="" persist="" label="" id="" class="" />
+{% if slot.strip %}
+  {% layout_sidebar side collapse breakpoint behavior persist closed as sb %}
+  {% if not id %}{% layout_uid "sidebar" as id %}{% endif %}
+  <aside id="{{ id }}"
+         class="dcl-sidebar {{ class }}"
+         data-side="{{ sb.side }}"
+         data-collapse="{{ sb.collapse }}"
+         data-breakpoint="{{ sb.breakpoint }}"
+         data-behavior="{{ sb.behavior }}"
+         data-state="{{ sb.state }}"
+         {% if sb.rail %}data-dcl-rail{% endif %}
+         {% if persist %}data-persist="{{ persist }}"{% endif %}
+         {% if label %}aria-label="{{ label }}"{% endif %}
+         style="{% if width %}--dcl-w: {{ width }};{% endif %}{% if rail_width %} --dcl-rail-w: {{ rail_width }};{% endif %}"
+         {{ attrs }}>
+    <div class="dcl-backdrop" data-dcl-close aria-hidden="true"></div>
+    <div class="dcl-panel">{{ slot }}</div>
+  </aside>
+{% endif %}

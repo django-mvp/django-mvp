@@ -1,0 +1,4 @@
+{# @description The layout's page area, between the sidebars. #}
+{# @prop tag:text | default:"div" | description:"The element drawn. Use main for the one page area of a whole page." #}
+<c-vars class="" tag="div" />
+{% if tag == "main" %}<main class="dcl-page {{ class }}" {{ attrs }}>{{ slot }}</main>{% else %}<div class="dcl-page {{ class }}" {{ attrs }}>{{ slot }}</div>{% endif %}
