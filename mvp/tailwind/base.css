@@ -2328,6 +2328,11 @@ html {
   --mvpl-sidebar-bg: color-mix(in oklab, var(--color-base-200) 55%, var(--color-base-100));
   --mvpl-line: var(--color-base-300);
 }
+/* A card stretched by its row, as in a grid of cards, stretches its layout
+   with it, so the sidebars and the body reach the card's bottom edge. */
+.mvp-card-layout > .mvpl {
+  flex: 1 1 auto;
+}
 .mvp-box-header {
   border-bottom: 1px solid var(--color-base-300);
   background-color: var(--color-base-100);
