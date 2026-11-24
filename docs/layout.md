@@ -222,11 +222,64 @@ class ProductDetailView(MVPDetailView):
         return [{"text": "Products", "href": "/products/"}, {"text": str(self.object)}]
 ```
 
-A page with no trail — the entrance, the error pages — renders no navigation landmark at
-all, rather than an empty one for a screen reader to announce. A long trail shrinks
-rather than pushing the widgets off the row: each crumb gives up width and ellipsises its own text before the next one
-does, so the whole path stays visible. Horizontal scrolling is the last resort, for a
-width where even every crumb truncated still will not fit.
+A page with no trail, such as the entrance or the error pages, renders no navigation
+landmark at all, rather than an empty one for a screen reader to announce.
+
+### What a good trail says
+
+| | Guideline |
+|---|---|
+| 1 | **Start at the first level below home.** The header's site icon already links home, and one Home link is enough. Don't put a `Home` step in the trail. |
+| 2 | **Show where the page sits in the site's hierarchy**, never the visitor's history. |
+| 3 | **A page with several parents shows one fixed path**, the same for every visitor. |
+| 4 | **End with the current page, as text, not a link.** The component does this for a step with no `href`. |
+| 5 | **Every other step is a real page** a visitor can go to. A category that only groups items in a menu has no page, so it has no step. |
+| 6 | **Skip breadcrumbs on a site only one or two levels deep**, or one read in a fixed order. |
+| 7 | **Breadcrumbs add to the sidebar and menus**, never replace them. |
+| 8 | **There is no maximum number of steps.** The trail folds whatever doesn't fit into the "…" menu, keeping the parent and the current page. (Fixed-count libraries default to 8, per MUI and Atlassian. The trail doesn't need one.) |
+| 9 | **Keep labels short.** Use the page's own short name. Long labels are cut short on narrow screens. |
+
+Source: Nielsen Norman Group, ["Breadcrumbs: 11 Design Guidelines for Desktop and Mobile"](https://www.nngroup.com/articles/breadcrumbs/), except 8's fixed-count note, which is from the MUI and Atlassian breadcrumb documentation.
+
+### How the trail fits
+
+`<c-mvp.breadcrumbs>` measures the box it sits in, not the window, so the same trail fits
+the header, a sidebar, a card or a panel. The server draws every step. From the widest
+layout to the narrowest, the trail shows the first one that fits:
+
+1. Every step.
+2. The middle steps folded into a "…" menu, from the middle outwards. The first step, the parent
+   and the current page stay.
+3. The first step shrunk to its icon, when it has one.
+4. The first step folded too: menu, parent and current page.
+5. The parent cut short, and the current page allowed down to 8rem.
+6. The menu and the current page only.
+
+The current page keeps up to 16rem before any step above it folds. A step above it is capped at
+14rem and cut short with an ellipsis, with its full name in a tooltip. The "…" menu lists the
+folded steps in order, opens on a press, takes focus and closes on Escape. Its labels are
+translatable. Without JavaScript every step shows and each shrinks with an ellipsis.
+
+Under 36rem of header width the trail takes its own row below the site icon and the buttons,
+because beside them a phone leaves it too little room to name the current page.
+
+| Step key | Meaning |
+|---|---|
+| `text` | the label (required) |
+| `href` | the address. A step without one is the current page |
+| `icon` | an icon name shown before the label. On a narrow trail the first step shrinks to it |
+
+```html
+<c-mvp.breadcrumbs :items="steps" />
+```
+
+The same `items` list works in a card, a sidebar or any other box:
+
+```html
+<c-mvp.card title="Where you are">
+  <c-mvp.breadcrumbs :items="page.breadcrumbs" />
+</c-mvp.card>
+```
 
 The site icon beside it stands down wherever the sidebar's own header is on screen
 showing the same mark — at or above the breakpoint with the drawer open, or at any
@@ -255,27 +308,27 @@ layout, and the toggle is always drawn.
 
 Putting the trail in the header rather than above the page body gives every page back
 a row of vertical space, and puts "where am I" where a person already looks for it.
-To draw a trail somewhere else instead, place `<c-breadcrumbs :items="page.breadcrumbs" />`
+To draw a trail somewhere else instead, place `<c-mvp.breadcrumbs :items="page.breadcrumbs" />`
 wherever you want it and override the `app.header` block with your own header.
 
 ### A trail from a template
 
 A page whose view is not an MVP view has no `breadcrumbs` list to read. That is the usual
 case when your templates wrap another package's views. Fill the `app.breadcrumbs` block
-with the steps instead, one `<c-breadcrumbs.item>` each. A step with an `href` is a link,
+with the steps instead, one `<c-mvp.breadcrumbs.item>` each. A step with an `href` is a link,
 and the one without is the current page:
 
 ```html
 {% extends "base.html" %}
 
 {% block app.breadcrumbs %}
-  <c-breadcrumbs.item text="Account Center" href="{% url 'account-center' %}" />
-  <c-breadcrumbs.item text="Email addresses" />
+  <c-mvp.breadcrumbs.item text="Account Center" href="{% url 'account-center' %}" />
+  <c-mvp.breadcrumbs.item text="Email addresses" />
 {% endblock app.breadcrumbs %}
 ```
 
 The block holds the steps only. The header draws the `<nav>` around them, in the same
-place and with the same shrinking behaviour as a trail from a view.
+place and with the same folding behaviour as a trail from a view.
 
 - A filled block replaces the trail the view declared. The two are not joined.
 - A block left empty, or holding only whitespace, falls back to the view's trail.

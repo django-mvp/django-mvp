@@ -35,6 +35,37 @@ class AboutView(MVPTemplateView):
     page_lead = "Who we are"
 ```
 
+### The trail a view declares
+
+A view declares its trail with a `breadcrumbs` list, or with `get_breadcrumbs()` where a step
+needs the request or the object. Each step is a dict with `text`, an optional `href` and an
+optional `icon`. The last step, the current page, has no `href`.
+
+```python
+class ProductDetailView(MVPDetailView):
+    model = Product
+
+    def get_breadcrumbs(self):
+        return [{"text": "Products", "href": "/products/"}, {"text": str(self.object)}]
+```
+
+How the header folds a long trail is in [Breadcrumbs](layout.md#breadcrumbs). What makes a good
+trail:
+
+| | Guideline |
+|---|---|
+| 1 | **Start at the first level below home.** The header's site icon already links home, and one Home link is enough. Don't put a `Home` step in the trail. |
+| 2 | **Show where the page sits in the site's hierarchy**, never the visitor's history. |
+| 3 | **A page with several parents shows one fixed path**, the same for every visitor. |
+| 4 | **End with the current page, as text, not a link.** The component does this for a step with no `href`. |
+| 5 | **Every other step is a real page** a visitor can go to. A category that only groups items in a menu has no page, so it has no step. |
+| 6 | **Skip breadcrumbs on a site only one or two levels deep**, or one read in a fixed order. |
+| 7 | **Breadcrumbs add to the sidebar and menus**, never replace them. |
+| 8 | **There is no maximum number of steps.** The trail folds whatever doesn't fit into the "…" menu, keeping the parent and the current page. (Fixed-count libraries default to 8, per MUI and Atlassian. The trail doesn't need one.) |
+| 9 | **Keep labels short.** Use the page's own short name. Long labels are cut short on narrow screens. |
+
+Source: Nielsen Norman Group, ["Breadcrumbs: 11 Design Guidelines for Desktop and Mobile"](https://www.nngroup.com/articles/breadcrumbs/), except 8's fixed-count note, which is from the MUI and Atlassian breadcrumb documentation.
+
 The page's title draws from six arguments. Each is a class attribute with a `get_*()` method
 that returns it, so a subclass changes one argument in one line, and a method serves a value
 that depends on the request or the object:

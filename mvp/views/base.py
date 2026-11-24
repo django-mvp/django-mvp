@@ -217,7 +217,7 @@ class PageMixin:
             template_name = "dashboard.html"
             page_title = "Dashboard"
             page_lead = "Welcome back"
-            breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "Dashboard"}]
+            breadcrumbs = [{"text": "Dashboard"}]
     """
 
     page_title: str | Promise = ""
@@ -433,14 +433,13 @@ class PageMixin:
 
             # Static breadcrumbs — use the class attribute:
             class AboutView(PageMixin, TemplateView):
-                breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "About"}]
+                breadcrumbs = [{"text": "About"}]
 
 
             # Dynamic breadcrumbs — override this method:
             class ProductDetailView(PageMixin, DetailView):
                 def get_breadcrumbs(self):
                     return [
-                        {"text": "Home", "href": "/"},
                         {"text": "Products", "href": "/products/"},
                         {"text": self.object.name},
                     ]

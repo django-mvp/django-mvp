@@ -488,9 +488,12 @@ in its `text` slot: `<c-slot name="text"><span>Reports</span></c-slot>`.
 
 `<c-menu>`, `<c-breadcrumbs>` and `<c-dock>` are daisy-cotton's. A `<c-menu>` has no
 accessible name of its own, so give one you write by hand an `aria-label`, or put it inside
-a `<nav>`. `<c-breadcrumbs>` takes either `items`, a list of dictionaries holding the
-attributes of one `<c-breadcrumbs.item>` each, or hand-written items as its content; the
-shell already draws a trail in the header from `page.breadcrumbs`. `<c-dock>` has no default
+a `<nav>`. The header does not use `<c-breadcrumbs>`. It draws `<c-mvp.breadcrumbs>`, this
+package's own trail, which folds the steps that do not fit into a "…" menu. It takes the
+same `items` list, or `<c-mvp.breadcrumbs.item>` steps as its content, and an optional
+`icon` on a step. Place it in a card, a sidebar or any other box and it fits that box. See
+[Breadcrumbs](layout.md#breadcrumbs), which also lists what makes a good trail.
+`<c-dock>` has no default
 class, so the dock the shell draws passes it `layout.dock.class`, and a dock you write
 yourself takes the class you pass.
 
@@ -548,6 +551,8 @@ daisy-cotton also has `<c-form.textarea>`, `<c-form.select>`, `<c-form.checkbox>
 
 | Component | Attributes |
 | --- | --- |
+| `c-mvp.breadcrumbs` | a breadcrumb trail that fits its box and folds what does not fit into a "…" menu: `items` (the steps, each a dict of `text`, `href`, `icon`) or `c-mvp.breadcrumbs.item` steps as its content, `aria-label` (defaults to "Breadcrumbs"), `class` — see [Breadcrumbs](layout.md#breadcrumbs) |
+| `c-mvp.breadcrumbs.item` | one step: `text`, `href` (without one the step is the current page), `icon` (the first step shrinks to it on a narrow trail), `class` |
 | `c-mvp.reorder` | a list whose rows a person drags or moves with buttons: `id`, `label` (the list's accessible name), `name` (the order's field name, default `order`), `form` (a surrounding form submits the order), `url` (the order is posted there; needs an `id`), `mode` (`always`, or `on-demand` to reorder only between a start and an end control; needs an `id`), `class` — see [Reorder a list](reorder.md) |
 | `c-mvp.reorder.row` | one row of that list: `value` (the item's identifier), `label` (the item's name, for the controls), `class` |
 | `c-mvp.reorder.moves` | the up and down buttons and the handle of one row: `label`. `c-mvp.reorder.row` places it; write it by hand only for a custom row |

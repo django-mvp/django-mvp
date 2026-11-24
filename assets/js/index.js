@@ -20,6 +20,7 @@ import persist from "@alpinejs/persist";
 import htmx from "htmx.org";
 import { themeChange } from "theme-change";
 
+import { registerBreadcrumbs } from "./breadcrumbs.js";
 import { startDropdowns } from "./dropdown.js";
 import { startHeaderHeight } from "./header_height.js";
 import { registerInstallPage } from "./install.js";
@@ -112,6 +113,9 @@ registerReorder(Alpine);
 
 // A list row's actions: the buttons under it and its menu (row_actions.js).
 registerRowActions(Alpine);
+
+// The breadcrumb trail that folds to fit its box (breadcrumbs.js).
+registerBreadcrumbs(Alpine);
 
 // mvp/static/js/formset.js reaches for the global, as does any x-data in a
 // consuming project's own templates.

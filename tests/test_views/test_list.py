@@ -341,14 +341,13 @@ class TestMVPListViewMixinContextKeys:
 
 
 class TestMVPListViewMixinPageMetadata:
-    def test_default_breadcrumbs_include_home_and_page_title(self, db):
+    def test_default_breadcrumbs_are_the_page_title_alone(self, db):
         view = _make_list_view()
         view.object_list = view.get_queryset()
         ctx = view.get_context_data()
         breadcrumbs = ctx["page"]["breadcrumbs"]
-        assert breadcrumbs[0]["href"] == "/"
         expected_title = Product._meta.verbose_name_plural.title()
-        assert breadcrumbs[1] == {"text": expected_title}
+        assert breadcrumbs == [{"text": expected_title}]
 
     def test_page_title_attribute_overrides_model_derived_title(self, db):
         view = _make_list_view(extra_attrs={"page_title": "Our Catalogue"})

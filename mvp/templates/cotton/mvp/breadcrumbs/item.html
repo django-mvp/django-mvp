@@ -1,0 +1,24 @@
+{# @description One step of a breadcrumb trail. A link when it has an href, the current page when it has none. The trail's script numbers the steps for the schema.org markup. Start a trail at the first level below home, never with a Home step, and end it with the current page as text, not a link (Nielsen Norman Group, "Breadcrumbs: 11 Design Guidelines for Desktop and Mobile"). #}
+{# @prop text:text | description:"The step's label." #}
+{# @prop href:text | description:"Link address. Without it the step is the current page." #}
+{# @prop icon:text | description:"Icon name shown before the label. On a narrow trail the first step can shrink to its icon alone." #}
+{# @prop class:text | description:"Extra classes on the list item." #}
+<c-vars text href icon class />
+<li class="mvp-crumb {{ class }}"
+    data-mvp-crumb
+    itemprop="itemListElement"
+    itemscope
+    itemtype="https://schema.org/ListItem"
+    {{ attrs }}>
+  {% if href %}
+    <a href="{{ href }}" itemprop="item">
+      {% if icon %}<c-icon name="{{ icon }}" class="mvp-crumb-icon" aria-hidden="true" />{% endif %}
+      <span class="mvp-crumb-text" itemprop="name">{{ text }}{{ slot }}</span>
+    </a>
+  {% else %}
+    <span aria-current="page">
+      {% if icon %}<c-icon name="{{ icon }}" class="mvp-crumb-icon" aria-hidden="true" />{% endif %}
+      <span class="mvp-crumb-text" itemprop="name">{{ text }}{{ slot }}</span>
+    </span>
+  {% endif %}
+</li>

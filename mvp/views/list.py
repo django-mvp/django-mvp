@@ -481,7 +481,7 @@ class MVPListViewMixin(
         get_empty_state_message(): Return the empty-state message string (or ``None``).
         get_grid_config(): Return the grid breakpoint dict passed to context.
         get_page_title(): Return the page title; falls back to verbose_name_plural.title().
-        get_breadcrumbs(): Return the breadcrumb list. Default includes Home + page title.
+        get_breadcrumbs(): Return the breadcrumb list. Default is the page title alone.
         get_filterset_class(): Return the filterset class, declared or generated.
         get_filterset(): Return this request's filterset, built once.
         get_create_form(): Instantiate and return the create form, or ``None`` if not configured.
@@ -855,12 +855,10 @@ class MVPListViewMixin(
         """Return the breadcrumb trail for the list page.
 
         Returns:
-            A Home link followed by the page title.
+            The page title as the current page. The header's site icon already
+            links home, so the trail has no Home step.
         """
-        return [
-            {"text": _("Home"), "href": "/"},
-            {"text": self.get_page_title()},
-        ]
+        return [{"text": self.get_page_title()}]
 
 
 class MVPListView(MVPListViewMixin, ListView):

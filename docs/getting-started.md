@@ -259,6 +259,35 @@ class DashboardView(MVPTemplateView):
     page_title = "Dashboard"
 ```
 
+### Give the page a breadcrumb trail
+
+An MVP view draws the trail in the header from its `breadcrumbs` list. Start the trail at the
+first level below home, because the site icon already links there:
+
+```python
+class AboutView(MVPTemplateView):
+    template_name = "about.html"
+    breadcrumbs = [{"text": "Company", "href": "/company/"}, {"text": "About"}]
+```
+
+The header folds a trail that does not fit into a "…" menu, so any depth works. See
+[Breadcrumbs](layout.md#breadcrumbs) for the layouts and the `icon` option. A good trail follows
+these guidelines:
+
+| | Guideline |
+|---|---|
+| 1 | **Start at the first level below home.** The header's site icon already links home, and one Home link is enough. Don't put a `Home` step in the trail. |
+| 2 | **Show where the page sits in the site's hierarchy**, never the visitor's history. |
+| 3 | **A page with several parents shows one fixed path**, the same for every visitor. |
+| 4 | **End with the current page, as text, not a link.** The component does this for a step with no `href`. |
+| 5 | **Every other step is a real page** a visitor can go to. A category that only groups items in a menu has no page, so it has no step. |
+| 6 | **Skip breadcrumbs on a site only one or two levels deep**, or one read in a fixed order. |
+| 7 | **Breadcrumbs add to the sidebar and menus**, never replace them. |
+| 8 | **There is no maximum number of steps.** The trail folds whatever doesn't fit into the "…" menu, keeping the parent and the current page. (Fixed-count libraries default to 8, per MUI and Atlassian. The trail doesn't need one.) |
+| 9 | **Keep labels short.** Use the page's own short name. Long labels are cut short on narrow screens. |
+
+Source: Nielsen Norman Group, ["Breadcrumbs: 11 Design Guidelines for Desktop and Mobile"](https://www.nngroup.com/articles/breadcrumbs/), except 8's fixed-count note, which is from the MUI and Atlassian breadcrumb documentation.
+
 ## Add menu items
 
 Create `menus.py` in your app and register it in `AppConfig.ready()` — the sidebar

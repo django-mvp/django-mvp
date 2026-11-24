@@ -1,0 +1,40 @@
+{# @description A breadcrumb trail that fits whatever width it is given. Crumbs that do not fit fold into a "…" menu, starting from the middle of the trail, so the first step, the parent and the current page stay on screen longest. Guidelines: start at the first level below home (the header's site icon already links home, so no Home step); show the site's hierarchy, never the visitor's history; one fixed path for a page with several parents; end with the current page as text, not a link; every other step is a real page; skip breadcrumbs on a site one or two levels deep; add to the sidebar and menus, never replace them; no maximum number of steps, the trail folds what does not fit; keep labels short. Source: Nielsen Norman Group, "Breadcrumbs: 11 Design Guidelines for Desktop and Mobile". #}
+{# @prop items:text | description:"A list of dicts, each with text, an optional href and an optional icon. The last one is the current page." #}
+{# @prop class:text | description:"Extra classes on the nav." #}
+{# @prop aria-label:text | description:"Accessible name of the trail. Defaults to a translated Breadcrumbs." #}
+{# @slot — The trail's steps as c-mvp.breadcrumbs.item components, used when no items are given. #}
+{% load i18n %}
+<c-vars items class aria-label />
+<nav class="mvp-crumbs {{ class }}"
+     aria-label="{% if aria_label %}{{ aria_label }}{% else %}{% trans "Breadcrumbs" %}{% endif %}"
+     x-data="mvpBreadcrumbs"
+     data-label-one="{% trans "Show 1 more level" %}"
+     data-label-many="{% blocktrans with count="{count}" %}Show {{ count }} more levels{% endblocktrans %}"
+     {{ attrs }}>
+  <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+    {# The fold. Hidden until the script decides something does not fit; the #}
+    {# script moves it to where the folded crumbs were and fills its menu. #}
+    <li class="mvp-crumbs-fold" data-mvp-crumbs-fold hidden>
+      <div class="dropdown" data-mvp-dropdown data-mvp-placement="bottom-start">
+        <button type="button"
+                class="mvp-crumbs-fold-button"
+                aria-haspopup="true"
+                data-mvp-crumbs-fold-button>
+          <span aria-hidden="true">…</span>
+        </button>
+        <div tabindex="-1"
+             class="dropdown-content bg-base-100 rounded-box z-50 min-w-56 max-w-80 shadow-lg border border-line p-1.5">
+          <p class="mvp-crumbs-fold-heading">{% trans "Further up" %}</p>
+          <ul class="mvp-crumbs-fold-menu" data-mvp-crumbs-menu></ul>
+        </div>
+      </div>
+    </li>
+    {% if items %}
+      {% for item in items %}
+        <c-mvp.breadcrumbs.item :attrs="item" only />
+      {% endfor %}
+    {% else %}
+      {{ slot }}
+    {% endif %}
+  </ol>
+</nav>

@@ -78,8 +78,8 @@ class DemoTemplateView(TitleLayoutFromQueryMixin, MVPTemplateView):
         ]
 
     def get_breadcrumbs(self):
-        """Add a fixed Home crumb ahead of the page's own title."""
-        return [{"text": "Home", "href": "/"}, {"text": self.page_title}]
+        """Return the page's own title as the whole trail."""
+        return [{"text": self.page_title}]
 
 
 class ComponentIndexView(DemoTemplateView):
@@ -112,9 +112,8 @@ class ComponentDocView(DemoTemplateView):
         self.page_title = self.component.label
 
     def get_breadcrumbs(self):
-        """Add Home and Components crumbs ahead of this component's own."""
+        """Add the Components crumb ahead of this component's own."""
         return [
-            {"text": "Home", "href": "/"},
             {"text": "Components", "href": "/components/"},
             {"text": self.component.label},
         ]
@@ -281,9 +280,8 @@ class UtilityClassesView(DemoTemplateView):
     page_title = "Utility Classes"
 
     def get_breadcrumbs(self):
-        """Add Home and Components crumbs ahead of this page's own."""
+        """Add the Components crumb ahead of this page's own."""
         return [
-            {"text": "Home", "href": "/"},
             {"text": "Components", "href": "/components/"},
             {"text": self.page_title},
         ]
@@ -318,9 +316,8 @@ class LayoutPageView(DemoTemplateView):
     has_example = True
 
     def get_breadcrumbs(self):
-        """Add Home and Layout crumbs ahead of this page's own."""
+        """Add the Layout crumb ahead of this page's own."""
         return [
-            {"text": "Home", "href": "/"},
             {"text": "Layout", "href": reverse("layout")},
             {"text": self.page_title},
         ]
@@ -845,7 +842,7 @@ class HtmxProductCreateView(HtmxFormMixin, MVPCreateView):
     success_url = "list"
     page_title = "HTMX Form Demo"
     page_lead = "Partial form rendering with HtmxFormMixin"
-    breadcrumbs = [{"text": "Home", "href": "/"}, {"text": "HTMX Form Demo"}]
+    breadcrumbs = [{"text": "HTMX Form Demo"}]
     show_list_action = True
 
     def form_valid(self, form):
@@ -981,9 +978,8 @@ class PageSideDemoView(DemoTemplateView):
     }
 
     def get_breadcrumbs(self):
-        """Add Home and Layout crumbs ahead of this page's own."""
+        """Add the Layout crumb ahead of this page's own."""
         return [
-            {"text": "Home", "href": "/"},
             {"text": "Layout", "href": reverse("layout")},
             {"text": self.page_title},
         ]
@@ -1105,9 +1101,8 @@ class PageTitleDemoView(DemoTemplateView):
         )
 
     def get_breadcrumbs(self):
-        """Add Home and Layout crumbs ahead of this page's own."""
+        """Add the Layout crumb ahead of this page's own."""
         return [
-            {"text": "Home", "href": "/"},
             {"text": "Layout", "href": reverse("layout")},
             {"text": "Page Title"},
         ]
