@@ -841,7 +841,7 @@ requires-dist = [
     { name = "django-filter", specifier = ">=26.1,<27" },
     { name = "django-flex-menus", specifier = ">=0.4.5" },
     { name = "django-mvp-forms", extras = ["timezone"], specifier = ">=0.11.0,<1.0" },
-    { name = "django-mvp-layout", specifier = ">=0.1.1,<0.2" },
+    { name = "django-mvp-layout", specifier = ">=0.1.2,<0.2" },
     { name = "django-object-preferences", specifier = ">=0.3.1,<0.4" },
     { name = "django-timezone-field", specifier = ">=7.2,<8" },
     { name = "mergedeep", specifier = ">=1.3,<2.0" },
@@ -884,15 +884,15 @@ timezone = [
 
 [[package]]
 name = "django-mvp-layout"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "django-cotton" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/aa/fc/4cbb0e9bde811566f63b9d980018d6add92956bf1e0dfd4ac1ccc55c9648/django_mvp_layout-0.1.1.tar.gz", hash = "sha256:ba57dfea4255df6644f7a47efaef1d27c2f4040beb9701095cb92a4359a55fef", size = 20599, upload-time = "2026-11-24T22:01:33.573Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d6/b1/42da9062c3fa25ba6e56cd758808517717bd7b959c4c767439a139162f7b/django_mvp_layout-0.1.2.tar.gz", hash = "sha256:6861e9386e9f50b70535755ffa48514bd2c24cbdbc00ad5a42752955eca5bb34", size = 20670, upload-time = "2026-11-24T22:18:09.025Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9a/07/cd987c07c9f8fb5049ee34dd91983b32ebf110ca6008c80b5e62ba4ca497/django_mvp_layout-0.1.1-py3-none-any.whl", hash = "sha256:58fb1371e7eb923462bd760929cf979e515b22ff238e64cebb0d00f6c94d5e88", size = 22839, upload-time = "2026-11-24T22:01:32.534Z" },
+    { url = "https://files.pythonhosted.org/packages/09/ee/280478d89a0927c0523eb8fe74f2ee2369da23f99b7749a316adebe89744/django_mvp_layout-0.1.2-py3-none-any.whl", hash = "sha256:f44ba957e3eecd8e33b07d02424a26c0821b01889baed98aa508e1f17ed41795", size = 22919, upload-time = "2026-11-24T22:18:07.939Z" },
 ]
 
 [[package]]

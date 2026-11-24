@@ -45,7 +45,7 @@ A developer sets `view` on a card and places django-mvp-layout's own `<c-layout.
 available, measured against the card's own width.
 
 - `view` turns layout mode on. It has no default: a card without it is drawn as before.
-- `height` is optional. Unset, the card is as tall as its content (django-mvp-layout 0.1.1). Set,
+- `height` is optional. Unset, the card is as tall as its content (django-mvp-layout 0.1.1 and later). Set,
   the body scrolls inside it.
 - The title row (title, icon, badges, actions) is the layout's header, with a `<c-layout.toggle>`
   for each side that hides itself when that sidebar is absent or never closes. The footer slots are
@@ -164,9 +164,6 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   Feature 1 removes them.
 - **`MVP_CONFIG["layout"]["navbar"]["sticky"]` is no longer read.** Feature 1 removes it.
 - **The card and dialog duplicate the layout markup.** Feature 2 makes the shared component.
-- **A drawer with `behavior="overlay"` on a fixed side stops short of the box's bottom** by the
-  header's height. A django-mvp-layout defect, being fixed as 0.1.2; the prototype upgrades when
-  it is out.
 - **A toggle's name doesn't follow its sidebar's label.** The package's script could copy it
   across. Feature 1 of django-mvp-layout's own roadmap, not django-mvp's.
 - **`assets/tailwind.css` scans the demo's component and layout templates** so their example
