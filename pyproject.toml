@@ -48,7 +48,7 @@ dependencies = [
     "django-object-preferences>=0.3.1,<0.4",  # the preferences field on the user model and the page that edits it
     "django-timezone-field>=7.2,<8",  # the timezone preference's form field
     "modelsearch>=1.3.2,<2",
-    "django-mvp-layout>=0.1,<0.2",  # the layout code, sidebars and drawers behind the shell, cards and dialogs
+    "django-mvp-layout>=0.1.1,<0.2",  # the layout code, sidebars and drawers behind the shell, cards and dialogs
 ]
 # Optional integrations (django-tables2, ...) are NOT extras:
 # they live in guarded modules under mvp.integrations, required only when

@@ -100,42 +100,46 @@
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Sections in a sidebar"
-                        description="Fill the left slot and the box is laid out by a layout code: the heading row on top, the sidebar beside the body, the actions row below. On a narrow screen the sidebar becomes a drawer inside the dialog, opened from the heading row, and Escape closes the drawer before the dialog.">
+                        description="Set view and the box is laid out by that layout code. Place c-layout.sidebar and c-layout.page inside it: the heading row on top, the sidebar beside the body, the actions row below. The box keeps daisyUI's height cap and the body scrolls inside it. On a narrow screen the sidebar becomes a drawer inside the dialog, opened from the heading row, and Escape closes the drawer before the dialog.">
     {% cotton:verbatim %}
     <c-button text="Open settings" icon="gear" onclick="settings_modal.showModal()" />
-    <c-mvp.modal id="settings_modal" title="Settings" icon="gear" size="lg" closable left-label="Settings sections" x-data="{ section: 'profile' }">
-      <c-slot name="left">
-        <c-menu class="w-full">
-          <c-menu.item icon="person" href="#settings-profile" @click="section = 'profile'" ::class="section === 'profile' && 'menu-active'"><span>Profile</span></c-menu.item>
-          <c-menu.item icon="bell" href="#settings-notifications" @click="section = 'notifications'" ::class="section === 'notifications' && 'menu-active'"><span>Notifications</span></c-menu.item>
-          <c-menu.item icon="palette" href="#settings-appearance" @click="section = 'appearance'" ::class="section === 'appearance' && 'menu-active'"><span>Appearance</span></c-menu.item>
-          <c-menu.item icon="lock" href="#settings-security" @click="section = 'security'" ::class="section === 'security' && 'menu-active'"><span>Security</span></c-menu.item>
-        </c-menu>
-      </c-slot>
-      <div x-show="section === 'profile'" class="flex flex-col gap-4" data-section="profile">
-        <h3 class="text-base font-semibold">Profile</h3>
-        <label class="flex flex-col gap-1 text-sm">Name<input class="input w-full" value="Mira Okafor" /></label>
-        <label class="flex flex-col gap-1 text-sm">Role<input class="input w-full" value="Field geologist" /></label>
-        <label class="flex flex-col gap-1 text-sm">About<textarea class="textarea w-full" rows="3">Works on the northern transect.</textarea></label>
-      </div>
-      <div x-show="section === 'notifications'" x-cloak class="flex flex-col gap-3" data-section="notifications">
-        <h3 class="text-base font-semibold">Notifications</h3>
-        <label class="flex items-center justify-between gap-3 text-sm">A dataset I follow changes<input type="checkbox" class="toggle" checked /></label>
-        <label class="flex items-center justify-between gap-3 text-sm">Someone mentions me<input type="checkbox" class="toggle" checked /></label>
-        <label class="flex items-center justify-between gap-3 text-sm">A weekly summary<input type="checkbox" class="toggle" /></label>
-      </div>
-      <div x-show="section === 'appearance'" x-cloak class="flex flex-col gap-3" data-section="appearance">
-        <h3 class="text-base font-semibold">Appearance</h3>
-        <label class="flex flex-col gap-1 text-sm">Density<select class="select w-full"><option>Comfortable</option><option>Compact</option></select></label>
-      </div>
-      <div x-show="section === 'security'" x-cloak class="flex flex-col gap-3" data-section="security">
-        <h3 class="text-base font-semibold">Security</h3>
-        <p class="text-sm text-base-content/70">Two-step sign-in is on. You last signed in from Potsdam.</p>
-        <div><c-button size="sm" text="Sign out of other devices" /></div>
-      </div>
+    <c-mvp.modal id="settings_modal" title="Settings" icon="gear" view="hHh LpR fFf" size="lg" closable x-data="{ section: 'profile' }">
+      <c-layout.sidebar side="left" label="Settings sections" breakpoint="sm">
+        <div class="flex min-h-full flex-col p-2">
+          <c-menu class="w-full">
+            <c-menu.item icon="person" href="#settings-profile" @click="section = 'profile'" ::class="section === 'profile' && 'menu-active'"><span>Profile</span></c-menu.item>
+            <c-menu.item icon="bell" href="#settings-notifications" @click="section = 'notifications'" ::class="section === 'notifications' && 'menu-active'"><span>Notifications</span></c-menu.item>
+            <c-menu.item icon="palette" href="#settings-appearance" @click="section = 'appearance'" ::class="section === 'appearance' && 'menu-active'"><span>Appearance</span></c-menu.item>
+            <c-menu.item icon="lock" href="#settings-security" @click="section = 'security'" ::class="section === 'security' && 'menu-active'"><span>Security</span></c-menu.item>
+          </c-menu>
+        </div>
+      </c-layout.sidebar>
+      <c-layout.page class="p-4">
+        <div x-show="section === 'profile'" class="flex flex-col gap-4" data-section="profile">
+          <h3 class="text-base font-semibold">Profile</h3>
+          <label class="flex flex-col gap-1 text-sm">Name<input class="input w-full" value="Mira Okafor" /></label>
+          <label class="flex flex-col gap-1 text-sm">Role<input class="input w-full" value="Field geologist" /></label>
+          <label class="flex flex-col gap-1 text-sm">About<textarea class="textarea w-full" rows="3">Works on the northern transect.</textarea></label>
+        </div>
+        <div x-show="section === 'notifications'" x-cloak class="flex flex-col gap-3" data-section="notifications">
+          <h3 class="text-base font-semibold">Notifications</h3>
+          <label class="flex items-center justify-between gap-3 text-sm">A dataset I follow changes<input type="checkbox" class="toggle" checked /></label>
+          <label class="flex items-center justify-between gap-3 text-sm">Someone mentions me<input type="checkbox" class="toggle" checked /></label>
+          <label class="flex items-center justify-between gap-3 text-sm">A weekly summary<input type="checkbox" class="toggle" /></label>
+        </div>
+        <div x-show="section === 'appearance'" x-cloak class="flex flex-col gap-3" data-section="appearance">
+          <h3 class="text-base font-semibold">Appearance</h3>
+          <label class="flex flex-col gap-1 text-sm">Density<select class="select w-full"><option>Comfortable</option><option>Compact</option></select></label>
+        </div>
+        <div x-show="section === 'security'" x-cloak class="flex flex-col gap-3" data-section="security">
+          <h3 class="text-base font-semibold">Security</h3>
+          <p class="text-sm text-base-content/70">Two-step sign-in is on. You last signed in from Potsdam.</p>
+          <div><c-button size="sm" text="Sign out of other devices" /></div>
+        </div>
+      </c-layout.page>
       <c-slot name="footer_end">
         <c-button text="Cancel" ghost onclick="settings_modal.close()" />
-        <c-button text="Save" variant="primary" onclick="settings_modal.close()" />
+                <c-button text="Save" variant="primary" onclick="settings_modal.close()" />
       </c-slot>
     </c-mvp.modal>
   {% endcotton:verbatim %}
@@ -144,59 +148,69 @@
                         description="A dialog can have both sidebars. Here the folders sit on the left and the chosen file's details on the right. The right sidebar becomes a drawer below its own breakpoint, so on a phone both open from the heading row.">
     {% cotton:verbatim %}
     <c-button text="Choose a file" icon="file" onclick="picker_modal.showModal()" />
-    <c-mvp.modal id="picker_modal" title="Choose a file" icon="folder" size="xl" closable left-label="Folders" right-label="File details">
-      <c-slot name="left">
-        <c-menu class="w-full">
-          <c-menu.item icon="folder" href="#picker-field" active><span>Field data</span></c-menu.item>
-          <c-menu.item icon="folder" href="#picker-papers"><span>Papers</span></c-menu.item>
-          <c-menu.item icon="folder" href="#picker-images"><span>Images</span></c-menu.item>
-          <c-menu.item icon="cloud" href="#picker-shared"><span>Shared with me</span></c-menu.item>
-        </c-menu>
-      </c-slot>
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <button type="button" class="flex flex-col items-center gap-2 rounded-box border-2 border-primary bg-primary/5 p-4 text-sm"><c-icon name="sheet" class="text-3xl" />site-4-cores.xlsx</button>
-        <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="pdf" class="text-3xl" />sampling-sheet.pdf</button>
-        <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="image-file" class="text-3xl" />core-401.jpg</button>
-        <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="image-file" class="text-3xl" />core-402.jpg</button>
-        <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="file-text" class="text-3xl" />field-notes.md</button>
-      </div>
-      <c-slot name="right">
-        <dl class="flex flex-col gap-2 text-sm">
-          <dt class="font-semibold">site-4-cores.xlsx</dt>
-          <dd class="text-base-content/70">Spreadsheet · 84 KB</dd>
-          <dt class="mt-2 text-xs uppercase text-base-content/60">Modified</dt><dd>Today, 09:12 by Mira Okafor</dd>
-          <dt class="mt-2 text-xs uppercase text-base-content/60">Shared with</dt><dd>Field team</dd>
-        </dl>
-      </c-slot>
+    <c-mvp.modal id="picker_modal" title="Choose a file" icon="folder" view="hHh LpR fFf" size="xl" closable>
+      <c-layout.sidebar side="left" label="Folders" breakpoint="sm">
+        <div class="flex min-h-full flex-col p-2">
+          <c-menu class="w-full">
+            <c-menu.item icon="folder" href="#picker-field" active><span>Field data</span></c-menu.item>
+            <c-menu.item icon="folder" href="#picker-papers"><span>Papers</span></c-menu.item>
+            <c-menu.item icon="folder" href="#picker-images"><span>Images</span></c-menu.item>
+            <c-menu.item icon="cloud" href="#picker-shared"><span>Shared with me</span></c-menu.item>
+          </c-menu>
+        </div>
+      </c-layout.sidebar>
+      <c-layout.page class="p-4">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border-2 border-primary bg-primary/5 p-4 text-sm"><c-icon name="sheet" class="text-3xl" />site-4-cores.xlsx</button>
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="pdf" class="text-3xl" />sampling-sheet.pdf</button>
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="image-file" class="text-3xl" />core-401.jpg</button>
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="image-file" class="text-3xl" />core-402.jpg</button>
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="file-text" class="text-3xl" />field-notes.md</button>
+        </div>
+      </c-layout.page>
+      <c-layout.sidebar side="right" label="File details" breakpoint="md">
+        <div class="flex min-h-full flex-col p-3">
+          <dl class="flex flex-col gap-2 text-sm">
+            <dt class="font-semibold">site-4-cores.xlsx</dt>
+            <dd class="text-base-content/70">Spreadsheet · 84 KB</dd>
+            <dt class="mt-2 text-xs uppercase text-base-content/60">Modified</dt><dd>Today, 09:12 by Mira Okafor</dd>
+            <dt class="mt-2 text-xs uppercase text-base-content/60">Shared with</dt><dd>Field team</dd>
+          </dl>
+        </div>
+      </c-layout.sidebar>
       <c-slot name="footer"><span class="text-sm text-base-content/60">1 file selected</span></c-slot>
       <c-slot name="footer_end">
         <c-button text="Cancel" ghost onclick="picker_modal.close()" />
-        <c-button text="Attach" variant="primary" icon="paperclip" onclick="picker_modal.close()" />
+                <c-button text="Attach" variant="primary" icon="paperclip" onclick="picker_modal.close()" />
       </c-slot>
     </c-mvp.modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Options in a drawer"
-                        description="right-behavior=overlay keeps the options a drawer over the body at every width, so the message keeps the whole box until they are wanted.">
+                        description="behavior=overlay on the sidebar keeps the options a drawer over the body at every width, so the message keeps the whole box until they are wanted.">
     {% cotton:verbatim %}
     <c-button text="New message" icon="envelope" onclick="compose_modal.showModal()" />
-    <c-mvp.modal id="compose_modal" title="New message" icon="envelope" closable right-behavior="overlay" right-label="Sending options">
-      <div class="flex flex-col gap-3">
-        <label class="flex flex-col gap-1 text-sm">To<input class="input w-full" value="field-team@example.org" /></label>
-        <label class="flex flex-col gap-1 text-sm">Subject<input class="input w-full" value="Core labels" /></label>
-        <label class="flex flex-col gap-1 text-sm">Message<textarea class="textarea w-full" rows="6">Please check the labels against the sampling sheet before Friday.</textarea></label>
-      </div>
-      <c-slot name="right">
+    <c-mvp.modal id="compose_modal" title="New message" icon="envelope" view="hHh LpR fFf" closable>
+      <c-layout.page class="p-4">
         <div class="flex flex-col gap-3">
-          <h3 class="text-sm font-semibold">Sending options</h3>
-          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" /> Ask for a read receipt</label>
-          <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" checked /> Send a copy to me</label>
-          <label class="flex flex-col gap-1 text-sm">Send<select class="select select-sm"><option>Now</option><option>Tomorrow at 08:00</option></select></label>
+          <label class="flex flex-col gap-1 text-sm">To<input class="input w-full" value="field-team@example.org" /></label>
+          <label class="flex flex-col gap-1 text-sm">Subject<input class="input w-full" value="Core labels" /></label>
+          <label class="flex flex-col gap-1 text-sm">Message<textarea class="textarea w-full" rows="6">Please check the labels against the sampling sheet before Friday.</textarea></label>
         </div>
-      </c-slot>
+      </c-layout.page>
+      <c-layout.sidebar side="right" behavior="overlay" label="Sending options">
+        <div class="flex min-h-full flex-col p-3">
+          <div class="flex flex-col gap-3">
+            <h3 class="text-sm font-semibold">Sending options</h3>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" /> Ask for a read receipt</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" checked /> Send a copy to me</label>
+            <label class="flex flex-col gap-1 text-sm">Send<select class="select select-sm"><option>Now</option><option>Tomorrow at 08:00</option></select></label>
+          </div>
+        </div>
+      </c-layout.sidebar>
       <c-slot name="footer_end">
         <c-button text="Discard" ghost onclick="compose_modal.close()" />
-        <c-button text="Send" variant="primary" icon="send" onclick="compose_modal.close()" />
+                <c-button text="Send" variant="primary" icon="send" onclick="compose_modal.close()" />
       </c-slot>
     </c-mvp.modal>
   {% endcotton:verbatim %}
