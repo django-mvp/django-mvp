@@ -33,6 +33,14 @@ AppMenu.extend(
                     },
                 ),
                 MenuItem(
+                    name="layout-code",
+                    view_name="layout-code",
+                    extra_context={
+                        "label": "Layout Code",
+                        "icon": "grid",
+                    },
+                ),
+                MenuItem(
                     name="layout-sidebar",
                     view_name="layout-sidebar",
                     extra_context={

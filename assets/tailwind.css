@@ -15,6 +15,9 @@
    the package does not render. The demo runs on this same build, so a missed
    utility shows up as a broken demo page before release, not after (#238). */
 @source "../mvp";
+/* The layout examples in the demo use a few classes mvp itself does not. */
+@source "../demo/templates/demo/components";
+@source "../demo/templates/demo/layout";
 
 /* Ships the complete daisyUI component set (#190), not just what mvp's own
    templates reference — @source only emits a class it finds in scanned

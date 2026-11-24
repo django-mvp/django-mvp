@@ -1129,3 +1129,95 @@ class PageTitleDemoView(DemoTemplateView):
 
 
 page_title_demo = PageTitleDemoView.as_view()
+
+
+#: Codes the layout code page offers to try, each with what it gives.
+LAYOUT_CODES = [
+    (
+        "lHh LpR lff",
+        "Application",
+        "The sidebar runs the full height. The header and both sidebars stay in place.",
+    ),
+    (
+        "hHh LpR fFf",
+        "Header across",
+        "The header and footer span the width. Everything but the page stays in place.",
+    ),
+    (
+        "hHh lpr fff",
+        "Document",
+        "A fixed header across the top. The sidebars and footer scroll with the page.",
+    ),
+    (
+        "lHh Lpr lFf",
+        "Workspace",
+        "The sidebar runs the full height beside a fixed header and footer.",
+    ),
+    (
+        "hhh lpr fff",
+        "Plain page",
+        "Nothing stays in place: the whole layout scrolls as one page.",
+    ),
+]
+
+AREA_NAMES = {
+    "header": "Header",
+    "left": "Sidebar",
+    "page": "Page",
+    "right": "Right sidebar",
+    "footer": "Footer",
+}
+
+
+class LayoutCodeView(LayoutPageView):
+    """The shell arranged by a layout code, which a visitor can change for this page.
+
+    ``?view=`` sets the code the shell is drawn with on this page only, through
+    the ``layout_view`` context variable the base template reads. A code that
+    does not parse is refused with the parser's own message and the page keeps
+    the project's code.
+    """
+
+    template_name = "layout/code.html"
+    page_title = "Layout code"
+    has_example = False
+
+    def get_context_data(self, **kwargs):
+        """Resolve the code to draw, its areas and the presets."""
+        from django.conf import settings
+
+        from mvp_layout.view import LayoutView, LayoutViewError
+
+        context = super().get_context_data(**kwargs)
+        project_code = settings.MVP_CONFIG.get("layout", {}).get("view") or "lHh LpR lff"
+        asked = self.request.GET.get("view", "").strip()
+        error = ""
+        try:
+            parsed = LayoutView.parse(asked or project_code)
+        except LayoutViewError as exc:
+            error = str(exc)
+            parsed = LayoutView.parse(project_code)
+        code = parsed.code
+        context.update(
+            layout_view=code,
+            asked_code=asked,
+            code_error=error,
+            project_code=project_code,
+            parsed=parsed,
+            presets=[
+                {"code": c, "name": n, "description": d, "current": c == code}
+                for c, n, d in LAYOUT_CODES
+            ],
+            areas=[
+                {
+                    "key": key,
+                    "name": name,
+                    "fixed": getattr(parsed, f"{key}_fixed", False),
+                }
+                for key, name in AREA_NAMES.items()
+            ],
+        )
+        return context
+
+
+layout_code_demo = LayoutCodeView.as_view()
