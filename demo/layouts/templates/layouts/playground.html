@@ -1,0 +1,150 @@
+{% extends "page_view.html" %}
+{% block app.secondary_sidebar %}
+  {% include "layouts/_reference.html" %}
+{% endblock app.secondary_sidebar %}
+{% block page.content %}
+  <style>
+    .lp-frame { resize: horizontal; overflow: hidden; max-width: 100%; min-width: 18rem; padding-inline-end: 0.75rem; }
+    .lp-frame::after { content: ""; }
+    .lp-handle { position: absolute; inset-block: 0; inset-inline-end: 0; width: 0.75rem; display: grid; place-items: center; pointer-events: none; }
+    .lp-handle::before { content: ""; width: 0.25rem; height: 2.5rem; border-radius: 9999px; background: var(--color-base-300); }
+  </style>
+  <div class="flex flex-col gap-6">
+    <form class="flex flex-col gap-5"
+          hx-get="{% url 'layout-code' %}"
+          hx-trigger="input changed delay:200ms from:#lp-code, change from:select"
+          hx-swap="none"
+          hx-replace-url="true"
+          hx-sync="this:replace"
+          onsubmit="return false">
+      <div class="flex flex-col gap-2">
+        <label for="lp-code" class="font-medium">Layout code</label>
+        <div class="flex flex-wrap items-center gap-3">
+          <input id="lp-code"
+                 name="view"
+                 value="{{ code }}"
+                 class="input input-lg w-56 font-mono tracking-widest"
+                 spellcheck="false"
+                 autocomplete="off"
+                 autocapitalize="off"
+                 maxlength="15"
+                 aria-describedby="lp-msg"
+                 {% if error %}aria-invalid="true"{% endif %} />
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Examples">
+            {% for example, label in examples %}
+              <button type="button" class="btn btn-sm" data-lp-example="{{ example }}" aria-pressed="{% if example == code %}true{% else %}false{% endif %}" title="{{ example }}">{{ label }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        {% include "layouts/_message.html" %}
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        {% for side, opts in sides %}
+          <fieldset class="fieldset rounded-box border border-base-300 p-4">
+            <legend class="fieldset-legend">{{ side|capfirst }} sidebar</legend>
+            <div class="grid gap-3 sm:grid-cols-3 md:grid-cols-1 2xl:grid-cols-3">
+              <label class="flex flex-col gap-1">
+                <span class="text-sm">When closed</span>
+                <select name="{{ side }}_collapse" class="select select-sm">
+                  {% for key, label in collapses %}<option value="{{ key }}" {% if key == opts.collapse %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-sm">Drawer below</span>
+                <select name="{{ side }}_breakpoint" class="select select-sm">
+                  {% for key, label in breakpoints %}<option value="{{ key }}" {% if key == opts.breakpoint %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-sm">Behaviour</span>
+                <select name="{{ side }}_behavior" class="select select-sm">
+                  {% for key, label in behaviors %}<option value="{{ key }}" {% if key == opts.behavior %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+              </label>
+            </div>
+          </fieldset>
+        {% endfor %}
+      </div>
+    </form>
+    <section class="flex flex-col gap-3" aria-label="Preview">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="join" role="group" aria-label="Preview width">
+          <button type="button" class="btn btn-sm join-item" data-lp-width="" aria-pressed="true">Full</button>
+          <button type="button" class="btn btn-sm join-item" data-lp-width="1024" aria-pressed="false">1024</button>
+          <button type="button" class="btn btn-sm join-item" data-lp-width="768" aria-pressed="false">768</button>
+          <button type="button" class="btn btn-sm join-item" data-lp-width="390" aria-pressed="false">390</button>
+        </div>
+        <p id="lp-status" class="text-sm text-base-content/70" aria-live="polite"></p>
+      </div>
+      <div id="lp-frame" class="lp-frame relative">
+        {% if view %}{% include "layouts/_preview_layout.html" %}{% else %}<div id="lp-preview"></div>{% endif %}
+        <span class="lp-handle" aria-hidden="true"></span>
+      </div>
+      <p class="text-sm text-base-content/60">Drag the frame's right edge, or pick a width, to see the sidebars change at their breakpoints.</p>
+    </section>
+    {% if view %}{% include "layouts/_preview_details.html" %}{% else %}<div id="lp-details"></div>{% endif %}
+  </div>
+  <script>
+    (function () {
+      var input = document.getElementById("lp-code");
+      var frame = document.getElementById("lp-frame");
+      var status = document.getElementById("lp-status");
+      function markExamples() {
+        var value = input.value.trim().replace(/\s+/g, " ");
+        document.querySelectorAll("[data-lp-example]").forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b.dataset.lpExample === value));
+          b.classList.toggle("btn-primary", b.dataset.lpExample === value);
+        });
+      }
+      function describe(s) {
+        if (!s.present) return "none";
+        if (s.mode === "overlay") return s.visible ? "drawer, open" : "drawer, closed";
+        if (s.collapse === "none") return "beside the page";
+        if (s.state === "open") return "beside the page, open";
+        return s.rail ? "icon rail" : "closed";
+      }
+      function report() {
+        var root = document.getElementById("lp-layout");
+        if (!root || !window.DaisyCottonLayout) return;
+        var s = window.DaisyCottonLayout.state(root);
+        status.textContent = Math.round(root.getBoundingClientRect().width) + "px wide · Left: " + describe(s.left) + " · Right: " + describe(s.right);
+      }
+      document.querySelectorAll("[data-lp-example]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          input.value = b.dataset.lpExample;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          markExamples();
+        });
+      });
+      input.addEventListener("input", markExamples);
+      markExamples();
+      document.querySelectorAll("[data-lp-width]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          frame.style.width = b.dataset.lpWidth ? b.dataset.lpWidth + "px" : "";
+          document.querySelectorAll("[data-lp-width]").forEach(function (o) {
+            o.setAttribute("aria-pressed", String(o === b));
+            o.classList.toggle("btn-primary", o === b);
+          });
+        });
+      });
+      document.querySelector('[data-lp-width=""]').classList.add("btn-primary");
+      document.addEventListener("dcl:change", function (e) {
+        if (e.target.id === "lp-layout") report();
+      });
+      document.body.addEventListener("htmx:afterSettle", function () {
+        input.setAttribute("aria-invalid", String(!!document.querySelector("#lp-msg.text-error")));
+        report();
+      });
+      document.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-lp-copy]");
+        if (!b) return;
+        var text = document.getElementById(b.dataset.lpCopy).innerText;
+        var done = function () { var s = b.querySelector("span"); s.textContent = "Copied"; setTimeout(function () { s.textContent = "Copy"; }, 1500); };
+        if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done); return; }
+        var area = document.createElement("textarea"); area.value = text; document.body.appendChild(area); area.select();
+        try { document.execCommand("copy"); done(); } finally { area.remove(); }
+      });
+      report();
+    })();
+  </script>
+{% endblock page.content %}

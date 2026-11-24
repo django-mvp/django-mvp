@@ -25,6 +25,22 @@ AppMenu.extend(
             },
             children=[
                 MenuItem(
+                    name="layout-code",
+                    view_name="layout-code",
+                    extra_context={
+                        "label": "Layout code",
+                        "icon": "layout-code",
+                    },
+                ),
+                MenuItem(
+                    name="layout-nested",
+                    view_name="layout-nested",
+                    extra_context={
+                        "label": "Nested layouts",
+                        "icon": "layers",
+                    },
+                ),
+                MenuItem(
                     name="layout-app",
                     view_name="layout",
                     extra_context={

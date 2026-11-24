@@ -1,0 +1,6 @@
+{# Answer to the playground form: the message, and the layout and its details when the code is good. #}
+{% include "layouts/_message.html" %}
+{% if view %}
+  {% include "layouts/_preview_layout.html" %}
+  {% include "layouts/_preview_details.html" %}
+{% endif %}

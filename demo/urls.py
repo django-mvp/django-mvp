@@ -7,6 +7,7 @@ from django.urls import include, path
 from mvp.mounted import mount
 
 from . import views
+from .layouts.views import LayoutCodeView, NestedLayoutsView
 from .library.mounted import library
 from .views import (
     E400,
@@ -38,6 +39,8 @@ urlpatterns = [
     path("search/", include("mvp.search.urls")),
     mount("library/", library),
     path("layout/", views.layout_demo, name="layout"),
+    path("layout/code/", LayoutCodeView.as_view(), name="layout-code"),
+    path("layout/nested/", NestedLayoutsView.as_view(), name="layout-nested"),
     path("layout/sidebar/", views.layout_sidebar_demo, name="layout-sidebar"),
     path("layout/header/", views.layout_header_demo, name="layout-header"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),

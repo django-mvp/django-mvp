@@ -1,0 +1,350 @@
+{% extends "page_view.html" %}
+{% block page.content %}
+  <div class="flex flex-col gap-10">
+    <p class="max-w-prose text-base-content/80">
+      Each example below is a <code>&lt;c-layout container&gt;</code>: a whole layout, with its own header, sidebars and footer, drawn inside a card or a dialog.
+      It measures its breakpoints against its own width, never the window's, so narrow the window and each one turns its sidebars into drawers when it runs out of room.
+      Its toggles reach its own sidebars and nothing else.
+    </p>
+
+    {# 1. A mail client in a card. #}
+    <section class="flex flex-col gap-3" aria-labelledby="nl-inbox-title">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="nl-inbox-title" class="text-xl font-semibold">Inbox in a card</h2>
+        <code class="badge badge-ghost font-mono">hHh Lpr fFf</code>
+      </div>
+      <p class="max-w-prose text-sm text-base-content/70">Folders shrink to an icon rail, and become a drawer below 48rem of card width. The header and the footer stay while the messages scroll.</p>
+      <c-layout view="hHh Lpr fFf"
+                container
+                id="nl-inbox"
+                class="rounded-box border border-base-300 bg-base-100"
+                style="height: 30rem; --dcl-sidebar-bg: var(--color-base-200);">
+        <c-layout.header class="bg-base-100 border-b border-base-300">
+          <div class="flex h-14 items-center gap-2 px-3">
+            <c-layout.toggle side="left" class="btn btn-ghost btn-sm btn-square" label="Folders" />
+            <span class="font-semibold">Inbox</span>
+            <span class="badge badge-sm badge-primary">12</span>
+            <label class="input input-sm ms-auto w-44 max-sm:hidden">
+              <c-icon name="search" class="opacity-50" />
+              <input type="search" placeholder="Search mail" aria-label="Search mail" />
+            </label>
+          </div>
+        </c-layout.header>
+        <c-layout.sidebar side="left" collapse="icons" breakpoint="md" width="13rem" label="Folders">
+          <ul class="menu w-full mvp-sidebar--icons">
+            {% for icon, label, count in folders %}
+              <li data-tip="{{ label }}" class="is-drawer-close:tooltip is-drawer-close:tooltip-right">
+                <a href="#nl-inbox" class="{% if forloop.first %}menu-active{% endif %}">
+                  <c-icon name="{{ icon }}" />
+                  <span class="dcl-rail-hide flex-1">{{ label }}</span>
+                  {% if count %}<span class="dcl-rail-hide badge badge-sm">{{ count }}</span>{% endif %}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </c-layout.sidebar>
+        <c-layout.page>
+          <ul class="list">
+            {% for name, subject, snippet, time, unread in mail %}
+              <li class="list-row items-start">
+                <div class="avatar avatar-placeholder">
+                  <div class="bg-neutral text-neutral-content w-9 rounded-full"><span class="text-xs">{{ name|slice:":1" }}</span></div>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-baseline gap-2">
+                    <span class="truncate {% if unread %}font-semibold{% endif %}">{{ name }}</span>
+                    <span class="ms-auto shrink-0 text-xs text-base-content/60">{{ time }}</span>
+                  </div>
+                  <div class="truncate text-sm {% if unread %}font-medium{% endif %}">{{ subject }}</div>
+                  <div class="truncate text-sm text-base-content/60">{{ snippet }}</div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </c-layout.page>
+        <c-layout.footer class="bg-base-100">
+          <div class="flex items-center gap-2 px-3 py-2 text-sm text-base-content/70">
+            <span>10 of 128</span>
+            <div class="join ms-auto">
+              <button type="button" class="btn btn-sm join-item" aria-label="Newer">‹</button>
+              <button type="button" class="btn btn-sm join-item" aria-label="Older">›</button>
+            </div>
+          </div>
+        </c-layout.footer>
+      </c-layout>
+      <details class="collapse collapse-arrow border border-base-300 bg-base-100">
+        <summary class="collapse-title text-sm font-medium">The markup</summary>
+        <div class="collapse-content">
+          <pre class="overflow-x-auto rounded-box bg-base-200 p-4 text-sm"><code>{% verbatim %}<c-layout view="hHh Lpr fFf" container style="height: 30rem">
+  <c-layout.header>
+    <c-layout.toggle side="left" label="Folders" /> Inbox …
+  </c-layout.header>
+  <c-layout.sidebar side="left" collapse="icons" breakpoint="md" label="Folders">
+    …
+  </c-layout.sidebar>
+  <c-layout.page>…</c-layout.page>
+  <c-layout.footer>…</c-layout.footer>
+</c-layout>{% endverbatim %}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    {# 2. Settings in a modal. #}
+    <section class="flex flex-col gap-3" aria-labelledby="nl-settings-title">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="nl-settings-title" class="text-xl font-semibold">Settings in a dialog</h2>
+        <code class="badge badge-ghost font-mono">hhh Lpr fFf</code>
+      </div>
+      <p class="max-w-prose text-sm text-base-content/70">The sections stay beside the form in a wide dialog and become a drawer below 40rem, as on a phone. Escape closes the drawer first, then the dialog.</p>
+      <div>
+        <button type="button" class="btn btn-primary" id="nl-settings-open" onclick="document.getElementById('nl-settings').showModal()">
+          <c-icon name="gear" /> Open settings
+        </button>
+      </div>
+      <dialog id="nl-settings" class="modal" aria-labelledby="nl-settings-heading">
+        <div class="modal-box max-w-3xl overflow-hidden p-0" style="height: min(34rem, 90dvh);">
+          <c-layout view="hhh Lpr fFf" container id="nl-settings-layout" style="height: 100%; --dcl-sidebar-bg: var(--color-base-200);">
+            <c-layout.header class="border-b border-base-300">
+              <div class="flex h-14 items-center gap-2 px-3">
+                <c-layout.toggle side="left" class="btn btn-ghost btn-sm btn-square" label="Sections" />
+                <h3 id="nl-settings-heading" class="font-semibold">Settings</h3>
+                <form method="dialog" class="ms-auto">
+                  <button class="btn btn-ghost btn-sm btn-square" aria-label="Close settings"><c-icon name="close" /></button>
+                </form>
+              </div>
+            </c-layout.header>
+            <c-layout.sidebar side="left" collapse="none" breakpoint="sm" width="12rem" label="Sections">
+              <ul class="menu w-full">
+                {% for icon, label in settings_sections %}
+                  <li><a href="#nl-settings-form" class="{% if forloop.first %}menu-active{% endif %}"><c-icon name="{{ icon }}" /><span>{{ label }}</span></a></li>
+                {% endfor %}
+              </ul>
+            </c-layout.sidebar>
+            <c-layout.page>
+              <form id="nl-settings-form" class="flex flex-col gap-4 p-5" onsubmit="return false">
+                <h4 class="text-lg font-semibold">Profile</h4>
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Display name</legend>
+                  <input class="input w-full" value="Ana Ruiz" />
+                </fieldset>
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Email</legend>
+                  <input class="input w-full" type="email" value="ana@example.org" />
+                </fieldset>
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Affiliation</legend>
+                  <input class="input w-full" value="Institute of Marine Sciences" />
+                </fieldset>
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">About you</legend>
+                  <textarea class="textarea w-full" rows="4">Field oceanographer working on coastal sediment transport.</textarea>
+                </fieldset>
+                <label class="label gap-3">
+                  <input type="checkbox" class="toggle" checked />
+                  Show my profile to other members
+                </label>
+              </form>
+            </c-layout.page>
+            <c-layout.footer class="bg-base-100">
+              <div class="flex justify-end gap-2 px-4 py-3">
+                <form method="dialog"><button class="btn btn-ghost">Cancel</button></form>
+                <form method="dialog"><button class="btn btn-primary">Save</button></form>
+              </div>
+            </c-layout.footer>
+          </c-layout>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>Close</button></form>
+      </dialog>
+      <details class="collapse collapse-arrow border border-base-300 bg-base-100">
+        <summary class="collapse-title text-sm font-medium">The markup</summary>
+        <div class="collapse-content">
+          <pre class="overflow-x-auto rounded-box bg-base-200 p-4 text-sm"><code>{% verbatim %}<dialog class="modal">
+  <div class="modal-box p-0" style="height: 34rem">
+    <c-layout view="hhh Lpr fFf" container style="height: 100%">
+      <c-layout.header>…</c-layout.header>
+      <c-layout.sidebar side="left" collapse="none" breakpoint="sm" label="Sections">…</c-layout.sidebar>
+      <c-layout.page>…</c-layout.page>
+      <c-layout.footer>Cancel · Save</c-layout.footer>
+    </c-layout>
+  </div>
+</dialog>{% endverbatim %}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    {# 3. A layout inside a layout. #}
+    <section class="flex flex-col gap-3" aria-labelledby="nl-project-title">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="nl-project-title" class="text-xl font-semibold">A layout inside a layout</h2>
+        <span class="flex flex-wrap gap-1">
+          <code class="badge badge-ghost font-mono">lHh Lpr lff</code>
+          <code class="badge badge-ghost font-mono">hHh lpR fff</code>
+        </span>
+      </div>
+      <p class="max-w-prose text-sm text-base-content/70">The outer layout holds the projects. Its page holds a second layout for the open document, with the outline on its left and the comments on its right. Each has its own toggles and breakpoints.</p>
+      <c-layout view="lHh Lpr lff"
+                container
+                id="nl-project"
+                class="rounded-box border border-base-300 bg-base-100"
+                style="height: 36rem; --dcl-sidebar-bg: var(--color-base-200);">
+        <c-layout.header class="bg-base-100 border-b border-base-300">
+          <div class="flex h-12 items-center gap-2 px-3">
+            <c-layout.toggle side="left" when="closed" class="btn btn-ghost btn-sm btn-square" label="Projects" />
+            <span class="text-sm text-base-content/70">Projects</span>
+            <span class="text-sm text-base-content/40">/</span>
+            <span class="text-sm font-medium">Coastal survey</span>
+          </div>
+        </c-layout.header>
+        <c-layout.sidebar side="left" breakpoint="lg" width="13rem" label="Projects">
+          <div class="flex h-12 shrink-0 items-center justify-between border-b border-base-300 px-3">
+            <span class="font-semibold">Research group</span>
+            <c-layout.toggle side="left" class="btn btn-ghost btn-sm btn-square" label="Projects" />
+          </div>
+          <ul class="menu w-full">
+            {% for icon, label in projects %}
+              <li><a href="#nl-project" class="{% if forloop.first %}menu-active{% endif %}"><c-icon name="{{ icon }}" /><span>{{ label }}</span></a></li>
+            {% endfor %}
+          </ul>
+        </c-layout.sidebar>
+        <c-layout.page class="p-3">
+          <c-layout view="hHh lpR fff"
+                    container
+                    id="nl-document"
+                    class="rounded-box border border-base-300 bg-base-100"
+                    style="height: 100%;">
+            <c-layout.header class="bg-base-100 border-b border-base-300">
+              <div class="flex h-12 items-center gap-2 px-3">
+                <c-layout.toggle side="left" class="btn btn-ghost btn-sm btn-square" label="Outline" />
+                <span class="font-semibold">Methods</span>
+                <c-layout.toggle side="right" class="btn btn-ghost btn-sm ms-auto" label="Comments">
+                  <c-icon name="chat" /> <span class="max-sm:hidden">Comments</span> <span class="badge badge-sm">{{ comments|length }}</span>
+                </c-layout.toggle>
+              </div>
+            </c-layout.header>
+            <c-layout.sidebar side="left" breakpoint="md" width="11rem" label="Outline">
+              <ul class="menu menu-sm w-full">
+                {% for title in documents %}
+                  <li><a href="#nl-document" class="{% if title == 'Methods' %}menu-active{% endif %}">{{ title }}</a></li>
+                {% endfor %}
+              </ul>
+            </c-layout.sidebar>
+            <c-layout.sidebar side="right" breakpoint="lg" width="15rem" label="Comments">
+              <div class="flex flex-col gap-3 p-3">
+                {% for name, text in comments %}
+                  <div class="rounded-box bg-base-100 p-3 text-sm">
+                    <div class="font-medium">{{ name }}</div>
+                    <p class="text-base-content/80">{{ text }}</p>
+                  </div>
+                {% endfor %}
+              </div>
+            </c-layout.sidebar>
+            <c-layout.page>
+              <article class="flex max-w-prose flex-col gap-3 p-5">
+                <h3 class="text-lg font-semibold">Methods</h3>
+                {% for p in paragraphs %}
+                  <p class="text-base-content/80">Cores were taken on a regular grid at 250 m spacing and logged within the hour. Paragraph {{ forloop.counter }} of the methods section.</p>
+                {% endfor %}
+              </article>
+            </c-layout.page>
+            <c-layout.footer class="border-t border-base-300">
+              <div class="px-3 py-2 text-xs text-base-content/60">Saved a minute ago</div>
+            </c-layout.footer>
+          </c-layout>
+        </c-layout.page>
+        <c-layout.footer class="border-t border-base-300 bg-base-200">
+          <div class="px-3 py-2 text-xs text-base-content/60">3 projects · 14 members</div>
+        </c-layout.footer>
+      </c-layout>
+      <details class="collapse collapse-arrow border border-base-300 bg-base-100">
+        <summary class="collapse-title text-sm font-medium">The markup</summary>
+        <div class="collapse-content">
+          <pre class="overflow-x-auto rounded-box bg-base-200 p-4 text-sm"><code>{% verbatim %}<c-layout view="lHh Lpr lff" container style="height: 36rem">
+  <c-layout.header>…</c-layout.header>
+  <c-layout.sidebar side="left" label="Projects">…</c-layout.sidebar>
+  <c-layout.page>
+    <c-layout view="hHh lpR fff" container style="height: 100%">
+      <c-layout.header>
+        <c-layout.toggle side="left" label="Outline" /> Methods
+        <c-layout.toggle side="right" label="Comments">Comments</c-layout.toggle>
+      </c-layout.header>
+      <c-layout.sidebar side="left" breakpoint="md" label="Outline">…</c-layout.sidebar>
+      <c-layout.sidebar side="right" breakpoint="lg" label="Comments">…</c-layout.sidebar>
+      <c-layout.page>…</c-layout.page>
+      <c-layout.footer>…</c-layout.footer>
+    </c-layout>
+  </c-layout.page>
+  <c-layout.footer>…</c-layout.footer>
+</c-layout>{% endverbatim %}</code></pre>
+        </div>
+      </details>
+    </section>
+
+    {# 4. A filter drawer over a product grid. #}
+    <section class="flex flex-col gap-3" aria-labelledby="nl-filters-title">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="nl-filters-title" class="text-xl font-semibold">Filters as a drawer</h2>
+        <code class="badge badge-ghost font-mono">hHh lpr fff</code>
+      </div>
+      <p class="max-w-prose text-sm text-base-content/70">The right sidebar's behaviour is <code>overlay</code>, so the filters are a drawer over the products at every width.</p>
+      <c-layout view="hHh lpr fff"
+                container
+                id="nl-filters"
+                class="rounded-box border border-base-300 bg-base-100"
+                style="height: 28rem;">
+        <c-layout.header class="bg-base-100 border-b border-base-300">
+          <div class="flex h-14 items-center gap-2 px-3">
+            <span class="font-semibold">Equipment</span>
+            <span class="text-sm text-base-content/60">{{ products|length }} items</span>
+            <c-layout.toggle side="right" class="btn btn-sm ms-auto" label="Filters">
+              <c-icon name="funnel" /> Filters
+            </c-layout.toggle>
+          </div>
+        </c-layout.header>
+        <c-layout.sidebar side="right" behavior="overlay" width="18rem" label="Filters">
+          <div class="flex h-14 shrink-0 items-center justify-between border-b border-base-300 px-4">
+            <span class="font-semibold">Filters</span>
+            <c-layout.toggle side="right" class="btn btn-ghost btn-sm btn-square" label="Close filters"><c-icon name="close" /></c-layout.toggle>
+          </div>
+          <form class="flex flex-col gap-4 p-4" onsubmit="return false">
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Category</legend>
+              <label class="label"><input type="checkbox" class="checkbox checkbox-sm" checked /> Field</label>
+              <label class="label"><input type="checkbox" class="checkbox checkbox-sm" checked /> Sensors</label>
+              <label class="label"><input type="checkbox" class="checkbox checkbox-sm" /> Consumables</label>
+            </fieldset>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Price up to</legend>
+              <input type="range" min="0" max="1500" value="1000" class="range range-sm" aria-label="Price up to" />
+            </fieldset>
+            <button type="button" class="btn btn-primary" data-dcl-close>Show results</button>
+          </form>
+        </c-layout.sidebar>
+        <c-layout.page>
+          <div class="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+            {% for name, category, price in products %}
+              <div class="card card-sm border border-base-300 bg-base-100">
+                <div class="card-body">
+                  <span class="text-xs text-base-content/60">{{ category }}</span>
+                  <h3 class="card-title text-base">{{ name }}</h3>
+                  <p class="font-medium">{{ price }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </c-layout.page>
+      </c-layout>
+      <details class="collapse collapse-arrow border border-base-300 bg-base-100">
+        <summary class="collapse-title text-sm font-medium">The markup</summary>
+        <div class="collapse-content">
+          <pre class="overflow-x-auto rounded-box bg-base-200 p-4 text-sm"><code>{% verbatim %}<c-layout view="hHh lpr fff" container style="height: 28rem">
+  <c-layout.header>
+    Equipment <c-layout.toggle side="right" label="Filters">Filters</c-layout.toggle>
+  </c-layout.header>
+  <c-layout.sidebar side="right" behavior="overlay" label="Filters">…</c-layout.sidebar>
+  <c-layout.page>…</c-layout.page>
+</c-layout>{% endverbatim %}</code></pre>
+        </div>
+      </details>
+    </section>
+  </div>
+{% endblock page.content %}

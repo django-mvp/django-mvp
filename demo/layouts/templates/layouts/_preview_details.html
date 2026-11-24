@@ -1,0 +1,24 @@
+<div id="lp-details" class="grid gap-6 lg:grid-cols-2" {% if oob %}hx-swap-oob="true"{% endif %}>
+  <section class="flex flex-col gap-2 lg:col-span-2" aria-labelledby="lp-does">
+    <h2 id="lp-does" class="text-lg font-semibold">What <code class="font-mono">{{ view.code }}</code> does</h2>
+    <ul class="list-disc ps-5 text-base-content/80 flex flex-col gap-1">
+      {% for line in view.explain %}<li>{{ line }}</li>{% endfor %}
+      <li>{{ left_description }}</li>
+      <li>{{ right_description }}</li>
+    </ul>
+  </section>
+  <section class="flex min-w-0 flex-col gap-2" aria-labelledby="lp-settings">
+    <div class="flex items-center justify-between gap-2">
+      <h2 id="lp-settings" class="text-lg font-semibold">For this site, in settings.py</h2>
+      <button type="button" class="btn btn-sm btn-ghost" data-lp-copy="lp-settings-code"><c-icon name="copy" /><span>Copy</span></button>
+    </div>
+    <pre id="lp-settings-code" class="overflow-x-auto rounded-box bg-base-200 p-4 text-sm"><code>{{ settings_snippet }}</code></pre>
+  </section>
+  <section class="flex min-w-0 flex-col gap-2" aria-labelledby="lp-markup">
+    <div class="flex items-center justify-between gap-2">
+      <h2 id="lp-markup" class="text-lg font-semibold">Anywhere, as components</h2>
+      <button type="button" class="btn btn-sm btn-ghost" data-lp-copy="lp-markup-code"><c-icon name="copy" /><span>Copy</span></button>
+    </div>
+    <pre id="lp-markup-code" class="overflow-x-auto rounded-box bg-base-200 p-4 text-sm"><code>{{ markup_snippet }}</code></pre>
+  </section>
+</div>

@@ -1,0 +1,76 @@
+<div id="lp-preview" {% if oob %}hx-swap-oob="true"{% endif %}>
+  <c-layout :view="view.code"
+            container
+            id="lp-layout"
+            class="rounded-box border border-base-300 bg-base-100"
+            style="height: 34rem; --dcl-sidebar-bg: var(--color-base-200);">
+    <c-layout.header class="bg-base-100 border-b border-base-300">
+      <div class="flex h-14 items-center gap-2 px-3">
+        <c-layout.toggle side="left" class="btn btn-ghost btn-sm btn-square" label="Navigation" />
+        <span class="font-semibold">Acme</span>
+        {% include "layouts/_area_tag.html" with name="Header" fixed=view.header_fixed %}
+        <label class="input input-sm ms-auto w-40 max-sm:hidden">
+          <c-icon name="search" class="opacity-50" />
+          <input type="search" placeholder="Search" aria-label="Search" />
+        </label>
+        <c-layout.toggle side="right" class="btn btn-ghost btn-sm btn-square max-sm:ms-auto" label="On this page" />
+      </div>
+    </c-layout.header>
+    <c-layout.sidebar side="left"
+                      :collapse="left.collapse"
+                      :breakpoint="left.breakpoint"
+                      :behavior="left.behavior"
+                      label="Navigation">
+      <div class="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-base-300 px-3 is-drawer-close:justify-center is-drawer-close:px-0">
+        {% include "layouts/_area_tag.html" with name="Left sidebar" fixed=view.left_fixed %}
+        <c-layout.toggle side="left" class="btn btn-ghost btn-sm btn-square" label="Navigation" />
+      </div>
+      <div class="flex-1 {% if left.collapse == 'icons' %}mvp-sidebar--icons{% endif %}">
+        <ul class="menu w-full">
+          {% for icon, label in nav %}
+            <li data-tip="{{ label }}" class="is-drawer-close:tooltip is-drawer-close:tooltip-right">
+              <a href="#lp-top" class="{% if forloop.first %}menu-active{% endif %}"><c-icon name="{{ icon }}" /><span>{{ label }}</span></a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </c-layout.sidebar>
+    <c-layout.sidebar side="right"
+                      :collapse="right.collapse"
+                      :breakpoint="right.breakpoint"
+                      :behavior="right.behavior"
+                      label="On this page">
+      <div class="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-base-300 px-4">
+        {% include "layouts/_area_tag.html" with name="Right sidebar" fixed=view.right_fixed %}
+        <c-layout.toggle side="right" class="btn btn-ghost btn-sm btn-square" label="On this page" />
+      </div>
+      <div class="p-2">
+        <p class="px-3 pt-2 pb-1 text-sm font-semibold">On this page</p>
+        <ul class="menu menu-sm w-full">
+          <li><a href="#lp-top">Getting started</a></li>
+          <li><a href="#lp-top">Installing</a></li>
+          <li><a href="#lp-top">Your first layout</a></li>
+          <li><a href="#lp-top">Sidebars</a></li>
+          <li><a href="#lp-top">Nesting</a></li>
+        </ul>
+      </div>
+    </c-layout.sidebar>
+    <c-layout.page>
+      <article id="lp-top" class="mx-auto flex max-w-prose flex-col gap-4 px-6 py-6">
+        {% include "layouts/_area_tag.html" with name="Page" fixed=False %}
+        <h2 class="text-2xl font-semibold">Getting started</h2>
+        {% for p in paragraphs %}
+          <p class="text-base-content/80">Paragraph {{ forloop.counter }}. Scroll inside the frame to see which areas stay in place. The header, sidebars and footer that the code writes in upper case hold still while this page moves under them.</p>
+        {% endfor %}
+      </article>
+    </c-layout.page>
+    <c-layout.footer class="bg-base-200 border-t border-base-300">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-sm">
+        {% include "layouts/_area_tag.html" with name="Footer" fixed=view.footer_fixed %}
+        <span class="text-base-content/70">© 2026 Acme</span>
+        <a href="#lp-top" class="link link-hover text-base-content/70">Terms</a>
+        <a href="#lp-top" class="link link-hover text-base-content/70">Privacy</a>
+      </div>
+    </c-layout.footer>
+  </c-layout>
+</div>

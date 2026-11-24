@@ -1,0 +1,30 @@
+<div class="flex flex-col gap-5 p-4 text-sm">
+  <div class="flex items-center justify-between gap-2">
+    <h2 class="text-base font-semibold">Reading a layout code</h2>
+    <c-layout.toggle side="right" class="btn btn-ghost btn-sm btn-square" label="Close" />
+  </div>
+  <table class="table table-sm">
+    <caption class="sr-only">The letters of a layout code</caption>
+    <thead><tr><th scope="col">Letter</th><th scope="col">Area</th></tr></thead>
+    <tbody>
+      <tr><td><code>h</code></td><td>Header</td></tr>
+      <tr><td><code>l</code></td><td>Left sidebar</td></tr>
+      <tr><td><code>p</code></td><td>Page</td></tr>
+      <tr><td><code>r</code></td><td>Right sidebar</td></tr>
+      <tr><td><code>f</code></td><td>Footer</td></tr>
+    </tbody>
+  </table>
+  <p class="text-base-content/80">The three groups are the top, middle and bottom rows. Each group is read left, centre and right.</p>
+  <table class="table table-xs">
+    <caption class="sr-only">The letters each position takes</caption>
+    <thead><tr><th scope="col">Row</th><th scope="col">Left</th><th scope="col">Centre</th><th scope="col">Right</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Top</th><td><code>h l</code></td><td><code>h</code></td><td><code>h r</code></td></tr>
+      <tr><th scope="row">Middle</th><td><code>l</code></td><td><code>p</code></td><td><code>r</code></td></tr>
+      <tr><th scope="row">Bottom</th><td><code>f l</code></td><td><code>f</code></td><td><code>f r</code></td></tr>
+    </tbody>
+  </table>
+  <p class="text-base-content/80">A corner holding <code>l</code> or <code>r</code> gives that corner to the sidebar, so it runs past the header or the footer on that side.</p>
+  <p class="text-base-content/80">An upper-case letter keeps that area in place while the page scrolls: <code>H</code>, <code>L</code>, <code>R</code> or <code>F</code>.</p>
+  <p class="text-base-content/80">This panel is the site's own right sidebar. This page fills it, and pages that don't have none.</p>
+</div>
