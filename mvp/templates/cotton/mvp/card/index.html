@@ -1,16 +1,98 @@
-{# @description Opinionated card: header (icon/title, badges, actions), body, footer. #}
+{# @description Opinionated card: header (icon/title, badges, actions), body, footer. Give it a left or right slot, or a view, and it is laid out by a layout code: sidebars beside the body that open, close, collapse to an icon rail and become drawers when the card is narrow. #}
 {# @prop title:text | default:"" | description:"Heading text." #}
 {# @prop icon:text | default:"" | description:"Leading icon name for the heading." #}
 {# @prop tight:boolean | description:"Remove body padding, for full-bleed tables/lists." #}
-{# @prop href:text | default:"" | description:"Make the whole card a link. The title is the one link, stretched over the card, so a click or tap anywhere on it opens the address, and it is the link's name for a keyboard or screen-reader user. Buttons, menus and links inside the card sit above it and keep working. Needs a title: without one no link is drawn." #}
+{# @prop href:text | default:"" | description:"Make the whole card a link. The title is the one link, stretched over the card, so a click or tap anywhere on it opens the address, and it is the link's name for a keyboard or screen-reader user. Buttons, menus and links inside the card sit above it and keep working. Needs a title: without one no link is drawn. Not drawn on a card with a layout." #}
+{# @prop view:text | default:"hHh LpR fFf" | description:"The layout code that arranges the card's header, sidebars, body and footer. Setting it, or filling the left or right slot, lays the card out." #}
+{# @prop height:text | default:"28rem" | description:"The card's height when it has a layout. The body scrolls inside it." #}
+{# @prop left-label:text | description:"The left sidebar's accessible name, and its toggle's." #}
+{# @prop left-collapse:select['offcanvas','icons','none'] | default:"offcanvas" | description:"How the left sidebar closes beside the body." #}
+{# @prop left-breakpoint:select['sm','md','lg','xl','2xl'] | default:"sm" | description:"The card width below which the left sidebar is a drawer over the body." #}
+{# @prop left-behavior:select['auto','docked','overlay'] | default:"auto" | description:"auto follows the breakpoint, docked keeps it beside the body, overlay makes it a drawer at every width." #}
+{# @prop left-width:text | default:"14rem" | description:"The left sidebar's open width." #}
+{# @prop left-closed:boolean | description:"Start with the left sidebar closed." #}
+{# @prop left-persist:text | description:"A name to remember the left sidebar's state under, across pages and visits." #}
+{# @prop right-label:text | description:"The right sidebar's accessible name, and its toggle's." #}
+{# @prop right-collapse:select['offcanvas','icons','none'] | default:"offcanvas" | description:"How the right sidebar closes beside the body." #}
+{# @prop right-breakpoint:select['sm','md','lg','xl','2xl'] | default:"md" | description:"The card width below which the right sidebar is a drawer over the body." #}
+{# @prop right-behavior:select['auto','docked','overlay'] | default:"auto" | description:"As left-behavior, for the right sidebar." #}
+{# @prop right-width:text | default:"16rem" | description:"The right sidebar's open width." #}
+{# @prop right-closed:boolean | description:"Start with the right sidebar closed." #}
+{# @prop right-persist:text | description:"A name to remember the right sidebar's state under." #}
 {# @prop class:text | description:"Extra classes on the .card surface." #}
-{# @prop body_class:text | description:"Extra classes on the .card-body." #}
+{# @prop body_class:text | description:"Extra classes on the .card-body, or on the body area of a card with a layout." #}
 {# @slot Card body content — The main card content. #}
 {# @slot:badges Status, counts — Header, just after the title. #}
 {# @slot:actions Buttons, dropdown — Header, end-aligned. #}
 {# @slot:footer Footer content — Footer, start-aligned. #}
 {# @slot:footer_end Footer content — Footer, end-aligned. #}
-<c-vars title="" icon="" href="" tight class body_class />
+{# @slot:left <c-menu>…</c-menu> — The left sidebar: folders, sections, a tree. #}
+{# @slot:right Details, filters — The right sidebar. #}
+<c-vars title="" icon="" href="" tight class body_class
+        view="" height="28rem" left="" right=""
+        left-label="" left-collapse="" left-breakpoint="sm" left-behavior="" left-width="14rem" left-closed="" left-persist=""
+        right-label="" right-collapse="" right-breakpoint="md" right-behavior="" right-width="16rem" right-closed="" right-persist="" />
+{% load mvp_layout %}
+{% if view or left.strip or right.strip %}
+  {% comment %}
+    A card with a layout: the card surface holds one contained layout, which
+    fills it and scrolls inside it. The title row is the layout's header and
+    carries a toggle for each sidebar; a toggle hides itself when its sidebar
+    is absent or never closes. Drawers stay inside the card.
+  {% endcomment %}
+  {% layout_uid "card" as layout_id %}
+  <c-mvp.card.wrapper class="mvp-card-layout overflow-hidden {{ class }}" :attrs="attrs" only>
+    <c-layout view="{% firstof view 'hHh LpR fFf' %}" container :id="layout_id" style="height: {{ height }}">
+      {% if title or icon or badges or actions or left.strip or right.strip %}
+        <c-layout.header class="mvp-box-header flex min-h-14 items-center gap-2 px-3 py-2">
+          <c-layout.toggle side="left" :label="left_label" class="btn btn-ghost btn-sm btn-square" />
+          {% if title or icon %}
+            <h2 class="card-title min-w-0 text-base">
+              {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+              {% if title %}<span class="truncate">{{ title }}</span>{% endif %}
+            </h2>
+          {% endif %}
+          {% if badges %}<div class="flex items-center gap-1">{{ badges }}</div>{% endif %}
+          <div class="ms-auto flex items-center gap-1">
+            {{ actions }}
+            <c-layout.toggle side="right" :label="right_label" class="btn btn-ghost btn-sm btn-square" />
+          </div>
+        </c-layout.header>
+      {% endif %}
+      {% if left.strip %}
+        <c-layout.sidebar side="left"
+                          :label="left_label"
+                          :collapse="left_collapse"
+                          :breakpoint="left_breakpoint"
+                          :behavior="left_behavior"
+                          :width="left_width"
+                          :closed="left_closed"
+                          :persist="left_persist">
+          <div class="mvp-box-sidebar flex min-h-full flex-col p-2">{{ left }}</div>
+        </c-layout.sidebar>
+      {% endif %}
+      <c-layout.page class="{% if not tight %}p-4{% endif %} {{ body_class }}">{{ slot }}</c-layout.page>
+      {% if right.strip %}
+        <c-layout.sidebar side="right"
+                          :label="right_label"
+                          :collapse="right_collapse"
+                          :breakpoint="right_breakpoint"
+                          :behavior="right_behavior"
+                          :width="right_width"
+                          :closed="right_closed"
+                          :persist="right_persist">
+          <div class="mvp-box-sidebar flex min-h-full flex-col p-3">{{ right }}</div>
+        </c-layout.sidebar>
+      {% endif %}
+      {% if footer or footer_end %}
+        <c-layout.footer class="mvp-box-footer flex flex-wrap items-center gap-2 px-4 py-2">
+          {% if footer %}<div class="flex items-center gap-2">{{ footer }}</div>{% endif %}
+          {% if footer_end %}<div class="ms-auto flex items-center gap-2">{{ footer_end }}</div>{% endif %}
+        </c-layout.footer>
+      {% endif %}
+    </c-layout>
+  </c-mvp.card.wrapper>
+{% else %}
 {% comment %}
   With an href the title's link grows an ::after over the whole card, and every
   other link, button or form control inside the card is lifted above it so it
@@ -44,3 +126,4 @@
     {% endif %}
   </div>
 </c-mvp.card.wrapper>
+{% endif %}
