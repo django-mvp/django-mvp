@@ -8,7 +8,9 @@ django-mvp depends on django-mvp-layout (module `mvp_layout`), and three things 
 - `<c-card>`, built from header, body and footer parts, which takes sidebars and its own code
 - `<c-modal>`, built the same way
 
-Both override daisy-cotton's components of the same name. A card or dialog with no `view` is drawn
+Both override daisy-cotton's components of the same name, recorded in
+`docs/adr/0047-the-card-and-the-modal-override-daisy-cottons.md`, which supersedes ADR 0030 for
+these two. A card or dialog with no `view` is drawn
 as the package's card and dialog always looked.
 
 ## The features
@@ -124,6 +126,7 @@ features 1 to 3.
 | `mvp/templates/cotton/modal.html`, `cotton/modal/header.html, body.html, footer.html` | 3 | Same paths |
 | `mvp/templates/cotton/mvp/box/header.html, footer.html` | 2 | Same paths |
 | `mvp/templates/cotton/mvp/sheet/index.html`, `search/dialog.html`, `page/info.html`, `page/list/actions/create.html`, `actions/language_switcher_modal.html`, `mvp/templates/mvp/account/overview.html`, `mvp/pwa/install.html` | 2, 3 | Same paths |
+| `docs/adr/0047-the-card-and-the-modal-override-daisy-cottons.md`, the status line of `docs/adr/0030-…` | 2, 3 | Same paths |
 | `demo/templates/demo/layout/code.html`, `demo/views.py` (`LayoutCodeView`), `demo/urls.py`, `demo/menus.py` | 4 | Same paths |
 | `demo/templates/demo/components/card.html`, `modal.html` (every section) | 4 | Same paths |
 | Every other demo template with a card or dialog: `landing.html`, `dashboard.html`, `theme_customization.html`, `theme_preview.html`, `components/index.html`, `layout/code.html`, `cards/product_card.html`, `account_showcase/…/overview.html` | 2, 3 | Same paths |
