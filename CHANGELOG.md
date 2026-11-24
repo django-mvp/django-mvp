@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.37.0] - 2026-11-24
+
 ### Added
 
 - `c-mvp.breadcrumbs` and `c-mvp.breadcrumbs.item`: a breadcrumb trail that measures the box it sits in, so it fits the header, a card, a sidebar or a panel. Steps that do not fit fold, from the middle outwards, into a "…" menu that lists them in order, while the first step, the parent and the current page stay. The current page is never folded. The menu opens through the dropdown upgrade, takes focus and closes on Escape, and its labels are translatable. Without JavaScript every step shows. See `docs/layout.md`.
