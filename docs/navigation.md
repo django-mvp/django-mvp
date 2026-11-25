@@ -295,7 +295,8 @@ fills the screen (`mvp-page-fill`) puts the dock in its column and needs no room
 
 ### The menu-driven dock is deprecated
 
-Building the dock from a menu is deprecated. `MobileFooterMenu`, `MobileFooterNavRenderer`
+Building the dock from a menu is deprecated. `MobileFooterMenu` (a `DockMenu`, the
+flex-menus `Menu` that warns when it is processed), `MobileFooterNavRenderer`
 and the menu path of `cotton/app/dock.html`, which draws the dock from `MobileFooterMenu`
 when you do not override it, each raise an `MVPDeprecationWarning` naming the template way
 above. Nothing is removed yet, and a project that keeps the menu keeps a working dock:

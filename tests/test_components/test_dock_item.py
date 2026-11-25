@@ -6,7 +6,6 @@ site (URL namespaces and view names) and draws a second icon while it is current
 Source: mvp/templates/cotton/dock/item.html
 """
 
-import pytest
 from django.http import HttpResponse
 from django.test import RequestFactory
 from django.urls import include, path, resolve

@@ -140,6 +140,7 @@ class MenuCollapse(MenuGroup):
 #: The sidebar navigation tree. Empty until a project extends it.
 AppMenu = Menu("AppMenu", children=[], extra_context={"label": _("Main navigation")})
 
+
 class DockMenu(Menu):
     """The menu the deprecated menu-driven dock is built from.
 
