@@ -1,5 +1,0 @@
-{# @description The list of actions in a sheet, each an icon and words. Fill it with mvp.sheet.menu.item rows. A destructive action comes last. #}
-{# @prop class:text | description:"Extra classes added to the list." #}
-{# @slot <c-mvp.sheet.menu.item text="Rename" icon="edit" /> — The rows, as mvp.sheet.menu.item components. #}
-<c-vars class />
-<c-menu class="mvp-sheet-menu {{ class }}" :attrs="attrs" only>{{ slot }}</c-menu>

@@ -47,7 +47,7 @@ class TestSheetDialog:
     def test_the_title_and_the_line_under_it_sit_in_a_div(self, render_sheet):
         soup = render_sheet(attrs='lead="Three open"')
 
-        names = soup.select_one(".mvp-sheet-names")
+        names = soup.select_one("[data-mvp-sheet-head] h2").parent
         assert names.name == "div"
         assert names.select_one("h2") is not None
 
@@ -128,16 +128,23 @@ class TestSheetHead:
 
 
 class TestSheetFoot:
-    def test_the_default_foot_is_one_button_that_closes_without_submitting(
+    def test_the_foot_is_empty_without_actions(self, render_sheet):
+        soup = render_sheet()
+
+        assert soup.select("[data-mvp-sheet-foot] button") == []
+
+    def test_the_head_holds_an_icon_only_close_button_that_submits_nothing(
         self, render_sheet
     ):
         soup = render_sheet()
 
-        buttons = soup.select("[data-mvp-sheet-foot] button")
+        buttons = soup.select("[data-mvp-sheet-head] [data-mvp-sheet-close]")
         assert len(buttons) == 1
         assert buttons[0]["type"] == "button"
+        assert buttons[0]["aria-label"] == "Close"
+        assert buttons[0].get_text(strip=True) == ""
 
-    def test_the_actions_slot_replaces_the_default_button(self, render_sheet):
+    def test_the_actions_slot_fills_the_foot(self, render_sheet):
         soup = render_sheet(
             slots='<c-slot name="actions"><button id="save" type="submit">'
             "Save</button></c-slot>"
@@ -167,7 +174,8 @@ class TestSheetOptions:
 
         assert dialog.has_attr("data-mvp-sheet-full") is False
         assert dialog.has_attr("data-mvp-sheet-fixed") is False
-        assert "mvp-sheet-wide" not in dialog["class"]
+        box = dialog.select_one(".mvp-sheet-box")
+        assert "sm:max-w-2xl" not in box["class"]
 
     def test_full_sets_its_data_attribute(self, render_sheet):
         dialog = render_sheet("full").select_one("dialog#more")
@@ -184,7 +192,7 @@ class TestSheetOptions:
     def test_wide_adds_the_wide_size_class(self, render_sheet):
         dialog = render_sheet("wide").select_one("dialog#more")
 
-        assert "mvp-sheet-wide" in dialog["class"]
+        assert "sm:max-w-2xl" in dialog.select_one(".mvp-sheet-box")["class"]
         assert {"modal-bottom", "sm:modal-middle"} <= set(dialog["class"])
 
 
@@ -264,43 +272,3 @@ class TestSheetTrigger:
         soup = render_trigger()
 
         assert soup.select_one("button [aria-hidden=true]") is not None
-
-
-MENU = """
-<c-mvp.sheet.menu>
-  <c-mvp.sheet.menu.item text="Open" icon="more" href="/open/" />
-  <c-mvp.sheet.menu.item text="Rename" icon="more" />
-  <c-mvp.sheet.menu.item text="Delete" icon="more" danger />
-</c-mvp.sheet.menu>
-"""
-
-
-class TestSheetMenu:
-    @pytest.fixture
-    def soup(self, cotton_render_string_soup):
-        return cotton_render_string_soup(MENU)
-
-    def test_rows_are_a_list(self, soup):
-        assert len(soup.select("ul > li")) == 3
-
-    def test_a_row_with_an_address_is_a_link(self, soup):
-        link = soup.select_one("li a")
-
-        assert link["href"] == "/open/"
-        assert link.get_text(strip=True) == "Open"
-
-    def test_a_row_without_an_address_is_a_button(self, soup):
-        buttons = soup.select("li button")
-
-        assert [b.get_text(strip=True) for b in buttons] == ["Rename", "Delete"]
-        assert all(b["type"] == "button" for b in buttons)
-
-    def test_each_icon_is_hidden_from_assistive_technology(self, soup):
-        icons = soup.select("li [aria-hidden=true]")
-
-        assert len(icons) == 3
-
-    def test_only_the_danger_row_carries_the_destructive_mark(self, soup):
-        marked = soup.select("li [data-mvp-sheet-danger]")
-
-        assert [m.get_text(strip=True) for m in marked] == ["Delete"]

@@ -9,6 +9,7 @@ Source: assets/js/sheet.js, mvp/templates/cotton/mvp/sheet/
 """
 
 import time
+from itertools import pairwise
 
 import pytest
 from django.http import HttpResponse
@@ -42,11 +43,11 @@ PAGE = """
                      label="Orders" />
   <c-mvp.sheet id="orders" title="Orders" lead="Three open">
     <c-mvp.sheet.view name="menu">
-      <c-mvp.sheet.menu>
-        <c-mvp.sheet.menu.item text="Rename" icon="edit" @click="show('rename')" />
-        <c-mvp.sheet.menu.item text="Delete" icon="trash" danger
+      <c-menu class="menu-lg w-full p-0">
+        <c-menu.item text="Rename" icon="edit" @click="show('rename')" />
+        <c-menu.item text="Delete" icon="trash" class="text-error"
                                @click="show('confirm')" />
-      </c-mvp.sheet.menu>
+      </c-menu>
     </c-mvp.sheet.view>
     <c-mvp.sheet.view name="rename">
       <input id="rename-field" type="text" name="name" aria-label="Name">
@@ -326,6 +327,83 @@ class TestOpening:
         assert open_sheets(page) == ["other"]
 
 
+class TestMenuWidth:
+    @BOTH_WIDTHS
+    def test_the_menu_fills_the_width_of_the_sheet_body(
+        self, page, live_server, viewport
+    ):
+        open_page(page, live_server, viewport)
+        page.click("#open-orders")
+        settle(page)
+
+        widths = page.evaluate(
+            """() => {
+              const width = selector =>
+                document.querySelector(selector).getBoundingClientRect().width;
+              return [
+                width('#orders [data-mvp-sheet-body]'),
+                width('#orders [data-mvp-sheet-body] ul.menu'),
+              ];
+            }"""
+        )
+
+        body, menu = widths
+        assert menu == pytest.approx(body, abs=1)
+
+
+class TestGrabBarGap:
+    def test_the_title_sits_right_under_the_grab_bar(self, page, live_server):
+        open_page(page, live_server, PHONE)
+        page.click("#open-orders")
+        settle(page)
+
+        grab = page.locator("#orders [data-mvp-sheet-grab]").bounding_box()
+        head = page.locator("#orders [data-mvp-sheet-head]").bounding_box()
+
+        assert head["y"] - (grab["y"] + grab["height"]) == pytest.approx(0, abs=1)
+
+
+class TestCloseButton:
+    def test_a_wide_screen_shows_an_icon_in_the_top_right_of_the_head_that_closes(
+        self, page, live_server
+    ):
+        open_page(page, live_server, DESKTOP)
+        page.click("#open-orders")
+        settle(page)
+        close = page.locator("#orders [data-mvp-sheet-head] [data-mvp-sheet-close]")
+
+        expect(close).to_be_visible()
+        assert close.get_attribute("aria-label") == "Close"
+        assert close.inner_text().strip() == ""
+        head_box = page.locator("#orders [data-mvp-sheet-head]").bounding_box()
+        box = close.bounding_box()
+        assert box["x"] + box["width"] >= head_box["x"] + head_box["width"] - 2
+        assert box["y"] <= head_box["y"] + 4
+
+        close.click()
+
+        assert open_sheets(page) == []
+
+    def test_a_phone_shows_no_close_button(self, page, live_server):
+        open_page(page, live_server, PHONE)
+        page.click("#open-orders")
+        settle(page)
+
+        expect(page.locator("#orders [data-mvp-sheet-close]")).to_be_hidden()
+        box = page.locator("#orders .mvp-sheet-box")
+        assert box.get_by_role("button", name="Close").count() == 0
+
+    @BOTH_WIDTHS
+    def test_no_worded_close_button_is_drawn(self, page, live_server, viewport):
+        open_page(page, live_server, viewport)
+        page.click("#open-orders")
+        settle(page)
+
+        assert page.locator("#orders [data-mvp-sheet-foot] button").count() == 0
+        worded = page.locator("#orders .mvp-sheet-box button", has_text="Close")
+        assert worded.count() == 0
+
+
 class TestFocusReturn:
     def test_focus_goes_to_the_element_the_second_sheet_names(self, page, live_server):
         open_page(page, live_server)
@@ -444,8 +522,23 @@ class TestViews:
 
 
 class TestClosing:
-    @BOTH_WIDTHS
-    @pytest.mark.parametrize("way", ["escape", "outside", "button"])
+    @pytest.mark.parametrize(
+        ("viewport", "way"),
+        [
+            (PHONE, "escape"),
+            (PHONE, "outside"),
+            (DESKTOP, "escape"),
+            (DESKTOP, "outside"),
+            (DESKTOP, "button"),
+        ],
+        ids=[
+            "phone-escape",
+            "phone-outside",
+            "desktop-escape",
+            "desktop-outside",
+            "desktop-button",
+        ],
+    )
     def test_every_way_of_closing_returns_focus_and_submits_nothing(
         self, page, live_server, viewport, way
     ):
@@ -464,7 +557,7 @@ class TestClosing:
         elif way == "outside":
             page.mouse.click(5, 5)
         else:
-            page.locator("#orders .mvp-sheet-foot button").click()
+            page.locator("#orders [data-mvp-sheet-close]").click()
 
         assert open_sheets(page) == []
         expect(page.locator("#open-orders")).to_be_focused()
@@ -964,6 +1057,51 @@ class TestDraggingBetweenHeights:
         assert open_sheets(phone) == []
         expect(phone.locator("#open-orders")).to_be_focused()
         assert posts == []
+
+    @pytest.mark.parametrize(
+        "distance", [120, 300], ids=["past-threshold", "past-edge"]
+    )
+    def test_a_sheet_dragged_closed_never_moves_back_up_while_it_goes(
+        self, phone, distance
+    ):
+        phone.tap("#open-orders")
+        rest_box(phone, "orders")
+        x, y = grab_point(phone, "orders")
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, y + distance, 12, 16)
+        phone.evaluate(
+            """() => {
+              const box = document.querySelector('#orders .mvp-sheet-box');
+              window.tops = [];
+              const sample = start => {
+                window.tops.push(box.getBoundingClientRect().top);
+                if (performance.now() - start < 1200) {
+                  requestAnimationFrame(() => sample(start));
+                }
+              };
+              sample(performance.now());
+            }"""
+        )
+
+        phone.finger.up()
+
+        closed(phone, "orders")
+        phone.wait_for_timeout(1300)
+        tops = phone.evaluate("() => window.tops")
+        rises = [(a, b) for a, b in pairwise(tops) if b < a - 1]
+        assert rises == []
+
+    def test_a_sheet_dragged_closed_opens_again_at_its_resting_height(self, phone):
+        rest = open_sheet(phone, "orders")
+        x, y = grab_point(phone, "orders")
+        phone.finger.drag(x, y, y + 300, hold_ms=200)
+        closed(phone, "orders")
+        phone.wait_for_timeout(600)
+
+        again = open_sheet(phone, "orders")
+
+        assert again["top"] == pytest.approx(rest["top"], abs=1)
+        assert height_of(phone, "orders") == "rest"
 
     def test_a_small_slow_drag_down_settles_back_at_rest(self, phone):
         rest = open_sheet(phone, "tall")

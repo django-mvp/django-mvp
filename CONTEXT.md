@@ -381,8 +381,6 @@ c-mvp.modal             — modal dialog overlay
 c-mvp.sheet             — a dialog that rises from the foot of a phone's screen and is centred on a wider one
   c-mvp.sheet.view      — one step of a sheet, shown while the sheet's view is its name
   c-mvp.sheet.trigger   — the button or link that opens a sheet
-  c-mvp.sheet.menu      — the list of actions in a sheet
-  c-mvp.sheet.menu.item — one action in that list
 c-mvp.dropdown          — dropdown menu trigger
 c-mvp.brand.logo        — brand logo image
 c-mvp.brand.icon        — brand icon glyph

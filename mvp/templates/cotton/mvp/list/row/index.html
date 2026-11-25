@@ -17,7 +17,7 @@
         <c-slot name="button">
           <button type="button" class="btn btn-ghost btn-square btn-sm" tabindex="0" aria-label="{% blocktranslate with name=label %}More for {{ name }}{% endblocktranslate %}"><c-icon name="ellipsis" aria-hidden="true" only /></button>
         </c-slot>
-        <c-mvp.sheet.menu data-mvp-row-menu only>{{ actions|single_main_action:id }}</c-mvp.sheet.menu>
+        <c-menu class="menu-lg w-full p-0" data-mvp-row-menu only>{{ actions|single_main_action:id }}</c-menu>
       </c-mvp.dropdown>
       <c-mvp.sheet.trigger for="{{ id }}-sheet" label="{{ label }}" icon="ellipsis" class="mvp-row-sheet-trigger" only />
     </div>

@@ -61,7 +61,8 @@ class TestRowAction:
     def test_danger_is_passed_to_the_item(self, render_action):
         button = render_action("danger").select_one("button")
 
-        assert button.has_attr("data-mvp-sheet-danger")
+        assert button.has_attr("data-mvp-row-danger")
+        assert "text-error" in button["class"]
 
     def test_an_id_and_other_attributes_land_once_on_the_element(self, render_action):
         soup = render_action('id="rename-4" form="f" hx-post="/x/" class="extra"')
@@ -119,6 +120,12 @@ class TestListRowWithActions:
                 if el.get_text(strip=True) == text
             ]
             assert len(matches) == 1
+
+    def test_the_menu_is_a_large_full_width_daisy_menu(self, render_row):
+        menu = render_row().select_one("[data-mvp-row-menu]")
+
+        assert menu.name == "ul"
+        assert {"menu", "menu-lg", "w-full", "p-0"} <= set(menu["class"])
 
     def test_the_row_is_a_list_item_that_starts_the_script(self, render_row):
         item = render_row().select_one("li")

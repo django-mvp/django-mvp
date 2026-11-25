@@ -9,15 +9,15 @@
 {# @prop type:select['button','submit','reset'] | default:"button" | description:"The button's type, for an action without an href." #}
 {# @prop class:text | description:"Extra classes added to the link or button." #}
 <c-vars text icon href danger main leaves label type="button" class />
-<c-mvp.sheet.menu.item text="{{ text }}"
-                       icon="{{ icon }}"
-                       href="{{ href }}"
-                       type="{{ type }}"
-                       class="{{ class }}"
-                       :danger="danger"
-                       data-mvp-row-action
-                       :data-mvp-row-main="main"
-                       :data-mvp-row-leaves="leaves"
-                       :aria-label="label"
-                       :attrs="attrs"
-                       only />
+<c-menu.item text="{{ text }}"
+             icon="{{ icon }}"
+             href="{{ href }}"
+             type="{{ type }}"
+             class="{% if danger %}text-error {% endif %}{{ class }}"
+             :data-mvp-row-danger="danger"
+             data-mvp-row-action
+             :data-mvp-row-main="main"
+             :data-mvp-row-leaves="leaves"
+             :aria-label="label"
+             :attrs="attrs"
+             only />

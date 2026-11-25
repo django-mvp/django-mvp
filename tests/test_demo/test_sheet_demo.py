@@ -47,7 +47,7 @@ class TestSheetDemo:
     def test_the_menu_example_holds_a_menu_and_a_confirmation_view(self, page):
         assert 'data-mvp-sheet-view="menu"' in page
         assert 'data-mvp-sheet-view="confirm"' in page
-        assert "mvp-sheet-menu" in page
+        assert "menu-xl" in page
 
     def test_the_form_example_holds_a_form_whose_save_closes_the_sheet(self, page):
         note = page[page.index('id="note_sheet"') :]

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `c-mvp.sheet` no longer draws a worded Close button in its foot. A centred dialog on a wide screen shows an icon-only close button, named "Close", at the right of its head. A phone shows none: the grab bar, dragging down, tapping outside and Escape close it. Buttons passed in the `actions` slot are unchanged.
+- The grab bar of a sheet sits outside the column that spaces the sheet's parts, so no gap separates it from the title.
+- A sheet is drawn from utility classes. The `mvp-sheet-grab`, `-head`, `-art`, `-names`, `-title`, `-lead`, `-description`, `-body`, `-close`, `-foot`, `-menu`, `-item` and `-wide` classes are gone, and only the rules that depend on the sheet's own custom properties stay in the stylesheet.
+
+### Removed
+
+- **Breaking:** `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item` are removed, as they added nothing to daisy-cotton's menu. Write a sheet's actions as `<c-menu class="menu-lg w-full p-0">` holding `c-menu.item` rows, with `class="text-error"` on a destructive row. `menu-lg` is the large item size and `w-full p-0` makes the list fill the sheet's width. A project that uses either component must change its templates, and a project that styled `mvp-sheet-item`, `mvp-sheet-menu` or `data-mvp-sheet-danger` must style the plain menu instead. `c-mvp.list.row.action` is unchanged for its callers.
+
+### Fixed
+
+- A sheet closed by dragging it down no longer flashes back up before it slides out. The box stays where the drag left it while the dialog fades, and goes back to its resting height when the sheet next opens. A drag that went past the screen's edge also no longer slides back up to the edge.
+- The menu in a sheet fills the width of the sheet body, so each action row and its hover and focus background span the sheet. It was only as wide as its longest label.
+
 ## [v0.38.0] - 2026-11-25
 
 ### Added

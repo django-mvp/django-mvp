@@ -65,6 +65,7 @@ function sheet() {
     drag: null,
     animation: null,
     commit: null,
+    keepsDragEnd: false,
     clickGuard: false,
 
     init() {
@@ -107,6 +108,9 @@ function sheet() {
         null;
       openers.set(this.$el, this.returnTo);
       if (!this.$el.open) {
+        // A sheet dragged shut keeps the box where the drag left it while the dialog fades,
+        // so the box is put back here, before it is shown again.
+        this.resetHeight();
         this.$el.showModal();
         this.startListening();
       }
@@ -115,7 +119,11 @@ function sheet() {
     afterClose() {
       this.stopListening();
       this.view = firstViewName(this.$el);
-      this.resetHeight();
+      if (this.keepsDragEnd) {
+        this.keepsDragEnd = false;
+      } else {
+        this.resetHeight();
+      }
       const target = this.returnTo;
       this.returnTo = null;
       openers.delete(this.$el);
@@ -375,12 +383,18 @@ function sheet() {
       const end = this.frame(geometry, goals[name]);
       if (name === "closed") {
         end.height = start.height;
-        end.shift = geometry.edge - (geometry.bottom - start.height);
+        // A drag that went past the edge keeps going; the box never slides back up to it.
+        end.shift = Math.max(
+          start.shift,
+          geometry.edge - (geometry.bottom - start.height),
+        );
       }
       this.commit = () => {
         this.commit = null;
         if (name === "closed") {
-          // The slide keeps the box off screen while the dialog fades; afterClose clears it.
+          // The slide keeps the box off screen while the dialog fades. Clearing it at once
+          // would bring the box back up for the fade, so the next open clears it.
+          this.keepsDragEnd = true;
           this.$el.close();
           return;
         }
