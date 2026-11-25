@@ -42,11 +42,11 @@ PAGE = """
                      label="Orders" />
   <c-mvp.sheet id="orders" title="Orders" lead="Three open">
     <c-mvp.sheet.view name="menu">
-      <c-mvp.sheet.menu>
+      <c-menu class="menu-lg w-full p-0">
         <c-menu.item text="Rename" icon="edit" @click="show('rename')" />
         <c-menu.item text="Delete" icon="trash" class="text-error"
                                @click="show('confirm')" />
-      </c-mvp.sheet.menu>
+      </c-menu>
     </c-mvp.sheet.view>
     <c-mvp.sheet.view name="rename">
       <input id="rename-field" type="text" name="name" aria-label="Name">

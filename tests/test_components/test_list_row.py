@@ -121,6 +121,12 @@ class TestListRowWithActions:
             ]
             assert len(matches) == 1
 
+    def test_the_menu_is_a_large_full_width_daisy_menu(self, render_row):
+        menu = render_row().select_one("[data-mvp-row-menu]")
+
+        assert menu.name == "ul"
+        assert {"menu", "menu-lg", "w-full", "p-0"} <= set(menu["class"])
+
     def test_the_row_is_a_list_item_that_starts_the_script(self, render_row):
         item = render_row().select_one("li")
 

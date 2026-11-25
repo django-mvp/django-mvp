@@ -13,7 +13,6 @@ A sheet is four components:
 | `c-mvp.sheet` | The dialog: grab bar, head, body and foot |
 | `c-mvp.sheet.view` | One panel of a sheet that has several steps |
 | `c-mvp.sheet.trigger` | The button or link that opens a sheet |
-| `c-mvp.sheet.menu` | The list of actions in a sheet |
 
 ## Open a sheet from a button
 
@@ -24,12 +23,12 @@ A sheet is four components:
     <c-mvp.sheet.trigger for="item_sheet" href="{% url 'item-detail' item.pk %}"
                          label="{{ item.name }}" />
     <c-mvp.sheet id="item_sheet" title="{{ item.name }}" lead="Edited yesterday">
-      <c-mvp.sheet.menu>
+      <c-menu class="menu-lg w-full p-0">
         <c-menu.item text="Rename" icon="edit"
                    href="{% url 'item-update' item.pk %}" />
         <c-menu.item text="Delete" icon="trash" class="text-error"
                    href="{% url 'item-delete' item.pk %}" />
-      </c-mvp.sheet.menu>
+      </c-menu>
     </c-mvp.sheet>
     ```
 
@@ -76,10 +75,10 @@ Opening a sheet closes any other sheet that is open, so only one is ever showing
     ```django
     <c-mvp.sheet id="item_sheet" title="Project plan">
       <c-mvp.sheet.view name="menu">
-        <c-mvp.sheet.menu>
+        <c-menu class="menu-lg w-full p-0">
           <c-menu.item text="Delete" icon="trash" class="text-error"
                                  @click="show('confirm')" />
-        </c-mvp.sheet.menu>
+        </c-menu>
       </c-mvp.sheet.view>
       <c-mvp.sheet.view name="confirm">
         <button type="button" @click="show('menu')">Keep it</button>
@@ -171,13 +170,13 @@ form without submitting it.
 A click with Ctrl, Cmd or Shift held, or with a button other than the primary one, is
 left to the browser, so a link can still open in a new tab.
 
-### `c-mvp.sheet.menu`
+### The menu of actions
 
-`c-mvp.sheet.menu` takes `class`. It draws a large daisyUI menu (`menu-lg`) that fills the
-width of the sheet, and its rows are daisy-cotton's `c-menu.item`, which takes `text`,
-`icon`, `href` (a link; without it a button), `type` and `class`. Attributes the item does
-not list, such as `@click`, land on the link or button. A destructive row is last and has
-`class="text-error"`.
+A sheet's actions are daisy-cotton's own menu: `<c-menu class="menu-lg w-full p-0">` holding
+`c-menu.item` rows. `menu-lg` gives the large item size, and `w-full p-0` makes the list fill
+the width of the sheet body. A `c-menu.item` takes `text`, `icon`, `href` (a link; without it
+a button), `type` and `class`. Attributes it does not list, such as `@click`, land on the
+link or button. A destructive row is last and has `class="text-error"`.
 
 ## Why a sheet's title is required
 

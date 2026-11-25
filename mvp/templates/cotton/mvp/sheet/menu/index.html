@@ -1,5 +1,0 @@
-{# @description The list of actions in a sheet: a large daisyUI menu that fills the sheet's width. Fill it with c-menu.item rows, an icon and words each. A destructive action comes last, with class="text-error". #}
-{# @prop class:text | description:"Extra classes added to the list." #}
-{# @slot <c-menu.item text="Rename" icon="edit" /> — The rows, as c-menu.item components. #}
-<c-vars class />
-<c-menu class="menu-lg w-full p-0 {{ class }}" :attrs="attrs" only>{{ slot }}</c-menu>
