@@ -350,6 +350,46 @@ class TestMenuWidth:
         assert menu == pytest.approx(body, abs=1)
 
 
+class TestCloseButton:
+    def test_a_wide_screen_shows_an_icon_in_the_top_right_of_the_head_that_closes(
+        self, page, live_server
+    ):
+        open_page(page, live_server, DESKTOP)
+        page.click("#open-orders")
+        settle(page)
+        close = page.locator("#orders [data-mvp-sheet-head] .mvp-sheet-close")
+
+        expect(close).to_be_visible()
+        assert close.get_attribute("aria-label") == "Close"
+        assert close.inner_text().strip() == ""
+        head_box = page.locator("#orders [data-mvp-sheet-head]").bounding_box()
+        box = close.bounding_box()
+        assert box["x"] + box["width"] >= head_box["x"] + head_box["width"] - 2
+        assert box["y"] <= head_box["y"] + 4
+
+        close.click()
+
+        assert open_sheets(page) == []
+
+    def test_a_phone_shows_no_close_button(self, page, live_server):
+        open_page(page, live_server, PHONE)
+        page.click("#open-orders")
+        settle(page)
+
+        expect(page.locator("#orders .mvp-sheet-close")).to_be_hidden()
+        box = page.locator("#orders .mvp-sheet-box")
+        assert box.get_by_role("button", name="Close").count() == 0
+
+    @BOTH_WIDTHS
+    def test_no_worded_close_button_is_drawn(self, page, live_server, viewport):
+        open_page(page, live_server, viewport)
+        page.click("#open-orders")
+        settle(page)
+
+        assert page.locator("#orders [data-mvp-sheet-foot] button").count() == 0
+        assert page.locator("#orders .mvp-sheet-box button", has_text="Close").count() == 0
+
+
 class TestFocusReturn:
     def test_focus_goes_to_the_element_the_second_sheet_names(self, page, live_server):
         open_page(page, live_server)
@@ -468,8 +508,23 @@ class TestViews:
 
 
 class TestClosing:
-    @BOTH_WIDTHS
-    @pytest.mark.parametrize("way", ["escape", "outside", "button"])
+    @pytest.mark.parametrize(
+        ("viewport", "way"),
+        [
+            (PHONE, "escape"),
+            (PHONE, "outside"),
+            (DESKTOP, "escape"),
+            (DESKTOP, "outside"),
+            (DESKTOP, "button"),
+        ],
+        ids=[
+            "phone-escape",
+            "phone-outside",
+            "desktop-escape",
+            "desktop-outside",
+            "desktop-button",
+        ],
+    )
     def test_every_way_of_closing_returns_focus_and_submits_nothing(
         self, page, live_server, viewport, way
     ):
@@ -488,7 +543,7 @@ class TestClosing:
         elif way == "outside":
             page.mouse.click(5, 5)
         else:
-            page.locator("#orders .mvp-sheet-foot button").click()
+            page.locator("#orders .mvp-sheet-close").click()
 
         assert open_sheets(page) == []
         expect(page.locator("#open-orders")).to_be_focused()

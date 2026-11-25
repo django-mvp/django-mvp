@@ -1894,6 +1894,13 @@ html {
   overscroll-behavior: contain;
 }
 
+.mvp-sheet-close {
+  display: none;
+  flex: none;
+  margin-inline-start: auto;
+  align-self: flex-start;
+}
+
 .mvp-sheet-foot {
   flex: none;
   padding-block: 0.5rem calc(1rem + env(safe-area-inset-bottom));
@@ -1927,6 +1934,10 @@ html {
 @media (min-width: 40rem) {
   .mvp-sheet-grab {
     display: none;
+  }
+
+  .mvp-sheet-close {
+    display: inline-flex;
   }
 
   .mvp-sheet > .mvp-sheet-box {

@@ -128,16 +128,23 @@ class TestSheetHead:
 
 
 class TestSheetFoot:
-    def test_the_default_foot_is_one_button_that_closes_without_submitting(
+    def test_the_foot_is_empty_without_actions(self, render_sheet):
+        soup = render_sheet()
+
+        assert soup.select("[data-mvp-sheet-foot] button") == []
+
+    def test_the_head_holds_an_icon_only_close_button_that_submits_nothing(
         self, render_sheet
     ):
         soup = render_sheet()
 
-        buttons = soup.select("[data-mvp-sheet-foot] button")
+        buttons = soup.select("[data-mvp-sheet-head] .mvp-sheet-close")
         assert len(buttons) == 1
         assert buttons[0]["type"] == "button"
+        assert buttons[0]["aria-label"] == "Close"
+        assert buttons[0].get_text(strip=True) == ""
 
-    def test_the_actions_slot_replaces_the_default_button(self, render_sheet):
+    def test_the_actions_slot_fills_the_foot(self, render_sheet):
         soup = render_sheet(
             slots='<c-slot name="actions"><button id="save" type="submit">'
             "Save</button></c-slot>"

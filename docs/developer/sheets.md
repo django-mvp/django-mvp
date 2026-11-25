@@ -3,7 +3,7 @@
 A sheet is a dialog that rises from the foot of a phone's screen and is centred from
 the `sm` breakpoint (640 px) up. It holds a menu of actions, a short form or a few
 steps, and closes without changing anything when the person presses Escape, taps
-outside it or uses its closing button. The component demo's sheet page shows each
+outside it, drags it down or, on a wide screen, uses the close button at the right of its head. The component demo's sheet page shows each
 example below running.
 
 A sheet is five components:
@@ -146,7 +146,7 @@ prefer reduced motion get no slide.
 Its slots are the default slot, which is the body and scrolls under a pinned head;
 `art`, small art drawn before the title and hidden from assistive technology;
 `description`, text that becomes the dialog's accessible description; and `actions`,
-the buttons in the foot in place of the default closing button. A button in
+the buttons in the foot. The foot is empty without them. A phone closes the sheet by the grab bar, dragging down, tapping outside or Escape, and a wide screen by the close button, an icon named "Close" in the head, so there is no worded Close button. A button in
 `actions` that only closes the sheet has `type="button"`, so a sheet can sit inside a
 form without submitting it.
 

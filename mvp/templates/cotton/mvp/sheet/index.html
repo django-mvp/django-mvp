@@ -1,4 +1,4 @@
-{# @description A dialog that rises from the foot of a phone's screen and sits in the middle of a wider one: a grab bar, a head (art, icon, title and the line under it), a body that scrolls, and a foot. Pressing Escape, tapping outside it or its closing button closes it and changes nothing. Open it with an mvp.sheet.trigger or by dispatching mvp-sheet-open on the window with the sheet's id. #}
+{# @description A dialog that rises from the foot of a phone's screen and sits in the middle of a wider one: a grab bar, a head (art, icon, title and the line under it, with a close button at its right on a wide screen), a body that scrolls, and a foot. Pressing Escape, tapping outside it, dragging it down or, on a wide screen, its close button in the head closes it and changes nothing. Open it with an mvp.sheet.trigger or by dispatching mvp-sheet-open on the window with the sheet's id. #}
 {# @prop id:text | required | description:"The sheet's id, unique on the page. A trigger names it in its for prop." #}
 {# @prop title:text | required | description:"What the sheet is about, shown in its head. It is the dialog's accessible name." #}
 {# @prop lead:text | description:"The line under the title." #}
@@ -10,7 +10,7 @@
 {# @slot <p>What the sheet holds.</p> — The body: a mvp.sheet.menu, mvp.sheet.view panels, a short form. It scrolls when it is taller than the box. #}
 {# @slot:art <img src="cover.jpg" alt=""> — Optional. Small art drawn before the title and hidden from assistive technology. #}
 {# @slot:description Text that describes the sheet. — Optional. Becomes the dialog's accessible description. #}
-{# @slot:actions <button type="button">Save</button> — Optional. The buttons in the foot, in place of the default closing button. A button that only closes the sheet is type="button". #}
+{# @slot:actions <button type="button">Save</button> — Optional. The buttons in the foot, in the foot. The foot is empty without them: a phone closes by the grab bar, dragging down, tapping outside or Escape, and a wide screen by the close button in the head. A button that only closes the sheet is type="button". #}
 {% load i18n %}
 <c-vars id title lead icon full fixed wide class art="" description="" actions="" />
 {% if description.strip %}{% firstof id|add:"-description" as described_by %}{% endif %}
@@ -38,14 +38,14 @@
       <h2 class="mvp-sheet-title" id="{{ id }}-title">{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" /> {% endif %}{{ title }}</h2>
       {% if lead %}<span class="mvp-sheet-lead" data-mvp-sheet-lead>{{ lead }}</span>{% endif %}
     </div>
+    <button type="button"
+            class="btn btn-ghost btn-sm btn-circle mvp-sheet-close"
+            aria-label="{% translate "Close" %}"
+            onclick="this.closest('dialog').close()"><c-icon name="x" aria-hidden="true" /></button>
   </div>
   {% if description.strip %}<div class="mvp-sheet-description" id="{{ id }}-description">{{ description }}</div>{% endif %}
   <div class="mvp-sheet-body" data-mvp-sheet-body>{{ slot }}</div>
   <div class="mvp-sheet-foot" data-mvp-sheet-foot>
-    {% if actions.strip %}
-      {{ actions }}
-    {% else %}
-      <button type="button" class="btn btn-ghost btn-block" onclick="this.closest('dialog').close()">{% translate "Close" %}</button>
-    {% endif %}
+    {{ actions }}
   </div>
 </c-modal>

@@ -17,12 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MVP_CONFIG["layout"]["navbar"]["mobile"]["site_name"]` shows the site's name, the one the sidebar header shows (`layout.sidebar.title`), beside the header's icon wherever the header shows the icon. It is `False` by default, so nothing changes until it is set.
 - `docs/navigation.md` shows a dock declared in a template, with an item that toggles the sidebar.
 
+### Changed
+
+- `c-mvp.sheet` no longer draws a worded Close button in its foot. A centred dialog on a wide screen shows an icon-only close button, named "Close", at the right of its head. A phone shows none: the grab bar, dragging down, tapping outside and Escape close it. Buttons passed in the `actions` slot are unchanged.
+
 ### Deprecated
 
 - The menu-driven dock. `MobileFooterMenu`, `MobileFooterNavRenderer` and the menu path of `app/dock.html` raise an `MVPDeprecationWarning` naming the template way: override `cotton/app/dock.html` and declare the dock with `c-dock` and `c-mvp.dock.item`. Nothing is removed yet.
 
 ### Fixed
 
+- The menu in a sheet fills the width of the sheet body, so each action row and its hover and focus background span the sheet. It was only as wide as its longest label.
 - The search results page places its icon over the field whatever element the icon is. It only did for an `<svg>`, so an icon set that renders `<i>` elements, such as Bootstrap Icons, drew its icon beside the field.
 
 ## [v0.37.0] - 2026-11-24
