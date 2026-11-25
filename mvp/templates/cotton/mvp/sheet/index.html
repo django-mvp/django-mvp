@@ -10,7 +10,7 @@
 {# @slot <p>What the sheet holds.</p> — The body: a c-menu of c-menu.item rows (class="menu-lg w-full p-0"), mvp.sheet.view panels, a short form. It scrolls when it is taller than the box. #}
 {# @slot:art <img src="cover.jpg" alt=""> — Optional. Small art drawn before the title and hidden from assistive technology. #}
 {# @slot:description Text that describes the sheet. — Optional. Becomes the dialog's accessible description. #}
-{# @slot:actions <button type="button">Save</button> — Optional. The buttons in the foot, in the foot. The foot is empty without them: a phone closes by the grab bar, dragging down, tapping outside or Escape, and a wide screen by the close button in the head. A button that only closes the sheet is type="button". #}
+{# @slot:actions <button type="button">Save</button> — Optional. The buttons in the foot. The foot is empty without them: a phone closes by the grab bar, dragging down, tapping outside or Escape, and a wide screen by the close button in the head. A button that only closes the sheet is type="button". #}
 {% load i18n %}
 <c-vars id title lead icon full fixed wide class art="" description="" actions="" />
 {% if description.strip %}{% firstof id|add:"-description" as described_by %}{% endif %}
