@@ -27,7 +27,13 @@
     <c-layout :view="view" container :id="layout_id" style="{% if height %}height: {{ height }}{% endif %}">{{ slot }}</c-layout>
   </div>
 {% else %}
-  <div class="card {% variation size "card" "xs,sm,md,lg,xl" %}{% if border %} card-border{% endif %}{% if dash %} card-dash{% endif %} {% responsive side "card-side" %}{% if image_full %} image-full{% endif %}{% if not border and not dash %} bg-base-100 shadow-sm{% endif %} {{ class }}" {{ attrs }}>
+  {% comment %}
+    Without a figure the parts are stacked by django-mvp-layout's hbf: the
+    header on top, the footer at the bottom and the body taking the height
+    between them. A figure is laid out by daisyUI's card, above the parts or
+    beside them.
+  {% endcomment %}
+  <div class="card {% variation size "card" "xs,sm,md,lg,xl" %}{% if border %} card-border{% endif %}{% if dash %} card-dash{% endif %} {% responsive side "card-side" %}{% if image_full %} image-full{% endif %}{% if not border and not dash %} bg-base-100 shadow-sm{% endif %}{% if not figure and not image_full %} hbf{% endif %} {{ class }}" {{ attrs }}>
     {% if figure %}<figure>{{ figure }}</figure>{% endif %}
     {{ slot }}
   </div>

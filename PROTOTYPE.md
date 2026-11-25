@@ -47,8 +47,9 @@ http://devserver:8002/products/ has none, http://devserver:8002/layout/full-page
 
 `<c-card>` overrides daisy-cotton's card. The caller writes the parts it wants: `<c-card.header>`
 (`title`, `icon`, `href`, slots `badges` and `actions`, and a default slot for heading markup),
-`<c-card.body>` (`tight`) and `<c-card.footer>` (a start group and an `end` slot). With no parts
-the content sits straight on the surface. It keeps daisy-cotton's `size`, `border`, `dash`, `side`,
+`<c-card.body>` (`tight`) and `<c-card.footer>` (a start group and an `end` slot), stacked by
+django-mvp-layout's `hbf`: the parts are `.mvpl-header`, `.mvpl-body` and `.mvpl-footer`, and a
+card without a figure carries `hbf`. With no parts the content sits straight on the surface. It keeps daisy-cotton's `size`, `border`, `dash`, `side`,
 `image-full` and `figure`. `<c-mvp.card>` and `<c-mvp.card.wrapper>` are gone, with no alias.
 
 A developer sets `view` on a card and places django-mvp-layout's own `<c-layout.sidebar>` and
@@ -103,7 +104,7 @@ features 1 to 3.
 | Piece | Where it occurs | Becomes | Built by |
 |---|---|---|---|
 | The heading row and the footer row of a card or dialog, with a toggle each side in a layout | `mvp/templates/cotton/mvp/box/header.html`, `mvp/templates/cotton/mvp/box/footer.html`, called by `cotton/card/header.html`, `card/footer.html`, `modal/header.html`, `modal/footer.html` | Kept as built | 2, reused by 3 |
-| Stacking a header, body and footer | The shell's left sidebar | django-mvp-layout's `HbF` class, no stacking rules of django-mvp's own | 1 |
+| Stacking a header, body and footer | The shell's left sidebar, the card built from parts | django-mvp-layout's `hbf` and `HbF` classes, no stacking rules of django-mvp's own | 1, 2 |
 | Box styles (part spacing, `--mvpl-sidebar-bg`, `--mvpl-line`, header and footer rules) | `mvp/tailwind/base.css`, the block in `@layer utilities { @layer daisyui.l1.l2 }` | Kept, keyed to `.mvp-box-layout` and the parts' classes | 2 |
 | Rail-aware variants `is-drawer-open` / `is-drawer-close` | `mvp/tailwind/base.css` (`@custom-variant`) | Kept, keyed to `.mvpl-sidebar[data-mvpl-rail]` | 1 |
 | Rail labels | `mvp-sidebar--icons` rules in `mvp/tailwind/base.css` and the package's `.mvpl-rail-hide` / `.mvpl-rail-only` | One mechanism: the package's classes, used by django-mvp's menu | 1 |
@@ -218,6 +219,8 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   were. The classes sit on `<c-app.sidebar>`'s own root, not on `<c-layout.sidebar view="HbF">`:
   that root carries `boost`, `class`, the rail styles and the scroll rules, and the component form
   needs the three parts straight inside the sidebar's panel.
+- **A card with a figure is not stacked.** daisyUI places the figure above or beside the parts,
+  which the three areas have no room for.
 - **The right sidebar has no stack.** A page fills it with whatever it likes.
 - **`behavior: "overlay"` replaces `breakpoint: "never"`.**
 - **`page.side` stays as it is.** Whether `app.secondary_sidebar` replaces it is for the rebuild.
