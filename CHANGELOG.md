@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.39.0] - 2026-11-25
+
 ### Changed
 
 - `c-mvp.sheet` no longer draws a worded Close button in its foot. A centred dialog on a wide screen shows an icon-only close button, named "Close", at the right of its head. A phone shows none: the grab bar, dragging down, tapping outside and Escape close it. Buttons passed in the `actions` slot are unchanged.
