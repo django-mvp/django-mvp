@@ -124,39 +124,39 @@ class TestTheHeaderShowsWhenHtmxIsWorking:
 class TestTheSiteNameBesideTheIcon:
     TITLE = "Example Portal"
 
-    def _brand(self, client, monkeypatch, title=TITLE, **mobile):
+    def brand_of(self, client, monkeypatch, title=TITLE, **mobile):
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "title", title)
         for key, value in mobile.items():
             monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"]["mobile"], key, value)
         return _soup(client, PAGE_WITH_TRAIL).find("a", class_="mvp-navbar-brand")
 
     def test_the_header_shows_only_the_icon_by_default(self, client, monkeypatch):
-        brand = self._brand(client, monkeypatch)
+        brand = self.brand_of(client, monkeypatch)
 
         assert self.TITLE not in brand.get_text()
 
     def test_the_header_shows_the_sidebar_title_beside_the_icon_when_asked(
         self, client, monkeypatch
     ):
-        brand = self._brand(client, monkeypatch, site_name=True)
+        brand = self.brand_of(client, monkeypatch, site_name=True)
 
         assert brand.get_text(strip=True) == self.TITLE
 
     def test_the_name_sits_inside_the_link_that_the_icon_is_in(
         self, client, monkeypatch
     ):
-        brand = self._brand(client, monkeypatch, site_name=True)
+        brand = self.brand_of(client, monkeypatch, site_name=True)
 
         assert brand.find("img") is not None or brand.find("svg") is not None
 
     def test_the_name_goes_with_the_icon_below_the_sidebar_breakpoint(
         self, client, monkeypatch
     ):
-        brand = self._brand(client, monkeypatch, site_name=True)
+        brand = self.brand_of(client, monkeypatch, site_name=True)
 
         assert "mvp-sidebar-hidden-only" in brand["class"]
 
     def test_no_sidebar_title_means_no_name_to_show(self, client, monkeypatch):
-        brand = self._brand(client, monkeypatch, title=None, site_name=True)
+        brand = self.brand_of(client, monkeypatch, title=None, site_name=True)
 
         assert brand.get_text(strip=True) == ""
