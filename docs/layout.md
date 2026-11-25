@@ -285,6 +285,9 @@ The site icon beside it stands down wherever the sidebar's own header is on scre
 showing the same mark — at or above the breakpoint with the drawer open, or at any
 width from the breakpoint up when `collapse` is `"icons"` (the rail keeps the icon) or
 `"none"` (the sidebar is always open).
+Where the header does draw the icon, `MVP_CONFIG["layout"]["navbar"]["mobile"]["site_name"] = True`
+draws the site's name beside it, the same name the sidebar header shows
+(`layout.sidebar.title`).
 So the brand appears once, and on a desktop page with the sidebar open the header's
 leading edge is the trail alone. The sidebar toggle follows the same rule and always
 has.
@@ -503,7 +506,7 @@ you render it yourself, for example to change one page's header:
 
 The dock is daisy-cotton's `<c-dock>`, which has no default class of its own. The shell's
 dock template passes it `layout.dock.class`; a `<c-dock>` you write yourself takes the class
-you give it.
+you give it. [The mobile dock](navigation.md#the-mobile-dock) shows how to declare one.
 
 ## Announcement banner
 
@@ -582,8 +585,8 @@ inheriting one worked on a desktop and rendered into nothing on a phone.
 
 The mobile dock moves into the flow on a filled page, so it sits below your
 content instead of over it. Everywhere else the dock is fixed to the bottom of
-the viewport, which works because the page scrolls underneath it and its last
-inch is still reachable. A filled page does not scroll, so a fixed dock would
+the viewport, and the page ends a dock's height higher below the sidebar's
+breakpoint, so its last inch is still reachable. A filled page does not scroll, so a fixed dock would
 permanently cover the bottom 4rem — on the demo map, Leaflet's zoom controls and
 attribution. Nothing to configure: `fill` carries this too.
 

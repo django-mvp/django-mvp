@@ -203,6 +203,10 @@ AppMenu.append(library.menu_item())
 MobileFooterMenu.append(library.menu_item(name="library-dock"))
 ```
 
+`MobileFooterMenu` is [deprecated](navigation.md#the-menu-driven-dock-is-deprecated). A dock
+declared in a template holds the app's pages with a `<c-dock.item>` whose `section` names the
+app's URL namespace.
+
 `menu_item()` returns an entry that points at the app's landing page, with the app's name as its
 label and its icon. It is marked as the current page on **every** page of the app, not only the
 landing page, so the dock keeps the app highlighted while a person moves around inside it. It is

@@ -85,6 +85,39 @@ A developer rendering mobile footer nav links relies on a custom renderer that a
 
 ---
 
+### User Story 5 - Developer Declares the Dock in a Template (Priority: P1)
+
+A developer declares the dock in a template with `c-dock` and `c-dock.item`, in place of building it from `MobileFooterMenu`. Each item says which part of the site it holds, so the dock shows where the reader is, and can draw a second icon while it is current, such as a filled version of its usual icon.
+
+**Why this priority**: The menu-driven dock is deprecated in favour of this one, so it is how every new dock is written.
+
+**Independent Test**: Render a `c-dock` holding items that name URL namespaces and view names, as a request for a view in one of them, and check which item is marked current and which icon it draws.
+
+**Acceptance Scenarios**:
+
+1. **Given** an item names a view in `section`, **When** the page for that view is shown, **Then** the item is marked current and, if it is a link, announced as the current page.
+2. **Given** an item names a URL namespace in `section`, **When** any page whose view sits in that namespace is shown, **Then** the item is marked current, so an item for a list stays current on every page of a record, its tabs included.
+3. **Given** an item names neither the page's view nor its namespace, **When** the page is shown, **Then** the item is not marked current.
+4. **Given** an item sets `active`, **When** the page is shown, **Then** it is marked current whatever `section` says.
+5. **Given** an item sets `current-icon`, **When** it is current, **Then** it draws that icon in place of `icon`, and draws `icon` when it is not.
+6. **Given** a dock below the sidebar's breakpoint, **When** the page is shown, **Then** the current item is drawn in the primary colour with a heavier label and a bar above its icon, so it reads at a glance and not by colour alone, and its icon is larger than the body text.
+7. **Given** a page that does not fill the screen, **When** it is shown below the sidebar's breakpoint with a dock, **Then** the page ends a dock's height higher, so the page footer scrolls clear of the dock. A page that fills the screen puts the dock in its column and gets no extra room.
+
+---
+
+### User Story 6 - Developer Moves Off the Menu-Driven Dock (Priority: P2)
+
+A developer who builds the dock from `MobileFooterMenu`, `MobileFooterNavRenderer` or the menu path of `app/dock.html` is told it is deprecated and which way replaces it, and nothing stops working.
+
+**Independent Test**: Render the dock through the menu path and check that a deprecation warning names the template way.
+
+**Acceptance Scenarios**:
+
+1. **Given** a page draws the dock from `MobileFooterMenu`, **When** it is shown, **Then** an `MVPDeprecationWarning` names declaring the dock with `c-dock` and `c-dock.item`.
+2. **Given** a developer renders a menu with `MobileFooterNavRenderer`, **When** it renders, **Then** the same warning is raised and the dock is drawn as before.
+
+---
+
 ### Edge Cases
 
 - What happens when the `MobileFooterMenu` has no items registered (empty menu)?
@@ -109,12 +142,16 @@ A developer rendering mobile footer nav links relies on a custom renderer that a
 - **FR-010**: The footer nav MUST render correctly when `MobileFooterMenu` is empty (no items), displaying nothing or a zero-height container rather than broken markup.
 - **FR-011**: `MobileFooterMenu` items MUST respect the same permission and visibility model as `AppMenu` items, hiding items from users who lack the required permissions using the standard django-flex-menus visibility mechanism.
 - **FR-012**: The footer nav component MUST carry an `aria-label="Mobile navigation"` attribute on its outer container element (the positioning `<div>`). The semantic `<nav>` element is provided by the inner `<c-nav>` cotton-bs5 component. No additional keyboard navigation enhancements are required.
+- **FR-013**: `c-dock.item` MUST take `section`, the URL namespaces and view names the item holds, and mark the item current on a page whose view is named in it or sits in a namespace named in it. `active` MUST keep marking an item current for anything a section cannot express.
+- **FR-014**: `c-dock.item` MUST take `current-icon` and draw it in place of `icon` while the item is current.
+- **FR-015**: The prebuilt stylesheet MUST draw the current item in the primary colour with a heavier label and a bar above the icon, MUST size the dock's icons up from the body text, and MUST leave room at the bottom of a page that does not fill the screen for the dock, from below the sidebar's breakpoint only.
+- **FR-016**: `MobileFooterMenu`, `MobileFooterNavRenderer` and the menu path of `app/dock.html` are deprecated. Each MUST raise an `MVPDeprecationWarning` naming the template way when used, and MUST keep working.
 
 ### Key Entities
 
-- **MobileFooterMenu**: A django-flex-menus menu registry object scoped exclusively to the mobile footer navigation. Holds an ordered list of `MenuItem` instances. Independent of `AppMenu`.
+- **MobileFooterMenu** (deprecated): A django-flex-menus menu registry object scoped exclusively to the mobile footer navigation. Holds an ordered list of `MenuItem` instances. Independent of `AppMenu`.
 - **MobileFooterMenuItem / MenuItem**: A single navigation entry in the footer nav. Has a label, URL (or action trigger), optional icon, optional `show_text` flag (controls icon-only vs icon+label mode), optional `attrs` dict for arbitrary HTML attribute passthrough (e.g. `{"data-lte-toggle": "sidebar"}`), and active-state logic.
-- **MobileFooterNavRenderer**: A custom django-flex-menus renderer that produces cotton-bs5 component markup for each registered `MenuItem`. The wrapper template renders the menu list via `<c-nav :attrs="context">` (passing `MobileFooterMenu.extra_context` as attributes); the item template renders each entry via `<c-link>`. Items are direct children of the `<nav>` element with no `<li>` wrapper.
+- **MobileFooterNavRenderer** (deprecated): A custom django-flex-menus renderer that produces cotton-bs5 component markup for each registered `MenuItem`. The wrapper template renders the menu list via `<c-nav :attrs="context">` (passing `MobileFooterMenu.extra_context` as attributes); the item template renders each entry via `<c-link>`. Items are direct children of the `<nav>` element with no `<li>` wrapper.
 - **Mobile Footer Nav Component**: A Cotton template component (`c-app.dock`) that wraps the rendered menu items in a `<div>` positioning container applying `.show-on-mobile`, `fixed-bottom`, `bg-body`, and `border-top`. The `aria-label` is on this `<div>`. The semantic `<nav>` is provided by the inner `<c-nav>` component rendered by the menu system.
 
 ### Non-Functional Requirements

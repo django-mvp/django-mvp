@@ -417,7 +417,7 @@ c-breadcrumbs
 c-button                — action button
 c-divider               — visual separator
 c-dock                  — bottom dock navigation
-  c-dock.item
+  c-dock.item           — one item; current for a section, optional current icon
 c-link                  — styled inline text link
 c-menu                  — menu container
   c-menu.item           — one entry, a link or a button
@@ -469,8 +469,8 @@ c-mvp.documentation     — tabbed preview, source and output surface rendered b
 2. **Nested components** use dot notation after the prefix: `c-mvp.page.title`, `c-mvp.page.list.empty`.
 3. **Directory = namespace**: A component's directory under `mvp/templates/cotton/mvp/` determines its namespace. `mvp/templates/cotton/mvp/card/index.html` → `c-mvp.card`. `mvp/templates/cotton/mvp/card/wrapper.html` → `c-mvp.card.wrapper`.
 4. **No implementation leakage**: Component names must not reference DaisyUI, Tailwind, or any external design system. They describe *what they are*, not *how they look*.
-5. **The `mvp.` prefix marks this package's components**, so none of them can share a name with a daisy-cotton component. The icon is the one exception: `c-icon` stays at `mvp/templates/cotton/icon.html` for good, because daisy-cotton ships a plain icon and expects a project to replace it, and this package's icon replaces it by sitting at the same name. The app shell is the other exception: its components are `c-app`, `c-app.sidebar`, `c-app.header`, `c-app.navbar`, `c-app.main`, `c-app.footer` and `c-app.dock`, under `mvp/templates/cotton/app/`, so that each one carries the name of the `app.*` block that draws it.
-6. **The basic components are daisy-cotton's.** `c-alert`, `c-avatar.group`, `c-badge`, `c-breadcrumbs`, `c-breadcrumbs.item`, `c-button`, `c-divider`, `c-dock`, `c-dock.item`, `c-link`, `c-menu` and `c-mockup.*` come from daisy-cotton under its bare names, and this package ships no template for them (#435). A call to one of them from a template in this package carries `only`.
+5. **The `mvp.` prefix marks this package's components**, so none of them can share a name with a daisy-cotton component. The icon and the dock item are the exceptions: `c-dock.item` stays at `mvp/templates/cotton/dock/item.html` because it adds `section` and `current-icon` to daisy-cotton's item and has to reach every dock. `c-icon` stays at `mvp/templates/cotton/icon.html` for good, because daisy-cotton ships a plain icon and expects a project to replace it, and this package's icon replaces it by sitting at the same name. The app shell is the other exception: its components are `c-app`, `c-app.sidebar`, `c-app.header`, `c-app.navbar`, `c-app.main`, `c-app.footer` and `c-app.dock`, under `mvp/templates/cotton/app/`, so that each one carries the name of the `app.*` block that draws it.
+6. **The basic components are daisy-cotton's.** `c-alert`, `c-avatar.group`, `c-badge`, `c-breadcrumbs`, `c-breadcrumbs.item`, `c-button`, `c-divider`, `c-dock`, `c-link`, `c-menu` and `c-mockup.*` come from daisy-cotton under its bare names, and this package ships no template for them (#435). A call to one of them from a template in this package carries `only`.
 
 ## Terminology
 

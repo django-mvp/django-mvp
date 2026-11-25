@@ -28,10 +28,13 @@
                        only>
         <c-icon name="menu" />
       </c-drawer.button>
+      {# layout.navbar.mobile.site_name adds the name the sidebar header shows. #}
+      {% if mvp_config.layout.navbar.mobile.site_name %}{% firstof mvp_config.layout.sidebar.title as brand_name %}{% endif %}
       <a href="/"
-         aria-label="{% trans "Home" %}"
-         class="mvp-navbar-brand flex shrink-0 items-center px-1 mvp-sidebar-hidden-only">
+         {% if not brand_name %}aria-label="{% trans "Home" %}"{% endif %}
+         class="mvp-navbar-brand flex shrink-0 items-center gap-2 px-1 mvp-sidebar-hidden-only">
         <c-mvp.brand.icon max-height="1.5rem" class="size-8 object-contain" />
+        {% if brand_name %}<span class="mvp-navbar-title font-semibold whitespace-nowrap">{{ brand_name }}</span>{% endif %}
       </a>
       {# The trail measures its own box and folds what does not fit (breadcrumbs.js). #}
       {% if breadcrumbs.strip %}

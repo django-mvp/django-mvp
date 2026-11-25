@@ -181,6 +181,8 @@ MVP_CONFIG = {
                 "mvp.actions.language-switcher",
                 "mvp.actions.login",
             ],
+            # The site's name beside the header's icon, below the sidebar breakpoint.
+            "mobile": {"site_name": True},
         },
         "sidebar": {
             "title": "DjangoMVP",
@@ -229,6 +231,7 @@ EASY_ICONS = {
             "gears": "bi bi-gear",
             "heart": "bi bi-heart",
             "home": "bi bi-house",
+            "home-filled": "bi bi-house-fill",
             "image": "bi bi-image",
             "info-circle": "bi bi-info-circle",
             "input-cursor": "bi bi-input-cursor-text",
