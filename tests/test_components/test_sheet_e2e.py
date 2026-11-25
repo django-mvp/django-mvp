@@ -1056,6 +1056,49 @@ class TestDraggingBetweenHeights:
         expect(phone.locator("#open-orders")).to_be_focused()
         assert posts == []
 
+    @pytest.mark.parametrize("distance", [120, 300], ids=["past-threshold", "past-edge"])
+    def test_a_sheet_dragged_closed_never_moves_back_up_while_it_goes(
+        self, phone, distance
+    ):
+        phone.tap("#open-orders")
+        rest_box(phone, "orders")
+        x, y = grab_point(phone, "orders")
+        phone.finger.down(x, y)
+        phone.finger.trace(x, y, y + distance, 12, 16)
+        phone.evaluate(
+            """() => {
+              const box = document.querySelector('#orders .mvp-sheet-box');
+              window.tops = [];
+              const sample = start => {
+                window.tops.push(box.getBoundingClientRect().top);
+                if (performance.now() - start < 1200) {
+                  requestAnimationFrame(() => sample(start));
+                }
+              };
+              sample(performance.now());
+            }"""
+        )
+
+        phone.finger.up()
+
+        closed(phone, "orders")
+        phone.wait_for_timeout(1300)
+        tops = phone.evaluate("() => window.tops")
+        rises = [(a, b) for a, b in zip(tops, tops[1:]) if b < a - 1]
+        assert rises == []
+
+    def test_a_sheet_dragged_closed_opens_again_at_its_resting_height(self, phone):
+        rest = open_sheet(phone, "orders")
+        x, y = grab_point(phone, "orders")
+        phone.finger.drag(x, y, y + 300, hold_ms=200)
+        closed(phone, "orders")
+        phone.wait_for_timeout(600)
+
+        again = open_sheet(phone, "orders")
+
+        assert again["top"] == pytest.approx(rest["top"], abs=1)
+        assert height_of(phone, "orders") == "rest"
+
     def test_a_small_slow_drag_down_settles_back_at_rest(self, phone):
         rest = open_sheet(phone, "tall")
         x, y = grab_point(phone, "tall")

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A sheet closed by dragging it down no longer flashes back up before it slides out. The box stays where the drag left it while the dialog fades, and goes back to its resting height when the sheet next opens. A drag that went past the screen's edge also no longer slides back up to the edge.
 - The menu in a sheet fills the width of the sheet body, so each action row and its hover and focus background span the sheet. It was only as wide as its longest label.
 - The search results page places its icon over the field whatever element the icon is. It only did for an `<svg>`, so an icon set that renders `<i>` elements, such as Bootstrap Icons, drew its icon beside the field.
 
