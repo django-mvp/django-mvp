@@ -240,6 +240,8 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   rule in the constitution and the glossary follow ADR 0047. Features 1 to 3.
 - **The tests still call `<c-mvp.card>` and `<c-mvp.modal>`**, and the test that keeps components
   under `cotton/mvp/` has no exception for the card and the modal. Features 2 and 3.
+- **A dialog finds its parts by their class names in its content** (`cotton/modal.html`), since a
+  part cannot tell the dialog around it that it is there. Feature 3 finds a cleaner way.
 - **A wrong `layout.view` fails at render**, not at startup. Feature 1 adds a system check.
 - **The old shell is still in the tree**: `mvp/layout.py`, `cotton/app/index.html`,
   `cotton/mvp/layout/sidebar/index.html`, the Alpine `$store.mvp` layout store
