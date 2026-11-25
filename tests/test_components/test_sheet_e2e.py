@@ -326,6 +326,30 @@ class TestOpening:
         assert open_sheets(page) == ["other"]
 
 
+class TestMenuWidth:
+    @BOTH_WIDTHS
+    def test_the_menu_fills_the_width_of_the_sheet_body(
+        self, page, live_server, viewport
+    ):
+        open_page(page, live_server, viewport)
+        page.click("#open-orders")
+        settle(page)
+
+        widths = page.evaluate(
+            """() => {
+              const width = selector =>
+                document.querySelector(selector).getBoundingClientRect().width;
+              return [
+                width('#orders [data-mvp-sheet-body]'),
+                width('#orders .mvp-sheet-menu'),
+              ];
+            }"""
+        )
+
+        body, menu = widths
+        assert menu == pytest.approx(body, abs=1)
+
+
 class TestFocusReturn:
     def test_focus_goes_to_the_element_the_second_sheet_names(self, page, live_server):
         open_page(page, live_server)
