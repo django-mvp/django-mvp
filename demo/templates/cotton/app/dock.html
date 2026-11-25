@@ -1,0 +1,18 @@
+{# @description The demo's mobile dock, declared in a template: Home and the sidebar toggle. #}
+{% load i18n %}
+{# A page served under a URLconf with no demo pages has no such link, so the link is drawn only when it resolves. #}
+{% url "home" as home_url %}
+<div class="mvp-dock-only">
+  <c-dock class="mvp-dock {{ mvp_config.layout.dock.class }}" aria-label="{% translate "Main" %}">
+    {% if home_url %}
+      <c-mvp.dock.item label="{% translate "Home" %}"
+                   icon="home"
+                   current-icon="home-filled"
+                   href="{{ home_url }}"
+                   section="home" />
+    {% endif %}
+    <c-mvp.dock.item label="{% translate "Menu" %}"
+                 icon="menu"
+                 toggle="mvp-app-toggle" />
+  </c-dock>
+</div>

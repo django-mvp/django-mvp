@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from flex_menu.renderers import BaseRenderer
 
 from mvp.config import MVP_CONFIG
+from mvp.warnings import MENU_DRIVEN_DOCK, MVPDeprecationWarning
 
 
 class MobileFooterNavRenderer(BaseRenderer):
     """Renderer for the mobile footer navigation bar (daisyUI dock).
+
+    Deprecated: declare the dock in a template with ``c-dock`` and ``c-mvp.dock.item``.
+    Rendering with it warns.
 
     Renders each registered MenuItem as a dock item (see c-dock.item):
     - items with a ``toggle`` in extra_context become a <label for="..."> that
@@ -29,6 +34,11 @@ class MobileFooterNavRenderer(BaseRenderer):
             "leaf": "menus/dock/item.html",
         },
     }
+
+    def render(self, item, **kwargs):
+        """Render the dock, warning that the menu-driven dock is deprecated."""
+        warnings.warn(MENU_DRIVEN_DOCK, MVPDeprecationWarning, stacklevel=2)
+        return super().render(item, **kwargs)
 
     def get_context_data(self, item, **kwargs):
         """Add ``mvp_config`` so the dock template can pass ``layout.dock.class``.

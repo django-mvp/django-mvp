@@ -6,7 +6,8 @@ the tree into markup. The renderers live in :mod:`mvp.renderers` and are
 registered under ``FLEX_MENUS["renderers"]``.
 
 - ``AppMenu`` — the sidebar tree. Ships empty.
-- ``MobileFooterMenu`` — the mobile dock. Ships with the sidebar toggle only.
+- ``MobileFooterMenu`` — the menu-driven mobile dock, deprecated in favour of a dock
+  declared in a template. Ships with the sidebar toggle only.
 - ``AccountCenterMenu`` — the Account Center's own navigation, drawn in the
   sidebar on its pages, under a "Back to" link (see :mod:`mvp.mounted`). Ships
   with the entries for its own landing page and its preferences page. An app that wants a page in the area
@@ -68,8 +69,12 @@ An item marks itself active when the current URL or view name matches it, and
 a parent expands when one of its children is active.
 """
 
+import warnings
+
 from django.utils.translation import gettext_lazy as _
 from flex_menu import Menu, MenuItem
+
+from mvp.warnings import MENU_DRIVEN_DOCK, MVPDeprecationWarning
 
 
 class MenuGroup(MenuItem):
@@ -135,7 +140,22 @@ class MenuCollapse(MenuGroup):
 #: The sidebar navigation tree. Empty until a project extends it.
 AppMenu = Menu("AppMenu", children=[], extra_context={"label": _("Main navigation")})
 
-#: The mobile dock, shown below the small-screen breakpoint.
+
+class DockMenu(Menu):
+    """The menu the deprecated menu-driven dock is built from.
+
+    Warns when it is processed for a request, which is when a page draws the dock
+    from it.
+    """
+
+    def process(self, request, **kwargs):
+        """Process the menu for a request, warning that the dock is deprecated."""
+        warnings.warn(MENU_DRIVEN_DOCK, MVPDeprecationWarning, stacklevel=2)
+        return super().process(request, **kwargs)
+
+
+#: The mobile dock, shown below the small-screen breakpoint. Deprecated: declare
+#: the dock in a template with ``c-dock`` and ``c-mvp.dock.item`` instead.
 #:
 #: Ships with the sidebar toggle alone, because that is the only item whose
 #: destination the package can know. Append your own::
@@ -151,7 +171,7 @@ AppMenu = Menu("AppMenu", children=[], extra_context={"label": _("Main navigatio
 #:             extra_context={"label": "Home", "icon": "home"},
 #:         )
 #:     )
-MobileFooterMenu = Menu(
+MobileFooterMenu = DockMenu(
     "MobileFooterMenu",
     children=[
         MenuItem(

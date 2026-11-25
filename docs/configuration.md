@@ -56,6 +56,7 @@ site overrides the project setting for that one tag only.
 | `layout.sidebar.title` | string or falsey | `None` | Text beside the brand mark in the sidebar header |
 | `layout.sidebar.boost` | bool | `False` | Navigate sidebar links without a full page load |
 | `layout.navbar.end` | list of component names | `["mvp.actions.theme-controller", "mvp.actions.login"]` | Widgets at the trailing edge of the navbar, at every width |
+| `layout.navbar.mobile.site_name` | bool | `False` | Whether the header shows the site's name (`layout.sidebar.title`) beside its icon, wherever it shows the icon. |
 | `layout.navbar.mobile.sidebar_toggle` | bool | `False` | Whether the navbar draws its own sidebar toggle below the sidebar breakpoint; the mobile dock carries one already |
 | `layout.navbar.sticky` | bool | `True` | Whether the header stays pinned as the page scrolls |
 | `layout.navbar.class` | CSS classes | `"mvp-header-bg"` | The header's background, at every width; see [Header and dock background](layout.md#header-and-dock-background) |
@@ -233,6 +234,7 @@ Bundled widgets:
     "end": [...],               # widgets, drawn at every width
     "mobile": {
         "sidebar_toggle": False,  # the header's own sidebar toggle, below the breakpoint
+        "site_name": False,       # the site's name beside the header's icon, below the breakpoint
     },
     "sticky": True,
     "class": "mvp-header-bg",   # the header's background
@@ -251,6 +253,12 @@ toggle of its own. A project that empties the dock or has no use for it sets
 `"sidebar_toggle": True` to keep the toggle in the header. At and above the
 breakpoint the header's toggle is unaffected, and under a breakpoint of `never`
 it is always drawn.
+
+**`mobile.site_name`** is whether the header draws the site's name beside its icon,
+wherever the header draws the icon: below the breakpoint, and at every width under a
+breakpoint of `never`. It defaults to `False`. The name is the one the sidebar header
+shows, `layout.sidebar.title`, so with no title there is nothing to draw. At and above
+the breakpoint the sidebar header already shows the icon and the name, and nothing changes.
 
 `sticky` applies at every width. `True` pins the header to the top of the
 viewport as the page scrolls. `False` lets it scroll away with the page.

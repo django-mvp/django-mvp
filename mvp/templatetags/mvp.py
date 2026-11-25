@@ -375,6 +375,32 @@ def slot_is_empty(slot: Any):
         return slot.strip() == ""
 
 
+@register.simple_tag(takes_context=True)
+def in_section(context, section):
+    """Return whether the page being shown belongs to a section of the site.
+
+    A section is a set of URL namespaces and view names. The page belongs to it
+    when its view's name is one of them, or when the view sits in a namespace
+    that is one of them, however deeply nested.
+
+    Args:
+        context: The template context. A page with no ``request``, or a request
+            with no resolved view, belongs to no section.
+        section: The names, as a string split on whitespace and commas, or as a
+            list. Empty or ``None`` names no section.
+
+    Returns:
+        ``True`` if the current page belongs to the section.
+    """
+    match = getattr(context.get("request"), "resolver_match", None)
+    if match is None or not section:
+        return False
+    names = section.replace(",", " ").split() if isinstance(section, str) else section
+    return match.view_name in names or any(
+        namespace in names for namespace in match.namespaces
+    )
+
+
 class _FirstElementAttrs(HTMLParser):
     """Collects the attributes of the first start tag, then stops parsing."""
 

@@ -21,6 +21,7 @@ from mvp.menus import (
     MobileFooterMenu,
 )
 from mvp.renderers import SidebarRenderer
+from mvp.warnings import MVPDeprecationWarning
 from tests.testapp_account.menus import CHECKED_FLAG
 
 
@@ -131,6 +132,14 @@ class TestShippedMenus:
     def test_the_sidebar_toggle_flips_the_drawer_checkbox(self):
         toggle = MobileFooterMenu.children[0]
         assert toggle.extra_context["toggle"] == "mvp-app-toggle"
+
+
+class TestTheMobileFooterMenuIsDeprecated:
+    def test_processing_it_warns_and_names_the_template_way(self):
+        request = RequestFactory().get("/")
+
+        with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
+            MobileFooterMenu.process(request)
 
 
 class TestShippedMenusCarryAHumanName:

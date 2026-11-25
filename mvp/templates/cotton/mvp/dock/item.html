@@ -1,0 +1,23 @@
+{# @description One item of a dock that knows which part of the site it holds. Draws daisy-cotton's dock item, marked current on every page of its section, and draws a second icon while it is current. #}
+{# @prop section:text | description:"The URL namespaces and view names this item holds, separated by spaces, such as 'dataset-list dataset'. The item is current on a page whose view is named in it or sits in a namespace named in it, so an item for a list stays current on every page of a record, its tabs included." #}
+{# @prop active:boolean | description:"Mark this item as the current one, for what a section cannot express." #}
+{# @prop icon:text | description:"Icon shown above the label, passed as the name of the icon component." #}
+{# @prop current-icon:text | description:"Icon drawn in place of icon while the item is current, such as a filled version of it." #}
+{# @prop label:text | description:"Text shown under the icon." #}
+{# @prop href:text | description:"Link address. Ignored when toggle is given." #}
+{# @prop toggle:text | description:"Id of a drawer checkbox this item flips, such as the sidebar toggle." #}
+{# @prop class:text | description:"Extra classes added to the item." #}
+{% load mvp %}
+<c-vars active="" section="" icon current-icon="" label href="" toggle="" class />
+{% in_section section as in_section %}
+{% with current=active|default:in_section %}
+  {% if current %}{% firstof current_icon icon as shown_icon %}{% else %}{% firstof icon as shown_icon %}{% endif %}
+  <c-dock.item :active="current"
+               :icon="shown_icon"
+               :label="label"
+               :href="href"
+               :toggle="toggle"
+               :class="class"
+               :attrs="attrs"
+               only />
+{% endwith %}

@@ -84,7 +84,10 @@ MVP_CONFIG = {
             # its own. Turn it on for a project that has no dock. It changes
             # nothing at or above the breakpoint, and under a breakpoint of
             # "never" the toggle is always drawn.
-            "mobile": {"sidebar_toggle": False},
+            # "site_name" is whether the header draws the site's name beside its
+            # icon wherever it draws the icon: the name the sidebar header
+            # shows, layout.sidebar.title. Off by default.
+            "mobile": {"sidebar_toggle": False, "site_name": False},
             # Whether the header sticks to the top of the viewport on scroll.
             # True (default) pins it (app-style); False lets it scroll away with
             # the page (traditional-site behaviour). Applies at every screen size.

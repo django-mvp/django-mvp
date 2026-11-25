@@ -226,9 +226,80 @@ one child.
 
 ## The mobile dock
 
-Below the sidebar breakpoint, `<c-app.dock>` renders `MobileFooterMenu` as a bottom
-navigation bar. It ships with a single item that toggles the sidebar drawer; extend it
-the same way as `AppMenu`:
+Below the sidebar breakpoint the shell draws a bottom navigation bar, the dock. Declare it
+in a template with `<c-dock>` and `<c-mvp.dock.item>`, by overriding `cotton/app/dock.html` in
+your own app (listed above `mvp`, see [Why the order matters](getting-started.md#why-the-order-matters)):
+
+```html
+{# templates/cotton/app/dock.html #}
+{% load i18n %}
+<div class="mvp-dock-only">
+  <c-dock class="mvp-dock {{ mvp_config.layout.dock.class }}" aria-label="{% translate "Main" %}">
+    <c-mvp.dock.item label="{% translate "Home" %}"
+                 icon="home"
+                 current-icon="home-filled"
+                 href="{% url "home" %}"
+                 section="home" />
+    <c-mvp.dock.item label="{% translate "Datasets" %}"
+                 icon="dataset"
+                 current-icon="dataset-filled"
+                 href="{% url "dataset-list" %}"
+                 section="dataset-list dataset" />
+    <c-mvp.dock.item label="{% translate "Menu" %}"
+                 icon="menu"
+                 toggle="mvp-app-toggle" />
+  </c-dock>
+</div>
+```
+
+The wrapper's `mvp-dock-only` class hides the dock from the sidebar breakpoint up, whatever
+`layout.sidebar.breakpoint` is. The item with `toggle="mvp-app-toggle"` opens and closes the
+sidebar, so a dock that has one needs no sidebar toggle in the header.
+
+### Which item is current
+
+An item with a `section` is current on every page of that section. `section` is the URL
+namespaces and view names the item holds, separated by spaces. The item is current when the
+page's view is named in it, or when the page's view sits in a namespace named in it, however
+deeply nested. So the Datasets item above stays current on the dataset list and on every
+page of a dataset, its tabs included, because those views sit in the `dataset` namespace.
+
+`active` still marks an item current, for anything a section cannot express, such as the
+signed-in person's own profile. It marks the item current whatever `section` says.
+
+An item that links and is current is announced as the current page. A toggle item that is
+current is shown the same way and announces nothing.
+
+### The current item's icon and look
+
+`current-icon` is an [icon name](icons.md) drawn in place of `icon` while the item is
+current, as phone tab bars draw a filled icon. An item without one keeps its icon. The names
+in the example above are your own aliases for a filled glyph, declared like any other icon:
+
+```python
+EASY_ICONS = {
+    "default": {
+        "icons": {
+            "home-filled": "bi bi-house-fill",
+            "dataset-filled": "bi bi-database-fill",
+        },
+    },
+}
+```
+
+The stylesheet draws the current item in the primary colour, with a heavier label and a bar
+above the icon, so it reads at a glance and not by colour alone. It sizes the dock's icons up
+from the body text so each item reads as a button, and it leaves room at the bottom of the
+page for the dock below the breakpoint, so the page footer scrolls clear of it. A page that
+fills the screen (`mvp-page-fill`) puts the dock in its column and needs no room.
+
+### The menu-driven dock is deprecated
+
+Building the dock from a menu is deprecated. `MobileFooterMenu` (a `DockMenu`, the
+flex-menus `Menu` that warns when it is processed), `MobileFooterNavRenderer`
+and the menu path of `cotton/app/dock.html`, which draws the dock from `MobileFooterMenu`
+when you do not override it, each raise an `MVPDeprecationWarning` naming the template way
+above. Nothing is removed yet, and a project that keeps the menu keeps a working dock:
 
 ```python
 from mvp.menus import MobileFooterMenu
@@ -239,29 +310,16 @@ MobileFooterMenu.extend([
 ])
 ```
 
-Three item shapes render, in this order of precedence: a `toggle` key produces a
-control that flips a drawer element by id (the shipped `sidebar_toggle` item uses
-`"mvp-app-toggle"`, the sidebar's drawer), a resolvable URL produces a navigation link,
-and neither produces an inert placeholder button.
+`MobileFooterMenu` ships with one item that toggles the sidebar drawer. Three item shapes
+render, in this order of precedence: a `toggle` key produces a control that flips a drawer
+element by id (the shipped `sidebar_toggle` item uses `"mvp-app-toggle"`, the sidebar's
+drawer), a resolvable URL produces a navigation link, and neither produces an inert
+placeholder button. An `attrs` key is handed straight to the rendered element, the same
+pass-through every other component supports.
 
-An `attrs` key is handed straight to the rendered element, the same pass-through every
-other component supports — an Alpine directive to open a modal, an `aria-label`
-override, a `data-*` hook:
-
-```python
-MenuItem(name="log-episode", extra_context={
-    "label": "Log episode", "icon": "plus",
-    "attrs": {"x-on:click": "modalOpen = true"},
-})
-```
-
-The dock's own visibility follows `MVP_CONFIG["layout"]["sidebar"]["breakpoint"]`, the
-same setting the desktop header widgets key off. If you need a different threshold,
-override the `cotton/app/dock.html` template in your project.
-
-To drop the pre-seeded sidebar-toggle item, assign
-`MobileFooterMenu.children = [ ...yours... ]` or pop it by name, the same way described
-for `AppMenu` above.
+To move off it, override `cotton/app/dock.html` as above with one `<c-mvp.dock.item>` for each
+item you appended, and drop the `"dock"` entry from `FLEX_MENUS["renderers"]` once nothing
+else renders with it.
 
 The dock's sidebar item is the only sidebar control below the breakpoint: the header's own
 toggle is left out there by default. A project that drops the item, or has no dock, sets

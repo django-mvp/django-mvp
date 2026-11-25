@@ -400,6 +400,80 @@
   position: relative;
 }
 
+/* The current dock item reads at a glance and not by colour alone: the primary
+   colour, a heavier label and a bar above the icon. Its icon can also be a
+   filled one (c-dock.item's current-icon). The bar is an overline in place of
+   daisyUI's underline, so it sits on the edge the thumb is furthest from.
+   Icons are sized up from the body text so each item reads as a button. */
+.dock > * {
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+}
+
+.dock > * > :is(svg, i) {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.dock > .dock-active {
+  color: var(--color-primary-text, var(--color-primary));
+}
+
+.dock > .dock-active .dock-label {
+  font-weight: 600;
+}
+
+.dock > *::after {
+  top: 0;
+  bottom: auto;
+  width: 2.5rem;
+}
+
+.dock > .dock-active::after {
+  background-color: var(--color-primary);
+}
+
+/* The dock is fixed over the bottom of the page, so wherever it shows the page
+   ends a dock's height higher and its footer scrolls clear of it. A page that
+   fills the screen puts the dock in its column instead (above), so it needs no
+   room. The room is the height of daisyUI's default dock size. The dock's own
+   wrapper, mvp-dock-only, is hidden from the sidebar's breakpoint up, and the
+   room goes with it. */
+[data-mvp-breakpoint] > .drawer-content:has(.dock):not(:has(.mvp-page-fill)) {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 640px) {
+  [data-mvp-breakpoint="sm"] > .drawer-content:has(.mvp-dock-only .dock) {
+    padding-bottom: unset;
+  }
+}
+
+@media (min-width: 768px) {
+  [data-mvp-breakpoint="md"] > .drawer-content:has(.mvp-dock-only .dock) {
+    padding-bottom: unset;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-mvp-breakpoint="lg"] > .drawer-content:has(.mvp-dock-only .dock) {
+    padding-bottom: unset;
+  }
+}
+
+@media (min-width: 1280px) {
+  [data-mvp-breakpoint="xl"] > .drawer-content:has(.mvp-dock-only .dock) {
+    padding-bottom: unset;
+  }
+}
+
+@media (min-width: 1536px) {
+  [data-mvp-breakpoint="2xl"] > .drawer-content:has(.mvp-dock-only .dock) {
+    padding-bottom: unset;
+  }
+}
+
 /* An indicator badge clears the header instead of hiding behind it (#287).
    DaisyUI's `.indicator-item` is positioned outside its own element's box —
    half above the top edge, at `z-index: 1` — which is invisible on an
@@ -1599,7 +1673,8 @@ html {
   align-items: center;
 }
 
-.mvp-search-form > svg {
+.mvp-search-form > :is(svg, i) {
+  z-index: 1;
   position: absolute;
   inset-inline-start: 1rem;
   pointer-events: none;

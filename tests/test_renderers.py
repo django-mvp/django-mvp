@@ -13,12 +13,14 @@ The markup the renderer draws is asserted on the rendered menu, with no browser.
 
 import pytest
 from bs4 import BeautifulSoup
+from django.template import Context, Template
 from django.test import RequestFactory
 from flex_menu import Menu, MenuItem
 from playwright.sync_api import expect
 
 from mvp.config import MVP_CONFIG
 from mvp.renderers import MobileFooterNavRenderer
+from mvp.warnings import MVPDeprecationWarning
 from tests.conftest import requires_browser
 
 MOBILE = {"width": 375, "height": 812}
@@ -139,3 +141,22 @@ class TestMobileDockSidebarToggle:
         home = page.locator("nav.dock a")
         expect(home).to_have_count(1)
         expect(home).to_have_attribute("href", "/")
+
+
+@pytest.mark.django_db
+class TestTheMenuDrivenDockIsDeprecated:
+    def test_rendering_a_menu_with_the_dock_renderer_warns(self):
+        menu = Menu("DeprecatedDockRenderer", children=[])
+        request = RequestFactory().get("/")
+
+        with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
+            MobileFooterNavRenderer().render(menu.process(request))
+
+    def test_the_menu_path_of_the_shells_dock_warns(self):
+        request = RequestFactory().get("/")
+        template = Template(
+            '{% load flex_menu %}{% render_menu "MobileFooterMenu" renderer="dock" %}'
+        )
+
+        with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
+            template.render(Context({"request": request}))

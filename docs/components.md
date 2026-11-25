@@ -13,8 +13,7 @@ expose a deliberately small attribute API; when the attributes aren't enough,
 
 The components this package owns live under `mvp/templates/cotton/mvp/`, so their tags
 start with `mvp.`: `<c-mvp.card>`, `<c-mvp.page.list.empty>`. The icon and the app shell
-are the two exceptions. No component this package keeps shares a name with one from
-[daisy-cotton](https://github.com/django-mvp/daisy-cotton), the icon excepted.
+are two exceptions. No component this package keeps shares a name with one from [daisy-cotton](https://github.com/django-mvp/daisy-cotton).
 
 - **The app shell's components are `<c-app.…>`.** `<c-app>`, `<c-app.sidebar>`,
   `<c-app.header>`, `<c-app.navbar>`, `<c-app.main>`, `<c-app.footer>` and `<c-app.dock>`
@@ -25,9 +24,12 @@ are the two exceptions. No component this package keeps shares a name with one f
   expects a project to replace it when it wants icons looked up by name. This package's
   icon is that replacement, so it has to sit at the same name to reach every caller,
   daisy-cotton's own components included.
-- **The basic components use daisy-cotton's bare names.** `<c-button>`, `<c-alert>` and
-  the rest of [the sixteen](#basic-components-from-daisy-cotton) are daisy-cotton's. This
-  package ships no template for any of them.
+- **A dock item that knows its section is `<c-mvp.dock.item>`.** It draws daisy-cotton's
+  `<c-dock.item>`, marked current on every page of its `section`, with an optional
+  `current-icon`. See [The mobile dock](navigation.md#the-mobile-dock).
+- **The basic components use daisy-cotton's bare names.** `<c-button>`, `<c-alert>`
+  and the rest of [the sixteen](#basic-components-from-daisy-cotton) are daisy-cotton's.
+  This package ships no template for any of them.
 - **A project overrides a component at the same path** under its own
   templates: `templates/cotton/mvp/card/index.html` for `<c-mvp.card>`.
 
@@ -495,7 +497,8 @@ same `items` list, or `<c-mvp.breadcrumbs.item>` steps as its content, and an op
 [Breadcrumbs](layout.md#breadcrumbs), which also lists what makes a good trail.
 `<c-dock>` has no default
 class, so the dock the shell draws passes it `layout.dock.class`, and a dock you write
-yourself takes the class you pass.
+yourself takes the class you pass. For items that know their section use `<c-mvp.dock.item>`: see
+[The mobile dock](navigation.md#the-mobile-dock).
 
 ## Widgets you place by name
 

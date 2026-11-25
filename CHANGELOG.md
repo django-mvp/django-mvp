@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `c-mvp.dock.item` takes `section`, the URL namespaces and view names the item holds, separated by spaces. The item is current on a page whose view is named in it or sits in a namespace named in it, so an item for a list stays current on every page of a record, its tabs included. `active` still marks an item current for anything a section cannot express. It draws daisy-cotton's `c-dock.item`, which is unchanged.
+- `c-mvp.dock.item` takes `current-icon`, an icon drawn in place of `icon` while the item is current, such as a filled version of it.
+- The stylesheet draws the current dock item in the primary colour with a heavier label and a bar above the icon, sizes the dock's icons up from the body text, and leaves room at the bottom of the page for the dock below the sidebar's breakpoint, so the page footer scrolls clear of it. A page that fills the screen needs no room.
+- `MVP_CONFIG["layout"]["navbar"]["mobile"]["site_name"]` shows the site's name, the one the sidebar header shows (`layout.sidebar.title`), beside the header's icon wherever the header shows the icon. It is `False` by default, so nothing changes until it is set.
+- `docs/navigation.md` shows a dock declared in a template, with an item that toggles the sidebar.
+
+### Deprecated
+
+- The menu-driven dock. `MobileFooterMenu`, `MobileFooterNavRenderer` and the menu path of `app/dock.html` raise an `MVPDeprecationWarning` naming the template way: override `cotton/app/dock.html` and declare the dock with `c-dock` and `c-mvp.dock.item`. Nothing is removed yet.
+
+### Fixed
+
+- The search results page places its icon over the field whatever element the icon is. It only did for an `<svg>`, so an icon set that renders `<i>` elements, such as Bootstrap Icons, drew its icon beside the field.
+
 ## [v0.37.0] - 2026-11-24
 
 ### Added

@@ -418,6 +418,7 @@ c-button                — action button
 c-divider               — visual separator
 c-dock                  — bottom dock navigation
   c-dock.item
+  c-mvp.dock.item       — a dock item current for a section, with an optional current icon
 c-link                  — styled inline text link
 c-menu                  — menu container
   c-menu.item           — one entry, a link or a button

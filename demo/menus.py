@@ -1,11 +1,13 @@
-"""The demo site's sidebar and dock menus, built with the AppMenu system."""
+"""The demo site's sidebar menu, built with the AppMenu system.
+
+The dock is declared in ``templates/cotton/app/dock.html``."""
 
 from django.urls import reverse_lazy
 from flex_menu import MenuItem
 
 from demo.component_docs import COMPONENTS
 from demo.library.mounted import library
-from mvp.menus import AppMenu, MenuCollapse, MenuGroup, MobileFooterMenu
+from mvp.menus import AppMenu, MenuCollapse, MenuGroup
 
 AppMenu.extend(
     [
@@ -280,17 +282,4 @@ AppMenu.extend(
             ],
         ),
     ]
-)
-
-# The dock ships with the sidebar toggle alone, so the demo adds the links it
-# wants beside it: the home page.
-MobileFooterMenu.append(
-    MenuItem(
-        name="home",
-        view_name="home",
-        extra_context={
-            "label": "Home",
-            "icon": "home",
-        },
-    )
 )
