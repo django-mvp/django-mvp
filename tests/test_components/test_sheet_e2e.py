@@ -125,10 +125,21 @@ def open_page(page, live_server, viewport=PHONE):
 
 
 def settle(page):
-    """Wait for the open or close slide, a CSS transition, to finish."""
+    """Wait for the open or close slide, a CSS transition, to finish.
+
+    The browser cancels a transition it replaces, and a cancelled transition's
+    ``finished`` promise rejects. So cancellations are not failures: look again
+    until no transition is left running.
+    """
     page.evaluate(
-        "() => Promise.all(document.getAnimations()"
-        ".filter(a => a instanceof CSSTransition).map(a => a.finished))"
+        """async () => {
+          for (let round = 0; round < 10; round++) {
+            const running = document.getAnimations()
+              .filter(a => a instanceof CSSTransition);
+            if (!running.length) return;
+            await Promise.allSettled(running.map(a => a.finished));
+          }
+        }"""
     )
 
 
