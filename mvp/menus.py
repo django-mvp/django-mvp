@@ -155,7 +155,7 @@ class DockMenu(Menu):
 
 
 #: The mobile dock, shown below the small-screen breakpoint. Deprecated: declare
-#: the dock in a template with ``c-dock`` and ``c-dock.item`` instead.
+#: the dock in a template with ``c-dock`` and ``c-mvp.dock.item`` instead.
 #:
 #: Ships with the sidebar toggle alone, because that is the only item whose
 #: destination the package can know. Append your own::

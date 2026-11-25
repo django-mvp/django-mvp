@@ -138,7 +138,7 @@ class TestTheMobileFooterMenuIsDeprecated:
     def test_processing_it_warns_and_names_the_template_way(self):
         request = RequestFactory().get("/")
 
-        with pytest.warns(MVPDeprecationWarning, match="c-dock.item"):
+        with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
             MobileFooterMenu.process(request)
 
 

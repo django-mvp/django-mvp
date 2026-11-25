@@ -14,7 +14,7 @@ from mvp.warnings import MENU_DRIVEN_DOCK, MVPDeprecationWarning
 class MobileFooterNavRenderer(BaseRenderer):
     """Renderer for the mobile footer navigation bar (daisyUI dock).
 
-    Deprecated: declare the dock in a template with ``c-dock`` and ``c-dock.item``.
+    Deprecated: declare the dock in a template with ``c-dock`` and ``c-mvp.dock.item``.
     Rendering with it warns.
 
     Renders each registered MenuItem as a dock item (see c-dock.item):

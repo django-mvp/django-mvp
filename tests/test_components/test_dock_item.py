@@ -1,9 +1,9 @@
-"""Tests for ``c-dock.item``: which item holds the current page, and its icon.
+"""Tests for ``c-mvp.dock.item``: which item holds the current page, and its icon.
 
 A dock declared in a template marks an item current for a whole section of the
 site (URL namespaces and view names) and draws a second icon while it is current.
 
-Source: mvp/templates/cotton/dock/item.html
+Source: mvp/templates/cotton/mvp/dock/item.html
 """
 
 from django.http import HttpResponse
@@ -53,7 +53,7 @@ class TestACurrentSection:
         item = render_dock(
             cotton_render_string_soup,
             "/projects/",
-            '<c-dock.item href="/projects/" section="project-list" />',
+            '<c-mvp.dock.item href="/projects/" section="project-list" />',
         )
 
         assert is_current(item)
@@ -62,7 +62,7 @@ class TestACurrentSection:
     def test_an_item_is_current_on_every_view_of_a_namespace_it_names(
         self, cotton_render_string_soup
     ):
-        item = '<c-dock.item href="/projects/" section="project-list project" />'
+        item = '<c-mvp.dock.item href="/projects/" section="project-list project" />'
 
         for url in ("/projects/", "/projects/3/", "/projects/3/files/"):
             assert is_current(render_dock(cotton_render_string_soup, url, item))
@@ -71,7 +71,7 @@ class TestACurrentSection:
         item = render_dock(
             cotton_render_string_soup,
             "/",
-            '<c-dock.item href="/projects/" section="project-list project" />',
+            '<c-mvp.dock.item href="/projects/" section="project-list project" />',
         )
 
         assert not is_current(item)
@@ -83,7 +83,7 @@ class TestACurrentSection:
         item = render_dock(
             cotton_render_string_soup,
             "/projects/",
-            '<c-dock.item href="/projects/" section="project" />',
+            '<c-mvp.dock.item href="/projects/" section="project" />',
         )
 
         assert not is_current(item)
@@ -94,7 +94,7 @@ class TestACurrentSection:
         request = RequestFactory().get("/projects/3/")
         request.resolver_match = resolve("/projects/3/", urlconf=SHOP)
         soup = cotton_render_string_soup(
-            '<c-dock><c-dock.item href="/p/" :section="names" /></c-dock>',
+            '<c-dock><c-mvp.dock.item href="/p/" :section="names" /></c-dock>',
             context={"request": request, "names": ["project"]},
         )
 
@@ -106,7 +106,7 @@ class TestACurrentSection:
         item = render_dock(
             cotton_render_string_soup,
             "/",
-            '<c-dock.item href="/projects/" :active="True" />',
+            '<c-mvp.dock.item href="/projects/" :active="True" />',
         )
 
         assert is_current(item)
@@ -117,7 +117,7 @@ class TestACurrentSection:
         item = render_dock(
             cotton_render_string_soup,
             "/projects/",
-            '<c-dock.item toggle="mvp-app-toggle" section="project-list" />',
+            '<c-mvp.dock.item toggle="mvp-app-toggle" section="project-list" />',
         )
 
         assert is_current(item)
@@ -125,7 +125,7 @@ class TestACurrentSection:
 
     def test_a_page_with_no_request_matches_no_section(self, cotton_render_string):
         html = cotton_render_string(
-            '<c-dock><c-dock.item href="/p/" section="project" /></c-dock>',
+            '<c-dock><c-mvp.dock.item href="/p/" section="project" /></c-dock>',
             context={"request": RequestFactory().get("/")},
         )
 
@@ -134,7 +134,7 @@ class TestACurrentSection:
 
 class TestTheCurrentIcon:
     ITEM = (
-        '<c-dock.item href="/projects/" section="project-list" '
+        '<c-mvp.dock.item href="/projects/" section="project-list" '
         'icon="home" current-icon="search" />'
     )
 
@@ -152,9 +152,25 @@ class TestTheCurrentIcon:
     def test_an_item_with_no_current_icon_keeps_its_icon_while_current(
         self, cotton_render_string_soup
     ):
-        plain = '<c-dock.item href="/projects/" section="project-list" icon="home" />'
+        plain = (
+            '<c-mvp.dock.item href="/projects/" section="project-list" icon="home" />'
+        )
 
         current = render_dock(cotton_render_string_soup, "/projects/", plain)
         other = render_dock(cotton_render_string_soup, "/", plain)
 
         assert str(self.icon_of(current)) == str(self.icon_of(other))
+
+
+class TestEverythingElsePassesThrough:
+    def test_class_and_other_attributes_reach_the_element(
+        self, cotton_render_string_soup
+    ):
+        item = render_dock(
+            cotton_render_string_soup,
+            "/",
+            '<c-mvp.dock.item href="/" class="extra" data-hook="x" />',
+        )
+
+        assert "extra" in item["class"]
+        assert item["data-hook"] == "x"

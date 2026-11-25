@@ -204,7 +204,7 @@ MobileFooterMenu.append(library.menu_item(name="library-dock"))
 ```
 
 `MobileFooterMenu` is [deprecated](navigation.md#the-menu-driven-dock-is-deprecated). A dock
-declared in a template holds the app's pages with a `<c-dock.item>` whose `section` names the
+declared in a template holds the app's pages with a `<c-mvp.dock.item>` whose `section` names the
 app's URL namespace.
 
 `menu_item()` returns an entry that points at the app's landing page, with the app's name as its

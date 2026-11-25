@@ -5,13 +5,13 @@
 <div class="mvp-dock-only">
   <c-dock class="mvp-dock {{ mvp_config.layout.dock.class }}" aria-label="{% translate "Main" %}">
     {% if home_url %}
-      <c-dock.item label="{% translate "Home" %}"
+      <c-mvp.dock.item label="{% translate "Home" %}"
                    icon="home"
                    current-icon="home-filled"
                    href="{{ home_url }}"
                    section="home" />
     {% endif %}
-    <c-dock.item label="{% translate "Menu" %}"
+    <c-mvp.dock.item label="{% translate "Menu" %}"
                  icon="menu"
                  toggle="mvp-app-toggle" />
   </c-dock>

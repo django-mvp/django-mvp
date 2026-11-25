@@ -227,7 +227,7 @@ one child.
 ## The mobile dock
 
 Below the sidebar breakpoint the shell draws a bottom navigation bar, the dock. Declare it
-in a template with `<c-dock>` and `<c-dock.item>`, by overriding `cotton/app/dock.html` in
+in a template with `<c-dock>` and `<c-mvp.dock.item>`, by overriding `cotton/app/dock.html` in
 your own app (listed above `mvp`, see [Why the order matters](getting-started.md#why-the-order-matters)):
 
 ```html
@@ -235,17 +235,17 @@ your own app (listed above `mvp`, see [Why the order matters](getting-started.md
 {% load i18n %}
 <div class="mvp-dock-only">
   <c-dock class="mvp-dock {{ mvp_config.layout.dock.class }}" aria-label="{% translate "Main" %}">
-    <c-dock.item label="{% translate "Home" %}"
+    <c-mvp.dock.item label="{% translate "Home" %}"
                  icon="home"
                  current-icon="home-filled"
                  href="{% url "home" %}"
                  section="home" />
-    <c-dock.item label="{% translate "Datasets" %}"
+    <c-mvp.dock.item label="{% translate "Datasets" %}"
                  icon="dataset"
                  current-icon="dataset-filled"
                  href="{% url "dataset-list" %}"
                  section="dataset-list dataset" />
-    <c-dock.item label="{% translate "Menu" %}"
+    <c-mvp.dock.item label="{% translate "Menu" %}"
                  icon="menu"
                  toggle="mvp-app-toggle" />
   </c-dock>
@@ -317,7 +317,7 @@ drawer), a resolvable URL produces a navigation link, and neither produces an in
 placeholder button. An `attrs` key is handed straight to the rendered element, the same
 pass-through every other component supports.
 
-To move off it, override `cotton/app/dock.html` as above with one `<c-dock.item>` for each
+To move off it, override `cotton/app/dock.html` as above with one `<c-mvp.dock.item>` for each
 item you appended, and drop the `"dock"` entry from `FLEX_MENUS["renderers"]` once nothing
 else renders with it.
 

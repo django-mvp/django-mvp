@@ -21,6 +21,6 @@ class MVPDeprecationWarning(DeprecationWarning):
 MENU_DRIVEN_DOCK = (
     "The menu-driven dock (MobileFooterMenu, MobileFooterNavRenderer and the menu "
     "path of cotton/app/dock.html) is deprecated. Declare the dock in a template "
-    "with <c-dock> and <c-dock.item> by overriding cotton/app/dock.html; see "
+    "with <c-dock> and <c-mvp.dock.item> by overriding cotton/app/dock.html; see "
     "the mobile dock in docs/navigation.md."
 )

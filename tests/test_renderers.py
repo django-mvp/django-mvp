@@ -149,7 +149,7 @@ class TestTheMenuDrivenDockIsDeprecated:
         menu = Menu("DeprecatedDockRenderer", children=[])
         request = RequestFactory().get("/")
 
-        with pytest.warns(MVPDeprecationWarning, match="c-dock.item"):
+        with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
             MobileFooterNavRenderer().render(menu.process(request))
 
     def test_the_menu_path_of_the_shells_dock_warns(self):
@@ -158,5 +158,5 @@ class TestTheMenuDrivenDockIsDeprecated:
             '{% load flex_menu %}{% render_menu "MobileFooterMenu" renderer="dock" %}'
         )
 
-        with pytest.warns(MVPDeprecationWarning, match="c-dock.item"):
+        with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
             template.render(Context({"request": request}))

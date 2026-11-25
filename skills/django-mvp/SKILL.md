@@ -41,7 +41,7 @@ Get these right before writing anything. Each one is a mistake that looks like i
 | A page behind an MVP view | override the `page.*` blocks | overriding `content`, which the packaged page template has already filled |
 | The sidebar footer | override `templates/cotton/app/sidebar/footer.html` | `MVP_CONFIG["layout"]["sidebar"]["footer"]` — no longer read |
 | Icons | an `EASY_ICONS` default renderer, the `mvp.utils.BS5_ICONS` pack, your own names on top | assuming a name you have not registered resolves — an unknown name raises unless `EASY_ICONS_FAIL_SILENTLY` |
-| Menu renderers | `sidebar` → `SidebarRenderer`, `dock` → `MobileFooterNavRenderer` (deprecated: declare the dock in a template with `c-dock.item`) | `adminlte` → `AdminLTERenderer` |
+| Menu renderers | `sidebar` → `SidebarRenderer`, `dock` → `MobileFooterNavRenderer` (deprecated: declare the dock in a template with `c-mvp.dock.item`) | `adminlte` → `AdminLTERenderer` |
 | CRUD link visibility | `show_<action>_action` | `has_<action>_permission` — renamed in 0.16, and a view that still sets one raises `ImproperlyConfigured` |
 | Authorising a CRUD action | a permission mixin on the target view | the `show_*` flags, which only draw the link |
 | Form rendering | crispy-forms with the `daisyui` pack from django-mvp-forms, on every install | a `form_renderer` attribute — no such setting exists |

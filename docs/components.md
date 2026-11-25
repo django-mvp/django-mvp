@@ -13,8 +13,7 @@ expose a deliberately small attribute API; when the attributes aren't enough,
 
 The components this package owns live under `mvp/templates/cotton/mvp/`, so their tags
 start with `mvp.`: `<c-mvp.card>`, `<c-mvp.page.list.empty>`. The icon and the app shell
-are two exceptions, and `<c-dock.item>` a third. No other component this package keeps
-shares a name with one from [daisy-cotton](https://github.com/django-mvp/daisy-cotton).
+are two exceptions. No component this package keeps shares a name with one from [daisy-cotton](https://github.com/django-mvp/daisy-cotton).
 
 - **The app shell's components are `<c-app.…>`.** `<c-app>`, `<c-app.sidebar>`,
   `<c-app.header>`, `<c-app.navbar>`, `<c-app.main>`, `<c-app.footer>` and `<c-app.dock>`
@@ -25,10 +24,10 @@ shares a name with one from [daisy-cotton](https://github.com/django-mvp/daisy-c
   expects a project to replace it when it wants icons looked up by name. This package's
   icon is that replacement, so it has to sit at the same name to reach every caller,
   daisy-cotton's own components included.
-- **`<c-dock.item>` keeps its bare name too.** This package's item replaces daisy-cotton's
-  to add `section` and `current-icon`, so a dock declared in a template knows which of its
-  items holds the page. See [The mobile dock](navigation.md#the-mobile-dock).
-- **The other basic components use daisy-cotton's bare names.** `<c-button>`, `<c-alert>`
+- **A dock item that knows its section is `<c-mvp.dock.item>`.** It draws daisy-cotton's
+  `<c-dock.item>`, marked current on every page of its `section`, with an optional
+  `current-icon`. See [The mobile dock](navigation.md#the-mobile-dock).
+- **The basic components use daisy-cotton's bare names.** `<c-button>`, `<c-alert>`
   and the rest of [the sixteen](#basic-components-from-daisy-cotton) are daisy-cotton's.
   This package ships no template for any of them.
 - **A project overrides a component at the same path** under its own
@@ -71,7 +70,7 @@ daisy-cotton starts with a description of the attributes it takes.
 | `<c-divider>` | a section break with an optional label | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
 | `<c-link>` | a styled link | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
 | `<c-dock>` | a bottom navigation bar | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
-| `<c-dock.item>` | one item of a dock, current for a whole section of the site | this package, on daisy-cotton's: [The mobile dock](navigation.md#the-mobile-dock) |
+| `<c-dock.item>` | one item of a dock | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
 | `<c-mockup.browser>` | a browser frame | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
 | `<c-mockup.code>` | a terminal-style code block | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
 | `<c-mockup.code.line>` | one line of a code block | [daisy-cotton](https://github.com/django-mvp/daisy-cotton) |
@@ -498,7 +497,7 @@ same `items` list, or `<c-mvp.breadcrumbs.item>` steps as its content, and an op
 [Breadcrumbs](layout.md#breadcrumbs), which also lists what makes a good trail.
 `<c-dock>` has no default
 class, so the dock the shell draws passes it `layout.dock.class`, and a dock you write
-yourself takes the class you pass. `<c-dock.item>` is this package's: see
+yourself takes the class you pass. For items that know their section use `<c-mvp.dock.item>`: see
 [The mobile dock](navigation.md#the-mobile-dock).
 
 ## Widgets you place by name

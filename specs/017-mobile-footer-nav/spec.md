@@ -87,7 +87,7 @@ A developer rendering mobile footer nav links relies on a custom renderer that a
 
 ### User Story 5 - Developer Declares the Dock in a Template (Priority: P1)
 
-A developer declares the dock in a template with `c-dock` and `c-dock.item`, in place of building it from `MobileFooterMenu`. Each item says which part of the site it holds, so the dock shows where the reader is, and can draw a second icon while it is current, such as a filled version of its usual icon.
+A developer declares the dock in a template with `c-dock` and `c-mvp.dock.item`, in place of building it from `MobileFooterMenu`. Each item says which part of the site it holds, so the dock shows where the reader is, and can draw a second icon while it is current, such as a filled version of its usual icon.
 
 **Why this priority**: The menu-driven dock is deprecated in favour of this one, so it is how every new dock is written.
 
@@ -113,7 +113,7 @@ A developer who builds the dock from `MobileFooterMenu`, `MobileFooterNavRendere
 
 **Acceptance Scenarios**:
 
-1. **Given** a page draws the dock from `MobileFooterMenu`, **When** it is shown, **Then** an `MVPDeprecationWarning` names declaring the dock with `c-dock` and `c-dock.item`.
+1. **Given** a page draws the dock from `MobileFooterMenu`, **When** it is shown, **Then** an `MVPDeprecationWarning` names declaring the dock with `c-dock` and `c-mvp.dock.item`.
 2. **Given** a developer renders a menu with `MobileFooterNavRenderer`, **When** it renders, **Then** the same warning is raised and the dock is drawn as before.
 
 ---
@@ -142,8 +142,8 @@ A developer who builds the dock from `MobileFooterMenu`, `MobileFooterNavRendere
 - **FR-010**: The footer nav MUST render correctly when `MobileFooterMenu` is empty (no items), displaying nothing or a zero-height container rather than broken markup.
 - **FR-011**: `MobileFooterMenu` items MUST respect the same permission and visibility model as `AppMenu` items, hiding items from users who lack the required permissions using the standard django-flex-menus visibility mechanism.
 - **FR-012**: The footer nav component MUST carry an `aria-label="Mobile navigation"` attribute on its outer container element (the positioning `<div>`). The semantic `<nav>` element is provided by the inner `<c-nav>` cotton-bs5 component. No additional keyboard navigation enhancements are required.
-- **FR-013**: `c-dock.item` MUST take `section`, the URL namespaces and view names the item holds, and mark the item current on a page whose view is named in it or sits in a namespace named in it. `active` MUST keep marking an item current for anything a section cannot express.
-- **FR-014**: `c-dock.item` MUST take `current-icon` and draw it in place of `icon` while the item is current.
+- **FR-013**: `c-mvp.dock.item` MUST take `section`, the URL namespaces and view names the item holds, and mark the item current on a page whose view is named in it or sits in a namespace named in it. `active` MUST keep marking an item current for anything a section cannot express.
+- **FR-014**: `c-mvp.dock.item` MUST take `current-icon` and draw it in place of `icon` while the item is current.
 - **FR-015**: The prebuilt stylesheet MUST draw the current item in the primary colour with a heavier label and a bar above the icon, MUST size the dock's icons up from the body text, and MUST leave room at the bottom of a page that does not fill the screen for the dock, from below the sidebar's breakpoint only.
 - **FR-016**: `MobileFooterMenu`, `MobileFooterNavRenderer` and the menu path of `app/dock.html` are deprecated. Each MUST raise an `MVPDeprecationWarning` naming the template way when used, and MUST keep working.
 
