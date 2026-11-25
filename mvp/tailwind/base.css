@@ -2425,17 +2425,15 @@ html {
     z-index: 2;
   }
 
-  /* A dialog built from parts is a column that never outgrows the screen: the
-     body takes the space left and scrolls, so the header and the footer stay in
-     view. The footer sits where daisyUI's modal-action does. */
-  .modal-box:has(> :is(.mvp-modal-header, .mvp-modal-body, .mvp-modal-footer)) {
-    display: flex;
-    flex-direction: column;
+  /* A dialog built from parts is stacked by django-mvp-layout's hbf and never
+     outgrows the screen: the body scrolls inside the box instead of the box,
+     so the header, the footer and the close button stay in view. The footer
+     sits where daisyUI's modal-action does. */
+  .modal-box.hbf {
     overflow: hidden;
   }
-  .modal-box > .mvp-modal-body {
+  .modal-box.hbf > .mvpl-body {
     min-height: 0;
-    flex: 1 1 auto;
     overflow-y: auto;
     margin-inline: -0.25rem;
     padding-inline: 0.25rem;

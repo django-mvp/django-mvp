@@ -78,9 +78,11 @@ The layout works as on the card: sections in a sidebar, a details pane, options 
 
 - `view` turns layout mode on. The children are the header part, `<c-layout.sidebar>`,
   `<c-layout.page>` and the footer part.
-- The box stays daisyUI's `.modal-box`, capped at the screen's height, as a flex column. The
-  layout grows with its content up to that cap, then scrolls inside it with the heading and
-  actions rows in view.
+- Built from parts, the box stays daisyUI's `.modal-box`, capped at the screen's height, and
+  carries django-mvp-layout's `hbf`. The body (`.mvpl-body`) scrolls inside the cap, with the
+  heading row, the actions row and the close button in view.
+- With a view the layout grows with its content up to that cap, then scrolls inside it with the
+  heading and actions rows in view.
 - The header part carries the toggles and the actions slot. The close button sits in the box's
   top corner and the header leaves room for it. The footer part is the layout's footer.
 - Escape closes an open drawer before the dialog (the layout package's script).
@@ -104,7 +106,7 @@ features 1 to 3.
 | Piece | Where it occurs | Becomes | Built by |
 |---|---|---|---|
 | The heading row and the footer row of a card or dialog, with a toggle each side in a layout | `mvp/templates/cotton/mvp/box/header.html`, `mvp/templates/cotton/mvp/box/footer.html`, called by `cotton/card/header.html`, `card/footer.html`, `modal/header.html`, `modal/footer.html` | Kept as built | 2, reused by 3 |
-| Stacking a header, body and footer | The shell's left sidebar, the card built from parts | django-mvp-layout's `hbf` and `HbF` classes, no stacking rules of django-mvp's own | 1, 2 |
+| Stacking a header, body and footer | The card and the dialog built from parts, the shell's left sidebar | django-mvp-layout's `hbf` and `HbF` classes, no stacking rules of django-mvp's own | 1, 2, 3 |
 | Box styles (part spacing, `--mvpl-sidebar-bg`, `--mvpl-line`, header and footer rules) | `mvp/tailwind/base.css`, the block in `@layer utilities { @layer daisyui.l1.l2 }` | Kept, keyed to `.mvp-box-layout` and the parts' classes | 2 |
 | Rail-aware variants `is-drawer-open` / `is-drawer-close` | `mvp/tailwind/base.css` (`@custom-variant`) | Kept, keyed to `.mvpl-sidebar[data-mvpl-rail]` | 1 |
 | Rail labels | `mvp-sidebar--icons` rules in `mvp/tailwind/base.css` and the package's `.mvpl-rail-hide` / `.mvpl-rail-only` | One mechanism: the package's classes, used by django-mvp's menu | 1 |
@@ -123,11 +125,11 @@ features 1 to 3.
 |---|---|---|
 | `mvp/templates/mvp/base.html` (the `app` block) | 1 | Same path |
 | `mvp/templates/cotton/app/header.html, navbar.html, sidebar/header.html, sidebar/index.html, sidebar/footer.html` | 1 | Same paths |
-| `pyproject.toml` (django-mvp-layout 0.2.0) | 1 | Same path |
 | `mvp/templates/menus/dock/item.html` | 1 | Same path |
 | `mvp/config.py` (`layout.view`, `sidebar`, `secondary_sidebar`) | 1 | Same path |
 | `mvp/tailwind/base.css` (variants, rail, full-page rules, box colours) | 1, 2 | Same path |
 | `mvp/templates/cotton/card/index.html, header.html, body.html, footer.html` | 2 | Same paths |
+| `pyproject.toml` (django-mvp-layout 0.2.0) | 1 | Same path |
 | `mvp/templates/cotton/modal.html`, `cotton/modal/header.html, body.html, footer.html` | 3 | Same paths |
 | `mvp/templates/cotton/mvp/box/header.html, footer.html` | 2 | Same paths |
 | `mvp/templates/cotton/mvp/sheet/index.html`, `search/dialog.html`, `page/info.html`, `page/list/actions/create.html`, `actions/language_switcher_modal.html`, `mvp/templates/mvp/account/overview.html`, `mvp/pwa/install.html` | 2, 3 | Same paths |
@@ -215,12 +217,18 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   on them are written in the markup.
 - **The card and dialog styles sit in daisyUI's own layer**, one level above its component rules,
   so they beat daisyUI's padding and a caller's utility classes still beat them.
+- **The dialog's stack is `hbf`, nothing sticky.** The body scrolls inside the box, not the box
+  itself, so the header, the footer and the close button stay in view without sticking, as before.
+  A scrolling box would carry the close button away with it.
 - **The shell's left sidebar is `HbF`**, sticky header and footer, as its brand row and footer
   were. The classes sit on `<c-app.sidebar>`'s own root, not on `<c-layout.sidebar view="HbF">`:
   that root carries `boost`, `class`, the rail styles and the scroll rules, and the component form
   needs the three parts straight inside the sidebar's panel.
 - **A card with a figure is not stacked.** daisyUI places the figure above or beside the parts,
   which the three areas have no room for.
+- **The dialog is stacked only when it has a part.** The sheet and the search dialog call
+  `<c-modal>` with their own markup, a grab handle and a description beside a head, body and foot,
+  and keep their own styles.
 - **The right sidebar has no stack.** A page fills it with whatever it likes.
 - **`behavior: "overlay"` replaces `breakpoint: "never"`.**
 - **`page.side` stays as it is.** Whether `app.secondary_sidebar` replaces it is for the rebuild.

@@ -12,7 +12,11 @@
 {% load i18n daisy_cotton %}
 <c-vars id="" size="md" placement="" closable="" open="" view="" content_class="" class="" />
 {% comment %}
-  A dialog with a view loses the box's padding and holds one contained
+  A dialog built from parts stacks them with django-mvp-layout's hbf: the
+  header on top, the footer at the bottom and the body between, which
+  scrolls inside the box's height cap, so the header and the footer stay in
+  view. The sheet and the search dialog bring their own markup and are not
+  stacked. A dialog with a view loses the box's padding and holds one contained
   layout, which grows with its content up to the box's height cap and then
   scrolls inside it. The close button sits in the box's top corner in both
   cases, and the header leaves room for it.
@@ -21,7 +25,7 @@
         class="modal {% variation placement "modal" "top,middle,bottom,start,end" %} {{ class }}"
         {% if open %}open{% endif %}
         {{ attrs }}>
-  <div class="modal-box{% if view %} mvp-box-layout{% endif %}{% if size %}{% if placement == "top" or placement == "bottom" %} w-full max-w-none{% else %} w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}{% endif %}{% endif %} {{ content_class }}">
+  <div class="modal-box{% if view %} mvp-box-layout{% elif "mvp-modal-header" in slot or "mvp-modal-body" in slot or "mvp-modal-footer" in slot %} hbf{% endif %}{% if size %}{% if placement == "top" or placement == "bottom" %} w-full max-w-none{% else %} w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}{% endif %}{% endif %} {{ content_class }}">
     {% if closable %}
       <button type="button" class="mvp-modal-close btn btn-sm btn-circle btn-ghost" aria-label="{% trans "Close" %}" onclick="this.closest('dialog').close()"><span aria-hidden="true">✕</span></button>
     {% endif %}
