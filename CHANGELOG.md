@@ -7,16 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v0.38.0] - 2026-11-25
-
-### Added
-
-- `c-mvp.dock.item` takes `section`, the URL namespaces and view names the item holds, separated by spaces. The item is current on a page whose view is named in it or sits in a namespace named in it, so an item for a list stays current on every page of a record, its tabs included. `active` still marks an item current for anything a section cannot express. It draws daisy-cotton's `c-dock.item`, which is unchanged.
-- `c-mvp.dock.item` takes `current-icon`, an icon drawn in place of `icon` while the item is current, such as a filled version of it.
-- The stylesheet draws the current dock item in the primary colour with a heavier label and a bar above the icon, sizes the dock's icons up from the body text, and leaves room at the bottom of the page for the dock below the sidebar's breakpoint, so the page footer scrolls clear of it. A page that fills the screen needs no room.
-- `MVP_CONFIG["layout"]["navbar"]["mobile"]["site_name"]` shows the site's name, the one the sidebar header shows (`layout.sidebar.title`), beside the header's icon wherever the header shows the icon. It is `False` by default, so nothing changes until it is set.
-- `docs/navigation.md` shows a dock declared in a template, with an item that toggles the sidebar.
-
 ### Changed
 
 - `c-mvp.sheet` no longer draws a worded Close button in its foot. A centred dialog on a wide screen shows an icon-only close button, named "Close", at the right of its head. A phone shows none: the grab bar, dragging down, tapping outside and Escape close it. Buttons passed in the `actions` slot are unchanged.
@@ -27,14 +17,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Breaking:** `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item` are removed, as they added nothing to daisy-cotton's menu. Write a sheet's actions as `<c-menu class="menu-lg w-full p-0">` holding `c-menu.item` rows, with `class="text-error"` on a destructive row. `menu-lg` is the large item size and `w-full p-0` makes the list fill the sheet's width. A project that uses either component must change its templates, and a project that styled `mvp-sheet-item`, `mvp-sheet-menu` or `data-mvp-sheet-danger` must style the plain menu instead. `c-mvp.list.row.action` is unchanged for its callers.
 
+### Fixed
+
+- A sheet closed by dragging it down no longer flashes back up before it slides out. The box stays where the drag left it while the dialog fades, and goes back to its resting height when the sheet next opens. A drag that went past the screen's edge also no longer slides back up to the edge.
+- The menu in a sheet fills the width of the sheet body, so each action row and its hover and focus background span the sheet. It was only as wide as its longest label.
+
+## [v0.38.0] - 2026-11-25
+
+### Added
+
+- `c-mvp.dock.item` takes `section`, the URL namespaces and view names the item holds, separated by spaces. The item is current on a page whose view is named in it or sits in a namespace named in it, so an item for a list stays current on every page of a record, its tabs included. `active` still marks an item current for anything a section cannot express. It draws daisy-cotton's `c-dock.item`, which is unchanged.
+- `c-mvp.dock.item` takes `current-icon`, an icon drawn in place of `icon` while the item is current, such as a filled version of it.
+- The stylesheet draws the current dock item in the primary colour with a heavier label and a bar above the icon, sizes the dock's icons up from the body text, and leaves room at the bottom of the page for the dock below the sidebar's breakpoint, so the page footer scrolls clear of it. A page that fills the screen needs no room.
+- `MVP_CONFIG["layout"]["navbar"]["mobile"]["site_name"]` shows the site's name, the one the sidebar header shows (`layout.sidebar.title`), beside the header's icon wherever the header shows the icon. It is `False` by default, so nothing changes until it is set.
+- `docs/navigation.md` shows a dock declared in a template, with an item that toggles the sidebar.
+
 ### Deprecated
 
 - The menu-driven dock. `MobileFooterMenu`, `MobileFooterNavRenderer` and the menu path of `app/dock.html` raise an `MVPDeprecationWarning` naming the template way: override `cotton/app/dock.html` and declare the dock with `c-dock` and `c-mvp.dock.item`. Nothing is removed yet.
 
 ### Fixed
 
-- A sheet closed by dragging it down no longer flashes back up before it slides out. The box stays where the drag left it while the dialog fades, and goes back to its resting height when the sheet next opens. A drag that went past the screen's edge also no longer slides back up to the edge.
-- The menu in a sheet fills the width of the sheet body, so each action row and its hover and focus background span the sheet. It was only as wide as its longest label.
 - The search results page places its icon over the field whatever element the icon is. It only did for an `<svg>`, so an icon set that renders `<i>` elements, such as Bootstrap Icons, drew its icon beside the field.
 
 ## [v0.37.0] - 2026-11-24
