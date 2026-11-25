@@ -2,7 +2,7 @@
 
 Issue: https://github.com/django-mvp/django-mvp/issues/719
 
-django-mvp depends on django-mvp-layout (module `mvp_layout`), and three things are drawn with it:
+django-mvp depends on django-mvp-layout 0.2.0 (module `mvp_layout`), and three things are drawn with it:
 
 - the application shell, arranged by one code in `MVP_CONFIG["layout"]["view"]`
 - `<c-card>`, built from header, body and footer parts, which takes sidebars and its own code
@@ -171,6 +171,8 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   was meant to be customised. `<c-mvp.card>` goes, with no alias. (Sam)
 - 2026-11-25: The dialog does the same: `<c-modal>` overrides daisy-cotton's modal, built from
   parts. `<c-mvp.modal>` goes, with no alias. (Sam)
+- 2026-11-25: django-mvp uses django-mvp-layout 0.2.0's hbf classes for every header, body and
+  footer stack. (Sam)
 
 ## Decided on my own
 
