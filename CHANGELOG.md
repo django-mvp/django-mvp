@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.38.0] - 2026-11-25
+
 ### Added
 
 - `c-mvp.dock.item` takes `section`, the URL namespaces and view names the item holds, separated by spaces. The item is current on a page whose view is named in it or sits in a namespace named in it, so an item for a list stays current on every page of a record, its tabs included. `active` still marks an item current for anything a section cannot express. It draws daisy-cotton's `c-dock.item`, which is unchanged.
