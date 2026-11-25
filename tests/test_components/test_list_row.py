@@ -61,7 +61,8 @@ class TestRowAction:
     def test_danger_is_passed_to_the_item(self, render_action):
         button = render_action("danger").select_one("button")
 
-        assert button.has_attr("data-mvp-sheet-danger")
+        assert button.has_attr("data-mvp-row-danger")
+        assert "text-error" in button["class"]
 
     def test_an_id_and_other_attributes_land_once_on_the_element(self, render_action):
         soup = render_action('id="rename-4" form="f" hx-post="/x/" class="extra"')

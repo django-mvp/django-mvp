@@ -15,7 +15,7 @@ time, as a `c-mvp.list.row.action`, and the row draws it as an item of its menu.
 ```
 
 An action is a link when it has an `href` and a button otherwise. It is built on
-`c-mvp.sheet.menu.item`, so an `id`, a `form` or any `hx-*` attribute you give it lands
+`c-menu.item`, so an `id`, a `form` or any `hx-*` attribute you give it lands
 on that link or button, and appears once in the row.
 
 ### Properties of `c-mvp.list.row.action`

@@ -47,7 +47,7 @@ class TestSheetDialog:
     def test_the_title_and_the_line_under_it_sit_in_a_div(self, render_sheet):
         soup = render_sheet(attrs='lead="Three open"')
 
-        names = soup.select_one(".mvp-sheet-names")
+        names = soup.select_one("[data-mvp-sheet-head] h2").parent
         assert names.name == "div"
         assert names.select_one("h2") is not None
 
@@ -138,7 +138,7 @@ class TestSheetFoot:
     ):
         soup = render_sheet()
 
-        buttons = soup.select("[data-mvp-sheet-head] .mvp-sheet-close")
+        buttons = soup.select("[data-mvp-sheet-head] [data-mvp-sheet-close]")
         assert len(buttons) == 1
         assert buttons[0]["type"] == "button"
         assert buttons[0]["aria-label"] == "Close"
@@ -174,7 +174,8 @@ class TestSheetOptions:
 
         assert dialog.has_attr("data-mvp-sheet-full") is False
         assert dialog.has_attr("data-mvp-sheet-fixed") is False
-        assert "mvp-sheet-wide" not in dialog["class"]
+        box = dialog.select_one(".mvp-sheet-box")
+        assert "sm:max-w-2xl" not in box["class"]
 
     def test_full_sets_its_data_attribute(self, render_sheet):
         dialog = render_sheet("full").select_one("dialog#more")
@@ -191,7 +192,7 @@ class TestSheetOptions:
     def test_wide_adds_the_wide_size_class(self, render_sheet):
         dialog = render_sheet("wide").select_one("dialog#more")
 
-        assert "mvp-sheet-wide" in dialog["class"]
+        assert "sm:max-w-2xl" in dialog.select_one(".mvp-sheet-box")["class"]
         assert {"modal-bottom", "sm:modal-middle"} <= set(dialog["class"])
 
 
@@ -275,9 +276,9 @@ class TestSheetTrigger:
 
 MENU = """
 <c-mvp.sheet.menu>
-  <c-mvp.sheet.menu.item text="Open" icon="more" href="/open/" />
-  <c-mvp.sheet.menu.item text="Rename" icon="more" />
-  <c-mvp.sheet.menu.item text="Delete" icon="more" danger />
+  <c-menu.item text="Open" icon="more" href="/open/" />
+  <c-menu.item text="Rename" icon="more" />
+  <c-menu.item text="Delete" icon="more" />
 </c-mvp.sheet.menu>
 """
 
@@ -307,7 +308,7 @@ class TestSheetMenu:
 
         assert len(icons) == 3
 
-    def test_only_the_danger_row_carries_the_destructive_mark(self, soup):
-        marked = soup.select("li [data-mvp-sheet-danger]")
+    def test_the_menu_is_a_large_full_width_daisy_menu(self, soup):
+        menu = soup.select_one("ul")
 
-        assert [m.get_text(strip=True) for m in marked] == ["Delete"]
+        assert {"menu", "menu-lg", "w-full"} <= set(menu["class"])

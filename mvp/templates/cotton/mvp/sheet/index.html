@@ -15,8 +15,8 @@
 <c-vars id title lead icon full fixed wide class art="" description="" actions="" />
 {% if description.strip %}{% firstof id|add:"-description" as described_by %}{% endif %}
 <c-modal id="{{ id }}"
-         class="modal-bottom sm:modal-middle mvp-sheet{% if wide %} mvp-sheet-wide{% endif %} {{ class }}"
-         content_class="mvp-sheet-box"
+         class="modal-bottom sm:modal-middle mvp-sheet {{ class }}"
+         content_class="mvp-sheet-box flex flex-col overflow-hidden px-4 pt-0 pb-0 mb-(--mvp-sheet-keyboard) sm:w-11/12 sm:max-w-lg sm:pt-5{% if wide %} sm:max-w-2xl{% endif %}"
          aria-labelledby="{{ id }}-title"
          :aria-describedby="described_by"
          data-mvp-sheet
@@ -25,27 +25,30 @@
          x-data="mvpSheet"
          only>
   {% if fixed %}
-    <div class="mvp-sheet-grab" data-mvp-sheet-grab aria-hidden="true"></div>
+    <div class="flex-none grid h-6 place-items-center self-stretch cursor-grab touch-none before:h-1 before:w-10 before:rounded-full before:bg-base-content/25 sm:hidden" data-mvp-sheet-grab aria-hidden="true"></div>
   {% else %}
     <button type="button"
-            class="mvp-sheet-grab"
+            class="flex-none grid h-6 place-items-center self-stretch cursor-grab touch-none border-0 bg-transparent p-0 before:h-1 before:w-10 before:rounded-full before:bg-base-content/25 sm:hidden"
             data-mvp-sheet-grab
             aria-label="{% translate "Change the height of this sheet" %}"></button>
   {% endif %}
-  <div class="mvp-sheet-head" data-mvp-sheet-head>
-    {% if art.strip %}<span class="mvp-sheet-art" aria-hidden="true">{{ art }}</span>{% endif %}
-    <div class="mvp-sheet-names">
-      <h2 class="mvp-sheet-title" id="{{ id }}-title">{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" /> {% endif %}{{ title }}</h2>
-      {% if lead %}<span class="mvp-sheet-lead" data-mvp-sheet-lead>{{ lead }}</span>{% endif %}
+  <div class="flex min-h-0 flex-1 flex-col gap-2">
+    <div class="flex flex-none items-center gap-3.5 border-b border-base-content/12 pb-3.5 touch-none" data-mvp-sheet-head>
+      {% if art.strip %}<span class="grid size-12 flex-none overflow-hidden rounded-field bg-base-content/8 *:size-full *:min-w-0 *:object-cover *:pointer-events-none" aria-hidden="true">{{ art }}</span>{% endif %}
+      <div class="flex min-w-0 flex-col gap-0.5">
+        <h2 class="m-0 flex items-center gap-2 text-base font-bold wrap-anywhere" id="{{ id }}-title">{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" /> {% endif %}{{ title }}</h2>
+        {% if lead %}<span class="text-sm text-base-content/64 wrap-anywhere" data-mvp-sheet-lead>{{ lead }}</span>{% endif %}
+      </div>
+      <button type="button"
+              class="btn btn-ghost btn-sm btn-circle ms-auto hidden flex-none self-start sm:inline-flex"
+              data-mvp-sheet-close
+              aria-label="{% translate "Close" %}"
+              onclick="this.closest('dialog').close()"><c-icon name="x" aria-hidden="true" /></button>
     </div>
-    <button type="button"
-            class="btn btn-ghost btn-sm btn-circle mvp-sheet-close"
-            aria-label="{% translate "Close" %}"
-            onclick="this.closest('dialog').close()"><c-icon name="x" aria-hidden="true" /></button>
-  </div>
-  {% if description.strip %}<div class="mvp-sheet-description" id="{{ id }}-description">{{ description }}</div>{% endif %}
-  <div class="mvp-sheet-body" data-mvp-sheet-body>{{ slot }}</div>
-  <div class="mvp-sheet-foot" data-mvp-sheet-foot>
-    {{ actions }}
+    {% if description.strip %}<div class="flex-none text-sm" id="{{ id }}-description">{{ description }}</div>{% endif %}
+    <div class="min-h-0 flex-auto overflow-y-auto overscroll-contain" data-mvp-sheet-body>{{ slot }}</div>
+    <div class="flex-none pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]" data-mvp-sheet-foot>
+      {{ actions }}
+    </div>
   </div>
 </c-modal>

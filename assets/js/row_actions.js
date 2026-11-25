@@ -34,7 +34,7 @@ let swallowClick = false;
 
 // An action's tone: danger when the item is marked so, primary for the main action.
 function toneOf(item) {
-  if (item.hasAttribute("data-mvp-sheet-danger")) {
+  if (item.hasAttribute("data-mvp-row-danger")) {
     return "danger";
   }
   return item.hasAttribute("data-mvp-row-main") ? "primary" : "neutral";

@@ -43,8 +43,8 @@ PAGE = """
   <c-mvp.sheet id="orders" title="Orders" lead="Three open">
     <c-mvp.sheet.view name="menu">
       <c-mvp.sheet.menu>
-        <c-mvp.sheet.menu.item text="Rename" icon="edit" @click="show('rename')" />
-        <c-mvp.sheet.menu.item text="Delete" icon="trash" danger
+        <c-menu.item text="Rename" icon="edit" @click="show('rename')" />
+        <c-menu.item text="Delete" icon="trash" class="text-error"
                                @click="show('confirm')" />
       </c-mvp.sheet.menu>
     </c-mvp.sheet.view>
@@ -341,13 +341,25 @@ class TestMenuWidth:
                 document.querySelector(selector).getBoundingClientRect().width;
               return [
                 width('#orders [data-mvp-sheet-body]'),
-                width('#orders .mvp-sheet-menu'),
+                width('#orders [data-mvp-sheet-body] ul.menu'),
               ];
             }"""
         )
 
         body, menu = widths
         assert menu == pytest.approx(body, abs=1)
+
+
+class TestGrabBar:
+    def test_the_title_sits_right_under_the_grab_bar(self, page, live_server):
+        open_page(page, live_server, PHONE)
+        page.click("#open-orders")
+        settle(page)
+
+        grab = page.locator("#orders [data-mvp-sheet-grab]").bounding_box()
+        head = page.locator("#orders [data-mvp-sheet-head]").bounding_box()
+
+        assert head["y"] - (grab["y"] + grab["height"]) == pytest.approx(0, abs=1)
 
 
 class TestCloseButton:
@@ -357,7 +369,7 @@ class TestCloseButton:
         open_page(page, live_server, DESKTOP)
         page.click("#open-orders")
         settle(page)
-        close = page.locator("#orders [data-mvp-sheet-head] .mvp-sheet-close")
+        close = page.locator("#orders [data-mvp-sheet-head] [data-mvp-sheet-close]")
 
         expect(close).to_be_visible()
         assert close.get_attribute("aria-label") == "Close"
@@ -376,7 +388,7 @@ class TestCloseButton:
         page.click("#open-orders")
         settle(page)
 
-        expect(page.locator("#orders .mvp-sheet-close")).to_be_hidden()
+        expect(page.locator("#orders [data-mvp-sheet-close]")).to_be_hidden()
         box = page.locator("#orders .mvp-sheet-box")
         assert box.get_by_role("button", name="Close").count() == 0
 
@@ -543,7 +555,7 @@ class TestClosing:
         elif way == "outside":
             page.mouse.click(5, 5)
         else:
-            page.locator("#orders .mvp-sheet-close").click()
+            page.locator("#orders [data-mvp-sheet-close]").click()
 
         assert open_sheets(page) == []
         expect(page.locator("#open-orders")).to_be_focused()

@@ -6,7 +6,7 @@ steps, and closes without changing anything when the person presses Escape, taps
 outside it, drags it down or, on a wide screen, uses the close button at the right of its head. The component demo's sheet page shows each
 example below running.
 
-A sheet is five components:
+A sheet is four components:
 
 | Component | What it is |
 | --- | --- |
@@ -14,7 +14,6 @@ A sheet is five components:
 | `c-mvp.sheet.view` | One panel of a sheet that has several steps |
 | `c-mvp.sheet.trigger` | The button or link that opens a sheet |
 | `c-mvp.sheet.menu` | The list of actions in a sheet |
-| `c-mvp.sheet.menu.item` | One action in that list |
 
 ## Open a sheet from a button
 
@@ -26,10 +25,10 @@ A sheet is five components:
                          label="{{ item.name }}" />
     <c-mvp.sheet id="item_sheet" title="{{ item.name }}" lead="Edited yesterday">
       <c-mvp.sheet.menu>
-        <c-mvp.sheet.menu.item text="Rename" icon="edit"
-                               href="{% url 'item-update' item.pk %}" />
-        <c-mvp.sheet.menu.item text="Delete" icon="trash" danger
-                               href="{% url 'item-delete' item.pk %}" />
+        <c-menu.item text="Rename" icon="edit"
+                   href="{% url 'item-update' item.pk %}" />
+        <c-menu.item text="Delete" icon="trash" class="text-error"
+                   href="{% url 'item-delete' item.pk %}" />
       </c-mvp.sheet.menu>
     </c-mvp.sheet>
     ```
@@ -78,7 +77,7 @@ Opening a sheet closes any other sheet that is open, so only one is ever showing
     <c-mvp.sheet id="item_sheet" title="Project plan">
       <c-mvp.sheet.view name="menu">
         <c-mvp.sheet.menu>
-          <c-mvp.sheet.menu.item text="Delete" icon="trash" danger
+          <c-menu.item text="Delete" icon="trash" class="text-error"
                                  @click="show('confirm')" />
         </c-mvp.sheet.menu>
       </c-mvp.sheet.view>
@@ -172,20 +171,13 @@ form without submitting it.
 A click with Ctrl, Cmd or Shift held, or with a button other than the primary one, is
 left to the browser, so a link can still open in a new tab.
 
-### `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item`
+### `c-mvp.sheet.menu`
 
-`c-mvp.sheet.menu` takes `class`. Each `c-mvp.sheet.menu.item` takes:
-
-| Property | Meaning |
-| --- | --- |
-| `text` | The action's words. Required. |
-| `icon` | The icon's name. It is hidden from assistive technology. |
-| `href` | A link address. Without one the row is a button. |
-| `danger` | Marks a destructive action. Put it last. |
-| `type` | The button's type. Defaults to `button`. |
-| `class` | Extra classes added to the link or button. |
-
-Attributes the item does not list, such as `@click`, land on the link or button.
+`c-mvp.sheet.menu` takes `class`. It draws a large daisyUI menu (`menu-lg`) that fills the
+width of the sheet, and its rows are daisy-cotton's `c-menu.item`, which takes `text`,
+`icon`, `href` (a link; without it a button), `type` and `class`. Attributes the item does
+not list, such as `@click`, land on the link or button. A destructive row is last and has
+`class="text-error"`.
 
 ## Why a sheet's title is required
 
