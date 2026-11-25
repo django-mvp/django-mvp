@@ -4,10 +4,9 @@ The command generates a Tailwind v4 entry file for consumer projects that
 build their own CSS (Tier 2 in docs/styling.md).
 """
 
+import runpy
 from io import StringIO
 from pathlib import Path
-
-import runpy
 
 import daisy_cotton
 from django.core.management import call_command

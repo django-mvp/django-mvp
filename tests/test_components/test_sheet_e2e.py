@@ -399,7 +399,8 @@ class TestCloseButton:
         settle(page)
 
         assert page.locator("#orders [data-mvp-sheet-foot] button").count() == 0
-        assert page.locator("#orders .mvp-sheet-box button", has_text="Close").count() == 0
+        worded = page.locator("#orders .mvp-sheet-box button", has_text="Close")
+        assert worded.count() == 0
 
 
 class TestFocusReturn:
@@ -1056,7 +1057,9 @@ class TestDraggingBetweenHeights:
         expect(phone.locator("#open-orders")).to_be_focused()
         assert posts == []
 
-    @pytest.mark.parametrize("distance", [120, 300], ids=["past-threshold", "past-edge"])
+    @pytest.mark.parametrize(
+        "distance", [120, 300], ids=["past-threshold", "past-edge"]
+    )
     def test_a_sheet_dragged_closed_never_moves_back_up_while_it_goes(
         self, phone, distance
     ):
@@ -1084,7 +1087,7 @@ class TestDraggingBetweenHeights:
         closed(phone, "orders")
         phone.wait_for_timeout(1300)
         tops = phone.evaluate("() => window.tops")
-        rises = [(a, b) for a, b in zip(tops, tops[1:]) if b < a - 1]
+        rises = [(a, b) for a, b in zip(tops, tops[1:], strict=False) if b < a - 1]
         assert rises == []
 
     def test_a_sheet_dragged_closed_opens_again_at_its_resting_height(self, phone):
