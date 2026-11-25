@@ -9,6 +9,7 @@ Source: assets/js/sheet.js, mvp/templates/cotton/mvp/sheet/
 """
 
 import time
+from itertools import pairwise
 
 import pytest
 from django.http import HttpResponse
@@ -350,7 +351,7 @@ class TestMenuWidth:
         assert menu == pytest.approx(body, abs=1)
 
 
-class TestGrabBar:
+class TestGrabBarGap:
     def test_the_title_sits_right_under_the_grab_bar(self, page, live_server):
         open_page(page, live_server, PHONE)
         page.click("#open-orders")
@@ -1087,7 +1088,7 @@ class TestDraggingBetweenHeights:
         closed(phone, "orders")
         phone.wait_for_timeout(1300)
         tops = phone.evaluate("() => window.tops")
-        rises = [(a, b) for a, b in zip(tops, tops[1:], strict=False) if b < a - 1]
+        rises = [(a, b) for a, b in pairwise(tops) if b < a - 1]
         assert rises == []
 
     def test_a_sheet_dragged_closed_opens_again_at_its_resting_height(self, phone):
