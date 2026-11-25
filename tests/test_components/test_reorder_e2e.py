@@ -417,6 +417,19 @@ def drag(page, source, target, below=True, grab="[data-mvp-reorder-handle]"):
     page.mouse.down()
     y = end["y"] + end["height"] * (0.75 if below else 0.25)
     page.mouse.move(box["x"] + box["width"] / 2, y, steps=12)
+    # A drag that is under way is released only once its row has reached the target.
+    page.wait_for_function(
+        """([target, below]) => {
+          if (!document.querySelector('#steps .mvp-reorder-sorting')) return true;
+          const ghost = document.querySelector('#steps .mvp-reorder-ghost');
+          const row = document.querySelector(
+            `#steps [data-mvp-reorder-value="${target}"]`);
+          return ghost && row && (below
+            ? ghost.previousElementSibling === row
+            : ghost.nextElementSibling === row);
+        }""",
+        arg=[target, below],
+    )
     page.mouse.up()
     page.wait_for_function(DRAG_ENDED)
 

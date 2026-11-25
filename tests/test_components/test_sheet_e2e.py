@@ -643,7 +643,10 @@ class TestKeyboardOffset:
 
         page.keyboard.press("Escape")
 
-        assert page.evaluate(offset + "('--mvp-sheet-keyboard')") == ""
+        page.wait_for_function(
+            "() => document.getElementById('typing').style"
+            ".getPropertyValue('--mvp-sheet-keyboard') === ''"
+        )
 
     def test_a_sheet_that_is_not_open_does_not_listen(self, page, live_server):
         open_page(page, live_server, PHONE)
