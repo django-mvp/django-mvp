@@ -26,7 +26,9 @@
 {# boosted click renders a fresh drawer in its server-side (closed) state and #}
 {# the mobile overlay closes on its own. #}
 {# The layout's sidebar is the landmark and sets the width; this fills it. #}
-<div class="mvp-sidebar flex flex-col flex-1 w-full min-h-full items-start {% if collapse == 'icons' %}mvp-sidebar--icons{% endif %} {{ bg }} {{ class }}"
+{# django-mvp-layout's HbF stacks the header, the menu and the footer, and #}
+{# keeps the header and the footer in place while the menu scrolls. #}
+<div class="mvp-sidebar HbF flex-1 w-full min-h-full {% if collapse == 'icons' %}mvp-sidebar--icons{% endif %} {{ bg }} {{ class }}"
        {% if boost %}hx-boost="true"{% endif %}
        {{ attrs }}>
   {% if header.strip %}
@@ -37,20 +39,22 @@
   {# mounted_app / mounted_menu come from mvp.context_processors.mvp_config, #}
   {# which also runs inside Cotton's isolated context because Cotton builds a #}
   {# request context for the component. #}
-  {% if body.strip %}
-    {{ body }}
-  {% elif menu is None or menu == "" %}
-    {% if mounted_app %}<c-app.sidebar.back :url="brand_url" />{% endif %}
-    <div class="flex w-full">
-      {% if mounted_menu %}
-        {% render_menu mounted_menu renderer="sidebar" %}
-      {% else %}
-        {% render_menu "AppMenu" renderer="sidebar" %}
-      {% endif %}
-    </div>
-  {% else %}
-    <div class="flex w-full">{% render_menu menu renderer="sidebar" %}</div>
-  {% endif %}
+  <div class="mvpl-body">
+    {% if body.strip %}
+      {{ body }}
+    {% elif menu is None or menu == "" %}
+      {% if mounted_app %}<c-app.sidebar.back :url="brand_url" />{% endif %}
+      <div class="flex w-full">
+        {% if mounted_menu %}
+          {% render_menu mounted_menu renderer="sidebar" %}
+        {% else %}
+          {% render_menu "AppMenu" renderer="sidebar" %}
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="flex w-full">{% render_menu menu renderer="sidebar" %}</div>
+    {% endif %}
+  </div>
   {% if footer.strip %}
     {{ footer }}
   {% else %}

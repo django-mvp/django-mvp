@@ -35,6 +35,8 @@ gets a right sidebar by filling a template block.
   own header carries the close button. The right-sidebar button sits at the end of the navbar.
 - The left sidebar remembers open or closed in the cookie `mvpl-mvp-sidebar`, the right in
   `mvpl-mvp-secondary-sidebar`.
+- The left sidebar's content (`cotton/app/sidebar/`) is stacked by django-mvp-layout's `HbF`: the
+  brand row and the footer stay in place while the menu scrolls between them.
 - The dock's Menu item is a button with `data-mvpl-toggle="left" data-mvpl-layout="mvp-app"`.
 - Full-height pages (`<c-mvp.page fill>`) fill the window inside the layout's grid.
 
@@ -101,6 +103,7 @@ features 1 to 3.
 | Piece | Where it occurs | Becomes | Built by |
 |---|---|---|---|
 | The heading row and the footer row of a card or dialog, with a toggle each side in a layout | `mvp/templates/cotton/mvp/box/header.html`, `mvp/templates/cotton/mvp/box/footer.html`, called by `cotton/card/header.html`, `card/footer.html`, `modal/header.html`, `modal/footer.html` | Kept as built | 2, reused by 3 |
+| Stacking a header, body and footer | The shell's left sidebar | django-mvp-layout's `HbF` class, no stacking rules of django-mvp's own | 1 |
 | Box styles (part spacing, `--mvpl-sidebar-bg`, `--mvpl-line`, header and footer rules) | `mvp/tailwind/base.css`, the block in `@layer utilities { @layer daisyui.l1.l2 }` | Kept, keyed to `.mvp-box-layout` and the parts' classes | 2 |
 | Rail-aware variants `is-drawer-open` / `is-drawer-close` | `mvp/tailwind/base.css` (`@custom-variant`) | Kept, keyed to `.mvpl-sidebar[data-mvpl-rail]` | 1 |
 | Rail labels | `mvp-sidebar--icons` rules in `mvp/tailwind/base.css` and the package's `.mvpl-rail-hide` / `.mvpl-rail-only` | One mechanism: the package's classes, used by django-mvp's menu | 1 |
@@ -118,7 +121,8 @@ features 1 to 3.
 | File | Ported by | Lands in |
 |---|---|---|
 | `mvp/templates/mvp/base.html` (the `app` block) | 1 | Same path |
-| `mvp/templates/cotton/app/header.html, navbar.html, sidebar/header.html, sidebar/index.html` | 1 | Same paths |
+| `mvp/templates/cotton/app/header.html, navbar.html, sidebar/header.html, sidebar/index.html, sidebar/footer.html` | 1 | Same paths |
+| `pyproject.toml` (django-mvp-layout 0.2.0) | 1 | Same path |
 | `mvp/templates/menus/dock/item.html` | 1 | Same path |
 | `mvp/config.py` (`layout.view`, `sidebar`, `secondary_sidebar`) | 1 | Same path |
 | `mvp/tailwind/base.css` (variants, rail, full-page rules, box colours) | 1, 2 | Same path |
@@ -210,6 +214,11 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   on them are written in the markup.
 - **The card and dialog styles sit in daisyUI's own layer**, one level above its component rules,
   so they beat daisyUI's padding and a caller's utility classes still beat them.
+- **The shell's left sidebar is `HbF`**, sticky header and footer, as its brand row and footer
+  were. The classes sit on `<c-app.sidebar>`'s own root, not on `<c-layout.sidebar view="HbF">`:
+  that root carries `boost`, `class`, the rail styles and the scroll rules, and the component form
+  needs the three parts straight inside the sidebar's panel.
+- **The right sidebar has no stack.** A page fills it with whatever it likes.
 - **`behavior: "overlay"` replaces `breakpoint: "never"`.**
 - **`page.side` stays as it is.** Whether `app.secondary_sidebar` replaces it is for the rebuild.
 
