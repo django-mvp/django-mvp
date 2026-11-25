@@ -125,10 +125,21 @@ def open_page(page, live_server, viewport=PHONE):
 
 
 def settle(page):
-    """Wait for the open or close slide, a CSS transition, to finish."""
+    """Wait for the open or close slide, a CSS transition, to finish.
+
+    The browser cancels a transition it replaces, and a cancelled transition's
+    ``finished`` promise rejects. So cancellations are not failures: look again
+    until no transition is left running.
+    """
     page.evaluate(
-        "() => Promise.all(document.getAnimations()"
-        ".filter(a => a instanceof CSSTransition).map(a => a.finished))"
+        """async () => {
+          for (let round = 0; round < 10; round++) {
+            const running = document.getAnimations()
+              .filter(a => a instanceof CSSTransition);
+            if (!running.length) return;
+            await Promise.allSettled(running.map(a => a.finished));
+          }
+        }"""
     )
 
 
@@ -632,7 +643,10 @@ class TestKeyboardOffset:
 
         page.keyboard.press("Escape")
 
-        assert page.evaluate(offset + "('--mvp-sheet-keyboard')") == ""
+        page.wait_for_function(
+            "() => document.getElementById('typing').style"
+            ".getPropertyValue('--mvp-sheet-keyboard') === ''"
+        )
 
     def test_a_sheet_that_is_not_open_does_not_listen(self, page, live_server):
         open_page(page, live_server, PHONE)

@@ -402,6 +402,12 @@ def settled(page, expected, root="#steps"):
     return values(page, root)
 
 
+# A drop is placed and announced when the drag ends, a moment after the button is
+# released, so a test that reads the rows first sees the order from before the drop.
+DRAG_ENDED = """() => !document.querySelector(
+  '.mvp-reorder-sorting, .mvp-reorder-held')"""
+
+
 def drag(page, source, target, below=True, grab="[data-mvp-reorder-handle]"):
     """Drag the row ``source`` by ``grab`` until it is over the row ``target``."""
     start = page.locator(f'#steps [data-mvp-reorder-value="{source}"] {grab}')
@@ -411,7 +417,21 @@ def drag(page, source, target, below=True, grab="[data-mvp-reorder-handle]"):
     page.mouse.down()
     y = end["y"] + end["height"] * (0.75 if below else 0.25)
     page.mouse.move(box["x"] + box["width"] / 2, y, steps=12)
+    # A drag that is under way is released only once its row has reached the target.
+    page.wait_for_function(
+        """([target, below]) => {
+          if (!document.querySelector('#steps .mvp-reorder-sorting')) return true;
+          const ghost = document.querySelector('#steps .mvp-reorder-ghost');
+          const row = document.querySelector(
+            `#steps [data-mvp-reorder-value="${target}"]`);
+          return ghost && row && (below
+            ? ghost.previousElementSibling === row
+            : ghost.nextElementSibling === row);
+        }""",
+        arg=[target, below],
+    )
     page.mouse.up()
+    page.wait_for_function(DRAG_ENDED)
 
 
 class TestDraggingARow:
@@ -997,6 +1017,27 @@ class TestKeyboard:
         expect(page.locator(button("b", "down"))).to_be_focused()
 
 
+# A row slides for a moment after another passes it, then its inline transition is
+# cleared, so sampling at one instant can miss it. Record each one as it is set.
+RECORD_TRANSITIONS = """
+() => {
+  window.transitionsSeen = [];
+  new MutationObserver((changes) => {
+    for (const { target } of changes) {
+      window.transitionsSeen.push([
+        getComputedStyle(target).transitionDuration,
+        target.style.transition,
+      ]);
+    }
+  }).observe(document.getElementById("steps"), {
+    attributes: true,
+    attributeFilter: ["style"],
+    subtree: true,
+  });
+}
+"""
+
+
 class TestReducedMotion:
     def transitions_during_a_drag(self, page, live_server):
         page.set_default_timeout(5000)
@@ -1007,6 +1048,7 @@ class TestReducedMotion:
         end = page.locator('#steps [data-mvp-reorder-value="c"]').bounding_box()
         page.mouse.move(x, y)
         page.mouse.down()
+        page.evaluate(RECORD_TRANSITIONS)
         found = []
         for target in (0.75, 0.25, 0.75):
             page.mouse.move(x, end["y"] + end["height"] * target, steps=6)
@@ -1018,7 +1060,7 @@ class TestReducedMotion:
                 ])""",
             )
         page.mouse.up()
-        return found
+        return found + page.evaluate("window.transitionsSeen")
 
     def test_reduced_motion_applies_no_transition_to_the_rows(self, page, live_server):
         page.emulate_media(reduced_motion="reduce")
@@ -1513,6 +1555,7 @@ class TestListInADialog:
         self.open_dialog(page, live_server)
         self.move_down(page, "a")
         page.click("#cancel")
+        assert settled(page, ["a", "b", "c"]) == ["a", "b", "c"]
 
         page.evaluate("document.getElementById('box').showModal()")
 
