@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `c-mvp.sheet` no longer draws a worded Close button in its foot. A centred dialog on a wide screen shows an icon-only close button, named "Close", at the right of its head. A phone shows none: the grab bar, dragging down, tapping outside and Escape close it. Buttons passed in the `actions` slot are unchanged.
 
+- `c-mvp.sheet.menu.item` is removed. Use daisy-cotton's `c-menu.item` inside `c-mvp.sheet.menu`, and give a destructive row `class="text-error"`. The sheet's menu is a `menu-lg` that fills the sheet's width, and the grab bar no longer takes the gap the sheet puts between its parts. `c-mvp.list.row.action` is unchanged for its callers.
+- A sheet is drawn from utility classes. The `mvp-sheet-grab`, `-head`, `-art`, `-names`, `-title`, `-lead`, `-description`, `-body`, `-close`, `-foot`, `-menu`, `-item` and `-wide` classes are gone, and only the rules that depend on the sheet's own custom properties stay in the stylesheet.
+
 ### Deprecated
 
 - The menu-driven dock. `MobileFooterMenu`, `MobileFooterNavRenderer` and the menu path of `app/dock.html` raise an `MVPDeprecationWarning` naming the template way: override `cotton/app/dock.html` and declare the dock with `c-dock` and `c-mvp.dock.item`. Nothing is removed yet.
