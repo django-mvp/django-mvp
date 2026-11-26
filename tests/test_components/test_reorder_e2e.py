@@ -510,7 +510,8 @@ class TestMoveButtons:
 
 
 def handle_of(page, value):
-    return page.locator(f'#steps [data-mvp-reorder-value="{value}"] [data-mvp-reorder-handle]')
+    row = f'#steps [data-mvp-reorder-value="{value}"]'
+    return page.locator(f"{row} [data-mvp-reorder-handle]")
 
 
 class TestHandleKeyboard:
