@@ -2,10 +2,11 @@
  * Alpine components backing <c-mvp.form.formset> and <c-mvp.form.formset.row>.
  *
  * Registered on `alpine:init`, so this file has to run *before* Alpine does.
- * The packaged base template loads Alpine with `defer`, and a plain
- * (non-deferred) <script> in the body runs ahead of every deferred script, so
- * the tag the formset component emits is early enough. Adding `defer` to that
- * tag would miss the event and neither component would register.
+ * The packaged base template loads Alpine with `defer`, and the formset
+ * component sends a plain (non-deferred) <script> for this file to the
+ * template's `head` portal, which runs ahead of every deferred script. Adding
+ * `defer` to that tag would miss the event and neither component would
+ * register.
  *
  * mvpFormset — the set as a whole. Two counters:
  *   total    monotonic. Seeds `__prefix__` substitution and TOTAL_FORMS, and
