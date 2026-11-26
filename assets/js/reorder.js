@@ -290,31 +290,55 @@ function reorder() {
       .replace("{total}", String(all.length));
   }
 
+  // Puts a row at ``index`` among the rows, by whichever control asked, and leaves the
+  // focus on that control, which the move dropped.
+  function moveTo(row, index, source, control) {
+    const all = rows();
+    const target = all[index];
+    if (!target || target === row) return;
+    begin();
+    fire("start", source);
+    if (index < all.indexOf(row)) target.before(row);
+    else target.after(row);
+    refresh();
+    control.focus();
+    announce(row);
+    changed();
+    fire("end", source);
+  }
+
   function move(button, step) {
     if (button.getAttribute("aria-disabled") === "true") return;
     const row = button.closest(ROW);
-    const all = rows();
-    const neighbour = all[all.indexOf(row) + step];
-    if (!neighbour) return;
-    begin();
-    fire("start", "button");
-    if (step < 0) neighbour.before(row);
-    else neighbour.after(row);
-    refresh();
-    // Moving the row dropped the focus the button held.
-    button.focus();
-    announce(row);
-    changed();
-    fire("end", "button");
+    moveTo(row, rows().indexOf(row) + step, "button", button);
+  }
+
+  // The handle, focused, moves its row with the arrow keys and to the ends with Home and End.
+  function key(event) {
+    const row = event.target.closest(ROW);
+    const last = rows().length - 1;
+    const here = rows().indexOf(row);
+    const wanted = {
+      ArrowUp: here - 1,
+      ArrowDown: here + 1,
+      Home: 0,
+      End: last,
+    }[event.key];
+    if (wanted === undefined || event.altKey || event.ctrlKey || event.metaKey) return;
+    event.preventDefault();
+    if (wanted < 0 || wanted > last) return;
+    moveTo(row, wanted, "key", event.target);
   }
 
   return {
     active: false,
     movable: true,
+    buttons: true,
 
     init() {
       root = this.$el;
       state = this;
+      this.buttons = !root.hasAttribute("data-mvp-reorder-hide-buttons");
       status = document.createElement("div");
       status.setAttribute("role", "status");
       status.className = "sr-only";
@@ -426,6 +450,10 @@ function reorder() {
       state.active = false;
       applyMode();
       fire("end", "mode");
+    },
+
+    moveByKey(event) {
+      key(event);
     },
 
     moveUp(button) {

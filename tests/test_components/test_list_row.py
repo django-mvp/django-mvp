@@ -97,6 +97,15 @@ ACTIONS = """
 """
 
 
+ROW_WITH_ART = """
+<c-mvp.list.row id="row-4" label="Ada Lovelace" lead="Mathematician">
+  <span id="content">Ada Lovelace</span>
+  <c-slot name="art"><img id="avatar" src="/ada.jpg" alt=""></c-slot>
+  <c-slot name="actions">{actions}</c-slot>
+</c-mvp.list.row>
+"""
+
+
 @pytest.fixture
 def render_row(cotton_render_string_soup):
     def render(actions=ACTIONS, row_id="row-4", cls=""):
@@ -292,3 +301,24 @@ class TestRowStylesheet:
 
         assert selectors
         assert all("[data-mvp-row-ready]" in selector for selector in selectors)
+
+
+class TestListRowArt:
+    def test_the_art_slot_is_drawn_in_the_head_of_the_rows_sheet(
+        self, cotton_render_string_soup
+    ):
+        soup = cotton_render_string_soup(ROW_WITH_ART.format(actions=ACTIONS))
+
+        art = soup.select_one("dialog#row-4-sheet [data-mvp-sheet-head] #avatar")
+        assert art is not None
+        assert art.find_parent(attrs={"aria-hidden": "true"}) is not None
+
+    def test_the_art_is_not_drawn_in_the_face(self, cotton_render_string_soup):
+        soup = cotton_render_string_soup(ROW_WITH_ART.format(actions=ACTIONS))
+
+        assert soup.select_one(".mvp-row-face #avatar") is None
+
+    def test_a_row_without_art_draws_no_art_in_its_sheet(self, render_row):
+        sheet_head = render_row().select_one("dialog [data-mvp-sheet-head]")
+
+        assert sheet_head.select_one("img") is None

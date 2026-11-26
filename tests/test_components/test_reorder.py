@@ -97,6 +97,13 @@ class TestReorderList:
         assert alert["role"] == "alert"
         assert alert.has_attr("hidden")
 
+    def test_the_buttons_are_on_unless_hidden(self):
+        shown = render("").select_one("[data-mvp-reorder]")
+        hidden = render("hide_buttons").select_one("[data-mvp-reorder]")
+
+        assert not shown.has_attr("data-mvp-reorder-hide-buttons")
+        assert hidden.has_attr("data-mvp-reorder-hide-buttons")
+
     def test_extra_attributes_reach_the_root(self):
         root = render('data-probe="x"').select_one("[data-mvp-reorder]")
 

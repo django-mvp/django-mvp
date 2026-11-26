@@ -1,5 +1,5 @@
 {% load i18n %}
-{# @description The controls that move one reorder row: an up and a down button and the drag handle. Hidden until the list is active. #}
+{# @description The controls that move one reorder row: an up and a down button and the drag handle, which moves its row with the arrow keys, Home and End when it has focus. Hidden until the list is active. #}
 {# @prop label:text | description:"The row's name, used in the controls' accessible names." #}
 <c-vars label />
 <span class="mvp-reorder-moves"
@@ -9,7 +9,7 @@
           class="btn btn-ghost btn-sm btn-square"
           data-mvp-reorder-up
           hidden
-          x-bind:hidden="!active || !movable"
+          x-bind:hidden="!active || !movable || !buttons"
           x-on:click="moveUp($el)"
           aria-label="{% blocktranslate with name=label %}Move {{ name }} up{% endblocktranslate %}">
     <c-icon name="chevron-up" aria-hidden="true" only />
@@ -18,7 +18,7 @@
           class="btn btn-ghost btn-sm btn-square"
           data-mvp-reorder-down
           hidden
-          x-bind:hidden="!active || !movable"
+          x-bind:hidden="!active || !movable || !buttons"
           x-on:click="moveDown($el)"
           aria-label="{% blocktranslate with name=label %}Move {{ name }} down{% endblocktranslate %}">
     <c-icon name="chevron-down" aria-hidden="true" only />
@@ -27,7 +27,9 @@
         data-mvp-reorder-handle
         hidden
         x-bind:hidden="!active || !movable"
-        role="img"
+        role="button"
+        tabindex="0"
+        x-on:keydown="moveByKey($event)"
         aria-label="{% blocktranslate with name=label %}Drag {{ name }}{% endblocktranslate %}">
     <c-icon name="drag" aria-hidden="true" only />
   </span>

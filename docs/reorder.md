@@ -2,7 +2,8 @@
 
 A list a person can put in their own order needs two things: a way to move the
 rows, and somewhere to keep the result. `<c-mvp.reorder>` gives the person the
-rows to move, by dragging a handle or by pressing an up or a down button.
+rows to move, by dragging a handle, by pressing an up or a down button or by
+using the arrow keys on the handle.
 `mvp.ordering.save_order` takes the order your view received and writes it to a
 position field.
 
@@ -45,6 +46,13 @@ let go outside the list stays where the gap was.
 Pressing Escape during a drag returns the row to where it started. Nothing is
 posted and nothing is announced. The key does not reach an open dialog around
 the list, so the dialog stays open.
+
+A handle can be used from the keyboard. Tab reaches it, and while it has focus
+the up and down arrows move its row one place, Home moves it to the top and End
+to the bottom. A press that would move the row past an end does nothing. Focus
+stays on the moved row's handle, and the same "Moved to position 2 of 3"
+announcement follows each move. The handle is a button named "Drag" followed by
+the row's `label`.
 
 The up and down buttons are reached with Tab, and Enter or Space uses them. The
 first row's up button and the last row's down button are marked
@@ -128,6 +136,21 @@ Use this when each move should be stored at once.
 A move that leaves the rows as they were posts nothing. The up and down buttons
 get ids built from the list's `id` and the row's `value`, so focus returns to the
 button that was used after the answer arrives.
+
+## Leave out the up and down buttons
+
+Use this when the rows are moved by dragging and from the handle's arrow keys, and
+the buttons would only crowd the row. Add `hide_buttons` to the list:
+
+```html
+<c-mvp.reorder id="steps" label="Steps" hide_buttons>
+  ...
+</c-mvp.reorder>
+```
+
+The rows keep their handles and their position numbers. A list without
+`hide_buttons` draws the buttons as before. The demo site's Reorder page shows a
+list without buttons.
 
 ## Reorder only on request
 
@@ -306,6 +329,7 @@ script.
 | `name` | The field name that carries the order. Defaults to `order`. |
 | `form` | Each row's identifier is submitted by the surrounding form under `name`. |
 | `url` | An address the order is posted to on every change. Needs an `id`. |
+| `hide_buttons` | Draw no up and down buttons. The handle still moves its row, by dragging and from the keyboard. |
 | `mode` | `always` (the default) or `on-demand`. An `on-demand` list needs an `id`. |
 | `class`, other attributes | Pass to the root element. |
 
@@ -327,7 +351,8 @@ ends that list's mode when clicked.
 Every row carries `data-mvp-reorder-row` and, when it has a value,
 `data-mvp-reorder-value`. The buttons carry `data-mvp-reorder-up` and
 `data-mvp-reorder-down`, and the handle carries `data-mvp-reorder-handle`.
-The buttons and the handle stay hidden until scripts have run.
+The buttons and the handle stay hidden until scripts have run. A list with
+`hide_buttons` carries `data-mvp-reorder-hide-buttons` on its root.
 
 ### `mvp.ordering.save_order(queryset, ids, *, field="position")`
 

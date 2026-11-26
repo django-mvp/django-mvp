@@ -1,7 +1,7 @@
 {# @description A dialog that rises from the foot of a phone's screen and sits in the middle of a wider one: a grab bar, a head (art, icon, title and the line under it, with a close button at its right on a wide screen), a body that scrolls, and a foot. Pressing Escape, tapping outside it, dragging it down or, on a wide screen, its close button in the head closes it and changes nothing. Open it with an mvp.sheet.trigger or by dispatching mvp-sheet-open on the window with the sheet's id. #}
 {# @prop id:text | required | description:"The sheet's id, unique on the page. A trigger names it in its for prop." #}
 {# @prop title:text | required | description:"What the sheet is about, shown in its head. It is the dialog's accessible name." #}
-{# @prop lead:text | description:"The line under the title." #}
+{# @prop lead:text | description:"The line under the title. The line is always in the head, in an element with the id of the sheet followed by -lead, hidden while it is empty, so a step can swap it together with the title (the id of the sheet followed by -title)." #}
 {# @prop icon:text | description:"Optional. An icon's name, drawn before the title." #}
 {# @prop full:boolean | description:"Open at the full height of the screen instead of the resting height." #}
 {# @prop fixed:boolean | description:"Keep the sheet at its resting height. It still closes when dragged down." #}
@@ -37,7 +37,7 @@
       {% if art.strip %}<span class="grid size-12 flex-none overflow-hidden rounded-field bg-base-content/8 *:size-full *:min-w-0 *:object-cover *:pointer-events-none" aria-hidden="true">{{ art }}</span>{% endif %}
       <div class="flex min-w-0 flex-col gap-0.5">
         <h2 class="m-0 flex items-center gap-2 text-base font-bold wrap-anywhere" id="{{ id }}-title">{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" /> {% endif %}{{ title }}</h2>
-        {% if lead %}<span class="text-sm text-base-content/64 wrap-anywhere" data-mvp-sheet-lead>{{ lead }}</span>{% endif %}
+        <span class="text-sm text-base-content/64 wrap-anywhere" id="{{ id }}-lead" data-mvp-sheet-lead{% if not lead %} hidden{% endif %}>{{ lead }}</span>
       </div>
       <button type="button"
               class="btn btn-ghost btn-sm btn-circle ms-auto hidden flex-none self-start sm:inline-flex"
