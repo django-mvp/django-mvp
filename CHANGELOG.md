@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.39.2] - 2026-11-26
+
 ### Changed
 
 - Requires daisy-cotton 0.2.1 and django-mvp-forms 0.11.1 or later.
