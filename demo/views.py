@@ -238,6 +238,20 @@ class ReorderDemoSaveView(ReorderDemoData, View):
         )
 
 
+class SheetDemoStepView(View):
+    """Answer with the next step's title and line, to be swapped in out of band."""
+
+    http_method_names = ["get"]
+
+    def get(self, request):
+        """Return the title and the line of the step sheet's next step."""
+        return HttpResponse(
+            '<h2 id="step_sheet-title" hx-swap-oob="innerHTML">Do you mean?</h2>'
+            '<span id="step_sheet-lead" hx-swap-oob="innerHTML">'
+            "Powered by the demo</span>"
+        )
+
+
 class ListRowDemoAnswerView(View):
     """Answer a row action's request with nothing, so the row that sent it goes."""
 

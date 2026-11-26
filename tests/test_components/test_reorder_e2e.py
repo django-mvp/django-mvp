@@ -38,6 +38,18 @@ PAGE = """
 """
 
 
+BARE_PAGE = """
+{% extends "mvp/base.html" %}
+{% block content %}
+<c-mvp.reorder id="steps" label="Steps" hide_buttons>
+  <c-mvp.reorder.row value="a" label="Alpha">Alpha</c-mvp.reorder.row>
+  <c-mvp.reorder.row value="b" label="Beta">Beta</c-mvp.reorder.row>
+  <c-mvp.reorder.row value="c" label="Gamma">Gamma</c-mvp.reorder.row>
+</c-mvp.reorder>
+{% endblock %}
+"""
+
+
 FORM_PAGE = """
 {% extends "mvp/base.html" %}
 {% block content %}
@@ -135,6 +147,11 @@ def single_page(request):
 def tall_page(request):
     """Draw the plain list above a stretch of page that scrolls."""
     return render_page(TALL_PAGE, request)
+
+
+def bare_page(request):
+    """Draw a list whose rows have no up and down buttons."""
+    return render_page(BARE_PAGE, request)
 
 
 def form_page(request):
@@ -351,6 +368,7 @@ def reorder_test_urls(settings):
         path("reorder-test/", reorder_test_page),
         path("reorder-test/single/", single_page),
         path("reorder-test/tall/", tall_page),
+        path("reorder-test/bare/", bare_page),
         path("reorder-test/form/", form_page),
         path("reorder-test/two/", two_page),
         path("reorder-test/rows/", rows),
@@ -489,6 +507,90 @@ class TestMoveButtons:
         )
 
         assert hidden == [False] * 6
+
+
+def handle_of(page, value):
+    return page.locator(f'#steps [data-mvp-reorder-value="{value}"] [data-mvp-reorder-handle]')
+
+
+class TestHandleKeyboard:
+    def test_arrow_down_moves_the_row_and_the_handle_keeps_focus(
+        self, page, live_server
+    ):
+        open_page(page, live_server)
+        handle_of(page, "a").focus()
+
+        page.keyboard.press("ArrowDown")
+
+        assert values(page) == ["b", "a", "c"]
+        assert page.evaluate(
+            "document.activeElement.closest('[data-mvp-reorder-row]')"
+            ".dataset.mvpReorderValue"
+        ) == "a"
+        assert page.evaluate(
+            "document.activeElement.matches('[data-mvp-reorder-handle]')"
+        )
+
+    def test_arrow_up_moves_the_row_up(self, page, live_server):
+        open_page(page, live_server)
+        handle_of(page, "c").focus()
+
+        page.keyboard.press("ArrowUp")
+
+        assert values(page) == ["a", "c", "b"]
+
+    def test_end_and_home_move_the_row_to_the_ends(self, page, live_server):
+        open_page(page, live_server)
+        handle_of(page, "a").focus()
+
+        page.keyboard.press("End")
+        assert values(page) == ["b", "c", "a"]
+
+        page.keyboard.press("Home")
+        assert values(page) == ["a", "b", "c"]
+
+    def test_a_move_past_the_edge_changes_nothing(self, page, live_server):
+        open_page(page, live_server)
+        handle_of(page, "a").focus()
+
+        page.keyboard.press("ArrowUp")
+
+        assert values(page) == ["a", "b", "c"]
+
+    def test_the_new_position_is_announced(self, page, live_server):
+        open_page(page, live_server)
+        handle_of(page, "a").focus()
+
+        page.keyboard.press("ArrowDown")
+
+        expect(page.locator('#steps [role="status"]')).to_have_text(
+            "Moved to position 2 of 3"
+        )
+
+    def test_the_handle_can_be_reached_with_tab(self, page, live_server):
+        open_page(page, live_server)
+
+        assert handle_of(page, "a").get_attribute("tabindex") == "0"
+        assert handle_of(page, "a").get_attribute("role") == "button"
+
+
+class TestWithoutButtons:
+    def test_hide_buttons_leaves_only_the_handle_and_it_still_moves_the_row(
+        self, page, live_server
+    ):
+        open_page(page, live_server)
+        page.goto(f"{live_server.url}/reorder-test/bare/")
+        page.wait_for_function("window.Alpine !== undefined")
+
+        shown = page.eval_on_selector_all(
+            "#steps [data-mvp-reorder-up], #steps [data-mvp-reorder-down]",
+            "els => els.filter(el => !el.hidden).length",
+        )
+        handle_of(page, "b").focus()
+        page.keyboard.press("ArrowUp")
+
+        assert shown == 0
+        assert values(page) == ["b", "a", "c"]
 
 
 class TestFormDestination:
@@ -985,26 +1087,34 @@ class TestFocusAndAnnouncement:
 
 
 class TestKeyboard:
-    def test_tab_reaches_both_buttons_of_every_row(self, page, live_server):
+    def test_tab_reaches_both_buttons_and_the_handle_of_every_row(
+        self, page, live_server
+    ):
         open_page(page, live_server)
         page.locator(button("a", "up")).focus()
 
         reached = []
-        for _ in range(6):
+        for _ in range(9):
             reached.append(
                 page.evaluate(
                     """() => {
                       const el = document.activeElement;
                       const row = el.closest("[data-mvp-reorder-row]");
-                      const up = el.hasAttribute("data-mvp-reorder-up");
-                      const kind = up ? "up" : "down";
+                      const kind = el.hasAttribute("data-mvp-reorder-up")
+                        ? "up"
+                        : el.hasAttribute("data-mvp-reorder-down")
+                          ? "down"
+                          : "handle";
                       return row.dataset.mvpReorderValue + kind;
                     }"""
                 )
             )
             page.keyboard.press("Tab")
 
-        assert reached == ["aup", "adown", "bup", "bdown", "cup", "cdown"]
+        assert reached == [
+            "aup", "adown", "ahandle", "bup", "bdown", "bhandle",
+            "cup", "cdown", "chandle",
+        ]
 
     @pytest.mark.parametrize("key", ["Enter", "Space"])
     def test_enter_and_space_use_a_button(self, page, live_server, key):

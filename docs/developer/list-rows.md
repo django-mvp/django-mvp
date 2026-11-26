@@ -102,7 +102,21 @@ With no actions the row is a plain `c-list.row`: no menu control, no sheet and n
 | `face_class` | Classes of the face, the part that holds the content |
 | `class` | Extra classes added to the row |
 
-Slots: the default slot is the row's content and `actions` holds the row's actions.
+Slots: the default slot is the row's content, `actions` holds the row's actions and
+`art` is small art, such as an avatar, drawn in the head of the row's sheet before the
+title and hidden from assistive technology.
+
+```django
+<c-mvp.list.row id="person-{{ person.pk }}" label="{{ person.name }}">
+  <div>{{ person.name }}</div>
+  <c-slot name="art"><img src="{{ person.avatar.url }}" alt=""></c-slot>
+  <c-slot name="actions">...</c-slot>
+</c-mvp.list.row>
+```
+
+The art appears in the sheet only. The row's own content draws whatever the row shows,
+so write the avatar there too when the row should show it. Give the art no `id`: it
+is drawn once in the sheet, and the row's content is separate markup.
 
 ## Switch swiping off for a list
 

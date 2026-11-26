@@ -18,6 +18,7 @@ SHEETS = [
     "note_sheet",
     "first_sheet",
     "second_sheet",
+    "step_sheet",
     "full_sheet",
     "fixed_sheet",
 ]
@@ -61,6 +62,16 @@ class TestSheetDemo:
         first = page[page.index('id="first_sheet"') :]
         first = first[: first.index("</dialog>")]
         assert 'data-for="second_sheet"' in first
+
+    def test_the_step_example_asks_for_a_step_that_swaps_the_head(self, client, page):
+        step = page[page.index('id="step_sheet"') :]
+        step = step[: step.index("</dialog>")]
+        answer = client.get(reverse("sheet-demo-step")).content.decode()
+
+        assert 'hx-get="/components/sheet/step/"' in step
+        assert 'id="step_sheet-title"' in step and 'id="step_sheet-title"' in answer
+        assert 'id="step_sheet-lead"' in step and 'id="step_sheet-lead"' in answer
+        assert answer.count("hx-swap-oob") == 2
 
     def test_the_full_example_asks_for_the_full_height(self, page):
         assert "data-mvp-sheet-full" in sheet_tag(page, "full_sheet")

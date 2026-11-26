@@ -100,6 +100,30 @@ class TestSheetHead:
         art = soup.select_one("[data-mvp-sheet-head] #cover")
         assert art.find_parent(attrs={"aria-hidden": "true"}) is not None
 
+    def test_the_lead_sits_in_an_element_with_an_id_derived_from_the_sheets(
+        self, render_sheet
+    ):
+        soup = render_sheet('lead="Order 14"')
+
+        lead = soup.select_one("[data-mvp-sheet-head] #more-lead")
+        assert lead.has_attr("data-mvp-sheet-lead")
+        assert not lead.has_attr("hidden")
+        assert lead.get_text(strip=True) == "Order 14"
+
+    def test_a_sheet_with_no_lead_still_holds_an_empty_hidden_line(self, render_sheet):
+        soup = render_sheet()
+
+        lead = soup.select_one("[data-mvp-sheet-head] #more-lead")
+        assert lead.has_attr("hidden")
+        assert lead.get_text(strip=True) == ""
+
+    def test_the_title_and_the_lead_have_ids_to_swap_by(self, render_sheet):
+        soup = render_sheet('lead="Order 14"')
+
+        head = soup.select_one("[data-mvp-sheet-head]")
+        assert head.select_one("h2#more-title") is not None
+        assert head.select_one("#more-lead") is not None
+
     def test_no_art_draws_no_art_tile(self, render_sheet):
         soup = render_sheet()
 

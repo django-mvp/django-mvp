@@ -29,6 +29,14 @@ class TestReorderDemoPage:
             rows = soup.select(f"section#{section} [data-mvp-reorder-row]")
             assert len(rows) > 2
 
+    def test_the_list_without_buttons_has_rows_and_marks_the_buttons_off(self, client):
+        response = client.get("/components/reorder/")
+
+        soup = BeautifulSoup(response.content, "html.parser")
+        root = soup.select_one("section#without-buttons [data-mvp-reorder]")
+        assert root.has_attr("data-mvp-reorder-hide-buttons")
+        assert len(root.select("[data-mvp-reorder-row]")) > 2
+
     def test_the_form_list_saves_the_order_it_posts(self, client):
         client.get("/components/reorder/")
         ids = task_ids("form")

@@ -88,6 +88,22 @@ Opening a sheet closes any other sheet that is open, so only one is ever showing
 
 3. Open a sheet at a step other than the first by giving the trigger a `view`.
 
+## Change the head from a step
+
+A step that changes what the sheet is about replaces the title and the line under
+it together. The title has the id `{id}-title` and the line has the id `{id}-lead`,
+where `{id}` is the sheet's `id`. An htmx answer swaps both out of band:
+
+```html
+<h2 id="item_sheet-title" hx-swap-oob="innerHTML">Do you mean?</h2>
+<span id="item_sheet-lead" hx-swap-oob="innerHTML">Powered by ORCID</span>
+```
+
+The line is hidden while it is empty, so a sheet that started with no `lead` gets
+its line back by swapping the whole element, `hx-swap-oob="outerHTML"`, with the
+`data-mvp-sheet-lead` attribute and without `hidden`. The demo site's Sheet page
+has a step that swaps both.
+
 ## Open a sheet from inside another sheet
 
 Put a trigger inside the first sheet. It opens the second sheet and closes the first.
@@ -134,7 +150,7 @@ prefer reduced motion get no slide.
 | --- | --- |
 | `id` | The sheet's id, unique on the page. Required. A trigger names it in `for`. |
 | `title` | What the sheet is about, shown in its head. Required. |
-| `lead` | The line under the title. |
+| `lead` | The line under the title. The line is always drawn in the head, in an element with the id `{id}-lead`, and is hidden while it is empty. |
 | `icon` | An icon's name, drawn before the title. |
 | `full` | Open at the full height. |
 | `fixed` | Keep the resting height. |

@@ -83,6 +83,16 @@
     </c-mvp.sheet>
   {% endcotton:verbatim %}
   </c-components.section>
+  <c-components.section title="A step that changes the head"
+                        description="The title and the line under it have ids built from the sheet's id, so an answer can replace both together. The button asks the demo view for the next step, whose answer swaps the title and the line out of band.">
+    {% cotton:verbatim %}
+    <c-mvp.sheet.trigger for="step_sheet" href="/components/sheet/" label="the step sheet">Find a person</c-mvp.sheet.trigger>
+    <c-mvp.sheet id="step_sheet" title="Find a person" lead="Search by name">
+      <button type="button" class="btn btn-primary"
+              hx-get="{% url 'sheet-demo-step' %}" hx-swap="none">Search</button>
+    </c-mvp.sheet>
+  {% endcotton:verbatim %}
+  </c-components.section>
   <c-components.section title="Full height"
                         description="full opens the sheet at the height of the screen. On a phone, drag the grab bar down to rest height, or tap it. On a wider screen the dialog is centred and keeps its own height.">
     {% cotton:verbatim %}
