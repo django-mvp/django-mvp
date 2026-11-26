@@ -38,6 +38,38 @@
     </c-mvp.sheet>
   {% endcotton:verbatim %}
   </c-components.section>
+  <c-components.section title="Form with actions"
+                        description="Full-width fields in the body, Cancel and Save in the actions slot. The body keeps a little room around its content, so a focused field's outline is not cut off on any side. The Save button belongs to the form through its form attribute.">
+    {% cotton:verbatim %}
+    <c-mvp.sheet.trigger for="contact_sheet" href="/components/sheet/" label="a contact">Add a contact</c-mvp.sheet.trigger>
+    <c-mvp.sheet id="contact_sheet" title="Add a contact" lead="Saved to your address book" full>
+      <form id="contact_form" class="flex flex-col gap-3" @submit.prevent="$el.closest('dialog').close()">
+        <label class="flex flex-col gap-1 text-sm">Name
+          <input type="text" name="name" class="input w-full" autocomplete="off">
+        </label>
+        <label class="flex flex-col gap-1 text-sm">Email
+          <input type="email" name="email" class="input w-full" autocomplete="off">
+        </label>
+        <label class="flex flex-col gap-1 text-sm">Group
+          <select name="group" class="select w-full">
+            <option>Family</option>
+            <option>Friends</option>
+            <option>Work</option>
+          </select>
+        </label>
+        <label class="flex flex-col gap-1 text-sm">Notes
+          <textarea name="notes" rows="3" class="textarea w-full"></textarea>
+        </label>
+      </form>
+      <c-slot name="actions">
+        <c-mvp.group row>
+          <c-button type="button" text="Cancel" ghost @click="$el.closest('dialog').close()" />
+          <c-button type="submit" form="contact_form" text="Save" variant="primary" />
+        </c-mvp.group>
+      </c-slot>
+    </c-mvp.sheet>
+  {% endcotton:verbatim %}
+  </c-components.section>
   <c-components.section title="A sheet opened from another sheet"
                         description="A trigger inside a sheet opens a second one and closes the first. Focus returns to the element that opened the first sheet, or to the element named in returns.">
     {% cotton:verbatim %}
