@@ -5,9 +5,10 @@
 {# @prop face_class:text | description:"Classes of the face, the part that holds the content." #}
 {# @prop class:text | description:"Extra classes added to the row." #}
 {# @slot Quarterly report — The row's content. #}
+{# @slot:art <img src="avatar.jpg" alt=""> — Optional. Small art drawn in the head of the row's sheet, before its title. It is hidden from assistive technology, so the row's own content carries the name. #}
 {# @slot:actions <c-mvp.list.row.action text="Rename" icon="edit" /> — The row's actions, as mvp.list.row.action components. Leave empty for a plain row. #}
 {% load i18n mvp %}
-<c-vars id label lead face_class class actions="" />
+<c-vars id label lead face_class class art="" actions="" />
 {% if actions.strip %}
 <c-list.row :id="id" class="mvp-row {{ class }}" x-data="mvpRowActions" data-mvp-row :attrs="attrs" only>
   <div class="mvp-row-face list-row {{ face_class }}">
@@ -23,6 +24,7 @@
     </div>
   </div>
   <c-mvp.sheet id="{{ id }}-sheet" title="{{ label }}" lead="{{ lead }}" only>
+    {% if art.strip %}<c-slot name="art">{{ art }}</c-slot>{% endif %}
     <div data-mvp-row-sheet-body></div>
   </c-mvp.sheet>
 </c-list.row>

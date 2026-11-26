@@ -84,3 +84,10 @@ class TestListRowDemoViews:
         response = client.get(f"/components/list-row/{url}/")
 
         assert response.status_code == 405
+
+
+class TestListRowArtDemo:
+    def test_a_row_passes_its_art_to_its_sheet(self, soup):
+        art = soup.select_one("section#art-in-the-sheet dialog [data-mvp-sheet-head]")
+
+        assert art.select_one("[aria-hidden=true]").get_text(strip=True) == "AL"

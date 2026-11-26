@@ -20,6 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   extend `mvp/base.html` needs `<c-portal name="head" />` in its `<head>`, or the add and remove
   controls do nothing. See [The add and remove script](docs/formsets.md#the-add-and-remove-script).
 
+## [v0.39.3] - 2026-11-26
+
+### Added
+
+- `c-mvp.list.row` takes an `art` slot and draws it in the head of the sheet its actions open, before the title, as `c-mvp.sheet` does for its own `art` slot.
+- `c-mvp.sheet` always draws the line under its title, in an element with the id `{id}-lead`, hidden while it has no text. The title already has the id `{id}-title`. An htmx answer can now replace the title and the line together with out-of-band swaps.
+- `c-mvp.reorder` takes `hide_buttons`, which draws no up and down buttons. Buttons stay on by default.
+
+### Changed
+
+- The drag handle of `c-mvp.reorder` is a button that Tab reaches. While it has focus the up and down arrows move its row one place and Home and End move it to the top or the bottom, keeping focus on the handle and announcing the new position. A page that tabs through a list now stops on each handle after the row's buttons.
+
 ## [v0.39.2] - 2026-11-26
 
 ### Changed

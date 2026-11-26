@@ -33,6 +33,16 @@
                       :tasks="live_tasks" />
   {% endcotton:verbatim %}
   </c-components.section>
+  <c-components.section title="Without buttons"
+                        description="With hide_buttons the rows have no up and down buttons. Tab to a row's handle and press the up or down arrow to move the row one place, or Home or End to move it to the top or the bottom. The new position is announced.">
+    {% cotton:verbatim %}
+    <c-mvp.reorder id="keys-tasks" label="Tasks" hide_buttons>
+      {% for task in form_tasks %}
+        <c-mvp.reorder.row value="{{ task.pk }}" label="{{ task.title }}">{{ task.title }}</c-mvp.reorder.row>
+      {% endfor %}
+    </c-mvp.reorder>
+  {% endcotton:verbatim %}
+  </c-components.section>
   <c-components.section title="On demand"
                         description="With mode=on-demand the list is plain until a control starts the mode. Any element with data-mvp-reorder-start names the list, so the button can sit in a toolbar away from it. Done, or Escape, ends the mode.">
     {% cotton:verbatim %}

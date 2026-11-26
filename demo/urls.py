@@ -64,6 +64,11 @@ urlpatterns = [
         name="reorder-demo-mode",
     ),
     path(
+        "components/sheet/step/",
+        views.SheetDemoStepView.as_view(),
+        name="sheet-demo-step",
+    ),
+    path(
         "components/list-row/answer/",
         views.ListRowDemoAnswerView.as_view(),
         name="list-row-demo-answer",
