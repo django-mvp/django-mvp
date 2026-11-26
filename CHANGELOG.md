@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** requires daisy-cotton 0.3, up from 0.2. daisy-cotton 0.3 requires django-cotton
+  2.9 and puts a caller's classes straight after a component's base class and before the classes
+  its attributes add, so `<c-badge variant="primary" class="ml-2">` gets `badge ml-2
+  badge-primary`. The classes on each element are otherwise unchanged. A test or a stylesheet
+  that matches the whole `class` string may need its order updated.
+- The formset component loads `formset.js` once per page, in the `<head>`, instead of writing a
+  script tag after every set. It sends the tag to django-cotton's `head` portal, which
+  `mvp/base.html` now holds after `{% block head %}`. A base template of your own that doesn't
+  extend `mvp/base.html` needs `<c-portal name="head" />` in its `<head>`, or the add and remove
+  controls do nothing. See [The add and remove script](docs/formsets.md#the-add-and-remove-script).
+
 ## [v0.39.3] - 2026-11-26
 
 ### Added

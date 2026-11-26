@@ -120,14 +120,14 @@ class TestSidebarMenuChoice:
 @pytest.mark.django_db
 @pytest.mark.urls("tests.urls_mounted")
 class TestSidebarUnderContextIsolation:
-    @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
+    @override_settings(COTTON_ISOLATE_BY_DEFAULT=True)
     def test_an_app_page_still_draws_the_menu_and_the_back_link(self):
         soup = render_sidebar("<c-app.sidebar />")
 
         assert menu_hrefs(soup) == ["/", "/mounted/", "/mounted/detail/"]
         assert back_link(soup)["href"] == "/"
 
-    @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
+    @override_settings(COTTON_ISOLATE_BY_DEFAULT=True)
     def test_a_host_page_still_draws_the_app_menu_with_no_back_link(self):
         soup = render_sidebar("<c-app.sidebar />", path="/layout/")
 
@@ -135,17 +135,17 @@ class TestSidebarUnderContextIsolation:
         assert "/mounted/" not in menu_hrefs(soup)
         assert back_link(soup) is None
 
-    @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
+    @override_settings(COTTON_ISOLATE_BY_DEFAULT=True)
     def test_menu_entries_keep_their_labels(self):
         isolated = sidebar_labels(render_sidebar("<c-app.sidebar />"))
 
-        with override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=False):
+        with override_settings(COTTON_ISOLATE_BY_DEFAULT=False):
             shared = sidebar_labels(render_sidebar("<c-app.sidebar />"))
 
         assert "Mounted Index" in isolated
         assert isolated == shared
 
-    @override_settings(COTTON_ENABLE_CONTEXT_ISOLATION=True)
+    @override_settings(COTTON_ISOLATE_BY_DEFAULT=True)
     def test_the_shell_still_draws_the_sidebar_it_is_given(self):
         soup = render_sidebar(
             '<c-app><c-slot name="sidebar"><c-app.sidebar '

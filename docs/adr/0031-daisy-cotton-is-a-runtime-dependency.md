@@ -4,7 +4,7 @@
 
 ## Decision
 
-`daisy-cotton` is declared in `[project].dependencies` with the range `>=0.1.3,<0.2`. A project
+`daisy-cotton` is declared in `[project].dependencies` with the range `>=0.3,<0.4`. A project
 adds `daisy_cotton` to its own `INSTALLED_APPS`, directly below `mvp`. The package never edits a
 project's settings.
 
@@ -14,7 +14,7 @@ first. Since then this package has stopped shipping its own basic components (th
 alert and the like), so those tags now reach daisy-cotton's. The icon is the one name both
 packages still ship.
 
-`django-cotton` stays pinned at `2.6.1`.
+`django-cotton` is pinned to one release, `2.9.0`.
 
 ## Why
 
@@ -28,11 +28,18 @@ components. They are part of how it renders, not an optional integration, so the
 guard an import behind and no fallback to degrade to.
 
 daisy-cotton is not yet at 1.0, and it says its component names, attributes and emitted classes can
-change between minor versions. `0.1.2` was the first release with everything the install needed, and the floor moved to
-`0.1.3` when the basic components were taken from it, because that is the release they were
-tested against. The
-upper bound stops a new minor version arriving unannounced. Moving it is a decision made when that
-release is tested with this package.
+change between minor versions. The floor is the release this package was last tested against:
+`0.3` requires django-cotton 2.9 and puts a caller's classes straight after a component's base
+class. The upper bound stops a new minor version arriving unannounced. Moving it is a decision
+made when that release is tested with this package.
+
+django-cotton is pinned to one release rather than a range because this package depends on more
+than its documented tags. `mvp/templatetags/mvp.py` and the test fixtures in `mvp/fixtures.py`
+compile templates with django-cotton's own compiler class, which is not a public interface, and
+the packaged templates have had to change for point releases before: 2.7 changed how `<c-vars>`
+defaults are compiled, 2.8 renamed the context isolation setting, and 2.9 added the portal the
+formset component loads its script through. Each new release is tested with this package before
+the pin moves, which is what Dependabot's pull requests are for.
 
 The project lists the app itself because Django finds an app's templates only when the project
 names the app. This is the same arrangement as `crispy_forms` and `mvp_forms` in
@@ -45,5 +52,7 @@ Listed above `mvp`, daisy-cotton's plain icon would answer instead.
 
 ## Revisit if
 
-A daisy-cotton release `0.2` or later is tested with this package, or this package stops shipping
+A daisy-cotton release `0.4` or later is tested with this package, or this package stops shipping
 a component of the same name as one in daisy-cotton and the order no longer decides anything.
+For django-cotton: this package stops importing its compiler, and django-cotton reaches a release
+that promises its template behaviour holds across minor versions.

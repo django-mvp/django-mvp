@@ -416,6 +416,30 @@ disables the add control in the browser once the limit is reached. `validate_min
 `validate_max` are set automatically alongside `min_num` and `max_num`, since Django's factory
 defaults both to `False` and a bound on its own rejects nothing.
 
+## The add and remove script
+
+The add and remove controls run on `mvp/static/js/formset.js`. The component doesn't write the
+script tag where the set is drawn. It sends it to the page's `head` portal, so the page loads the
+file once however many sets it draws. `mvp/base.html` holds that portal, after the
+`{% block head %}` block, so a page that extends it, or overrides `head`, needs nothing more.
+
+A base template of your own that doesn't extend `mvp/base.html` has to hold the portal itself.
+Put it in the `<head>`, after the bundled script:
+
+```html
+<head>
+  ...
+  <script defer src="{% static 'js/django-mvp.js' %}"></script>
+  <c-portal name="head" />
+</head>
+```
+
+Without it the script is dropped and the add control does nothing. The tag has to be a plain
+one, never `defer`: the script registers its components when Alpine starts, and a deferred tag
+would run after that. A template rendered on its own, with `render_component` or as an htmx
+partial, has no portal either, so a set drawn there relies on the full page it lands in having
+loaded the script already.
+
 ## Reference
 
 - [`<c-mvp.form.formset>` and `<c-mvp.form.formset.row>`](components.md#actions-user-misc)

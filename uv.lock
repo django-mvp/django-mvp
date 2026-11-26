@@ -541,15 +541,15 @@ wheels = [
 
 [[package]]
 name = "daisy-cotton"
-version = "0.2.1"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "django-cotton" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2c/80/68ca8b48aad333d7b6d7f144e587f70d13ba46458bef0550e10beef6ea0b/daisy_cotton-0.2.1.tar.gz", hash = "sha256:f64a1b23f91efd38d6ff7ed1a6f7381faa18dd130967d76bf18445b89e8461a7", size = 60542, upload-time = "2026-11-26T15:14:52.091Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/89/f5/e0b48b2c67e093b85d3f4db32dbce47d1592c0a2940776c490f5d5c9d754/daisy_cotton-0.3.0.tar.gz", hash = "sha256:228d9686bb0a78770f829534a5ed44e68d8e3cb0f4543f27b8c469e7ac98aaf8", size = 60583, upload-time = "2026-11-26T22:48:07.377Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/53/5a6784c2ac9f18e13e4784753b403a9f1d077c408f87e308d3e93c2ef622/daisy_cotton-0.2.1-py3-none-any.whl", hash = "sha256:f50408ca36627288256294dfc92452b33d998e48fe8e58dbdeb304464f55a7ff", size = 102281, upload-time = "2026-11-26T15:14:50.935Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/49/14374f320532e1bc95c668a08bf73b322ee000c5c582d249ce2e0b667662/daisy_cotton-0.3.0-py3-none-any.whl", hash = "sha256:1893795dd9f391640f2dd6e6bc46bccbc2d9f623e8231fc3b5690491f054b354", size = 102698, upload-time = "2026-11-26T22:48:06.102Z" },
 ]
 
 [[package]]
@@ -832,7 +832,7 @@ dev = [
 requires-dist = [
     { name = "coloraide", specifier = ">=8.14,<9" },
     { name = "css-inline", specifier = ">=0.23.1,<0.26" },
-    { name = "daisy-cotton", specifier = ">=0.2.1,<0.3" },
+    { name = "daisy-cotton", specifier = ">=0.3,<0.4" },
     { name = "django", specifier = ">=5.2" },
     { name = "django-cotton", specifier = "==2.9.0" },
     { name = "django-crispy-forms", specifier = ">=2.7,<3.0" },

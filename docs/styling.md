@@ -294,7 +294,7 @@ Packaged behaviour that depends on them:
 | Sidebar collapse state, remembered across page loads | Alpine + `persist` |
 | Dismissible alerts and messages, with optional auto-dismiss | Alpine |
 | Sticky header picking up a shadow once the page scrolls | Alpine |
-| Formset add/remove rows | Alpine (`mvp/static/js/formset.js` reaches for the global) |
+| Formset add/remove rows | Alpine (`mvp/static/js/formset.js` reaches for the global, and is loaded through the `head` portal: see [Formsets](formsets.md#the-add-and-remove-script)) |
 | Theme toggle and theme dropdown | theme-change |
 | Browser toolbar colour following the theme, on an [installable app](installable-app.md) | the bundle's own script |
 | `hx-boost` sidebar navigation, when enabled | htmx |

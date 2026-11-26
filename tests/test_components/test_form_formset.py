@@ -7,6 +7,7 @@ new rows client-side. Sources are compiled through the Cotton compiler so the
 tests exercise each component exactly as a template invocation would.
 """
 
+import re
 from importlib import import_module
 from pathlib import Path
 
@@ -540,13 +541,35 @@ class TestFormsetCounterContract:
         assert expression.startswith("mvpFormset(")
         assert "{" not in expression
 
-        script = soup.find("script", src=True)
-        assert script is not None
-        assert script["src"].endswith("js/formset.js")
-        assert not script.has_attr("defer"), (
+    @pytest.mark.django_db
+    def test_a_page_with_two_sets_loads_the_script_once_in_its_head(self):
+        view_cls = _order_line_view_class(MVPCreateView, success_url="list")
+        first = view_cls.inlines[0]
+        second = type("_SecondInline", (first,), {"prefix": "second_lines"})
+        view_cls.inlines = [first, second]
+
+        _, response = _dispatch(view_cls)
+        soup = BeautifulSoup(_rendered_html(response), "html.parser")
+
+        sets = soup.find_all(attrs={"x-data": re.compile(r"^mvpFormset\(")})
+        assert len(sets) == 2
+        scripts = soup.find_all("script", src=re.compile(r"js/formset\.js$"))
+        assert len(scripts) == 1
+        assert scripts[0].find_parent("head") is not None
+        assert not scripts[0].has_attr("defer"), (
             "Alpine is deferred in the base template, so a deferred tag here "
             "would register the component after alpine:init had fired."
         )
+
+    def test_a_template_of_its_own_gets_the_script_through_the_head_portal(self):
+        html = render(
+            '<head><c-portal name="head" /></head>'
+            '<body><c-mvp.form.formset :formset="formset" /></body>',
+            formset=RowFormSet(),
+        )
+
+        head = BeautifulSoup(html, "html.parser").find("head")
+        assert head.find("script", src=re.compile(r"js/formset\.js$"))
 
     def test_counters_seed_from_the_server_side_form_count(self):
         formset = forms.formset_factory(RowForm, can_delete=True, extra=1)(

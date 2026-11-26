@@ -108,8 +108,11 @@
               x-on:click="addRow()" only />
   </div>
   {% comment %}
-    Not `defer`: the base template already defers Alpine, so a deferred tag
-    here would run after `alpine:init` fired and never register.
+    Sent once per page to the layout's `head` portal, however many sets the
+    page draws. Not `defer`: the base template already defers Alpine, so a
+    deferred tag would run after `alpine:init` fired and never register.
   {% endcomment %}
-  <script src="{% static 'js/formset.js' %}"></script>
+  <c-portal to="head">
+    <script src="{% static 'js/formset.js' %}"></script>
+  </c-portal>
 {% endif %}

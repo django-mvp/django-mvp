@@ -70,6 +70,12 @@
       <script defer src="{% static 'js/django-mvp.js' %}"></script>
     {% endblock head %}
     {% comment %}
+      Scripts and styles a component sends with `<c-portal to="head">`, once
+      per page, such as the formset's. Outside `head` so overriding that block
+      keeps it. A plain script here still runs before the deferred bundle.
+    {% endcomment %}
+    <c-portal name="head" />
+    {% comment %}
       Only a theme's stylesheet knows its scheme, so it's read here, after every
       head stylesheet and before first paint. Outside `head` so overriding that
       block keeps it. The two rules are complements: one image of a pair shows.
