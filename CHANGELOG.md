@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.39.3] - 2026-11-26
+
 ### Added
 
 - `c-mvp.list.row` takes an `art` slot and draws it in the head of the sheet its actions open, before the title, as `c-mvp.sheet` does for its own `art` slot.
