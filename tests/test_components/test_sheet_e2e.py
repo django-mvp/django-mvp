@@ -75,6 +75,16 @@ PAGE = """
 <c-mvp.sheet id="tall" title="Tall">
   {% for row in rows %}<p>Row {{ row }}</p>{% endfor %}
 </c-mvp.sheet>
+<c-mvp.sheet id="fields" title="Fields">
+  <div><input id="fields-text" class="input w-full" type="text" aria-label="Text"></div>
+  <div><select id="fields-select" class="select w-full" aria-label="Choice">
+    <option>One</option>
+  </select></div>
+  <div><input id="fields-checkbox" class="checkbox" type="checkbox" aria-label="Tick"></div>
+  <div><input id="fields-radio" class="radio" type="radio" aria-label="Pick"></div>
+  <div><button type="button" id="fields-button" class="btn">Go</button></div>
+  <div><button type="button" id="fields-wide-button" class="btn w-full">Wide</button></div>
+</c-mvp.sheet>
 <c-mvp.sheet id="starts-full" title="Starts full" full><p>Short</p></c-mvp.sheet>
 <button type="button" id="open-starts-full" x-data
         @click="$dispatch('mvp-sheet-open', { id: 'starts-full' })">Full</button>
@@ -329,26 +339,102 @@ class TestOpening:
 
 class TestMenuWidth:
     @BOTH_WIDTHS
-    def test_the_menu_fills_the_width_of_the_sheet_body(
+    def test_the_menu_fills_the_width_of_the_sheet_body_and_lines_up_with_the_head(
         self, page, live_server, viewport
     ):
         open_page(page, live_server, viewport)
         page.click("#open-orders")
         settle(page)
 
-        widths = page.evaluate(
+        edges = page.evaluate(
             """() => {
-              const width = selector =>
-                document.querySelector(selector).getBoundingClientRect().width;
-              return [
-                width('#orders [data-mvp-sheet-body]'),
-                width('#orders [data-mvp-sheet-body] ul.menu'),
-              ];
+              const body = document.querySelector('#orders [data-mvp-sheet-body]');
+              const style = getComputedStyle(body);
+              const outer = body.getBoundingClientRect();
+              const edges = el => {
+                const r = el.getBoundingClientRect();
+                return [r.left, r.right];
+              };
+              return {
+                body: [
+                  outer.left + parseFloat(style.paddingLeft),
+                  outer.right - parseFloat(style.paddingRight),
+                ],
+                head: edges(document.querySelector('#orders [data-mvp-sheet-head]')),
+                menu: edges(body.querySelector('ul.menu')),
+              };
             }"""
         )
 
-        body, menu = widths
-        assert menu == pytest.approx(body, abs=1)
+        assert edges["menu"] == pytest.approx(edges["body"], abs=1)
+        assert edges["menu"] == pytest.approx(edges["head"], abs=1)
+
+
+SIDES = ("left", "right", "top", "bottom")
+
+
+def outline_room(page, sheet, control):
+    """How far the focused control's outline is cut off on each side, in pixels.
+
+    The body scrolls, so it clips whatever is drawn past its padding box. The
+    outline is drawn outline-width plus outline-offset outside the control.
+    """
+    return page.evaluate(
+        """([sheet, control]) => {
+          const body = document.querySelector(`#${sheet} [data-mvp-sheet-body]`);
+          const el = document.querySelector(control);
+          const style = getComputedStyle(el);
+          if (style.outlineStyle === 'none') return null;
+          const reach = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+          const clip = body.getBoundingClientRect();
+          const box = el.getBoundingClientRect();
+          return {
+            left: Math.max(0, clip.left - (box.left - reach)),
+            right: Math.max(0, (box.right + reach) - clip.right),
+            top: Math.max(0, clip.top - (box.top - reach)),
+            bottom: Math.max(0, (box.bottom + reach) - clip.bottom),
+          };
+        }""",
+        [sheet, control],
+    )
+
+
+class TestFocusOutline:
+    @BOTH_WIDTHS
+    def test_a_field_in_the_demo_sheet_shows_its_whole_outline(
+        self, page, live_server, viewport
+    ):
+        page.set_default_timeout(5000)
+        page.set_viewport_size(viewport)
+        page.goto(f"{live_server.url}/components/sheet/")
+        page.wait_for_function("() => window.Alpine && Alpine.version")
+        dispatch(page, id="note_sheet")
+        settle(page)
+        page.focus("#note_sheet input[name=note]")
+
+        assert outline_room(page, "note_sheet", "#note_sheet input[name=note]") == dict.fromkeys(SIDES, 0)
+
+    @BOTH_WIDTHS
+    @pytest.mark.parametrize(
+        "control",
+        [
+            "fields-text",
+            "fields-select",
+            "fields-checkbox",
+            "fields-radio",
+            "fields-button",
+            "fields-wide-button",
+        ],
+    )
+    def test_each_kind_of_control_shows_its_whole_outline(
+        self, page, live_server, viewport, control
+    ):
+        open_page(page, live_server, viewport)
+        dispatch(page, id="fields")
+        settle(page)
+        tab_to(page, control)
+
+        assert outline_room(page, "fields", f"#{control}") == dict.fromkeys(SIDES, 0)
 
 
 class TestGrabBarGap:
