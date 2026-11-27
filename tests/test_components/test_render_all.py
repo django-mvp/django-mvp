@@ -41,28 +41,30 @@ class TestComponentRenderSmoke:
         assert len(TEMPLATES) > 50, "cotton template discovery looks broken"
 
     @pytest.mark.django_db
-    @pytest.mark.parametrize("relpath", TEMPLATES)
-    def test_component_template_renders(self, relpath):
-        if relpath in SKIP:
-            pytest.skip(SKIP[relpath])
-
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-        # `name` satisfies c-icon, the one component whose only attribute is
-        # genuinely required. Everything else must survive an empty context.
-        render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
-
-    @pytest.mark.django_db
-    @pytest.mark.parametrize("relpath", [t for t in TEMPLATES if t not in SKIP])
-    def test_component_output_has_no_unrendered_template_tags(self, relpath):
+    def test_every_component_template_renders_without_leaking_template_tags(self):
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
 
-        html = render_to_string(f"cotton/{relpath}", {"name": "home"}, request=request)
+        failures = []
+        for relpath in TEMPLATES:
+            if relpath in SKIP:
+                continue
+            try:
+                # `name` satisfies c-icon, the one component whose only attribute
+                # is genuinely required. Everything else must survive an empty
+                # context.
+                html = render_to_string(
+                    f"cotton/{relpath}", {"name": "home"}, request=request
+                )
+            except Exception as error:
+                failures.append(f"{relpath}: {type(error).__name__}: {error}")
+                continue
+            # A default written as a template tag reaches the page as source when
+            # its library is not loaded where the default is compiled.
+            if "{%" in html:
+                failures.append(f"{relpath}: output contains an unrendered tag")
 
-        # A default written as a template tag reaches the page as source when
-        # its library is not loaded where the default is compiled.
-        assert "{%" not in html
+        assert not failures, "\n".join(failures)
 
 
 @pytest.mark.urls("tests.urls_search")
