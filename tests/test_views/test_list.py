@@ -1648,6 +1648,7 @@ class TestListFilterset:
 REMOVED_SETTINGS = [
     ("search_fields", ["name"], "SearchFilter"),
     ("order_by", [("name", "Name", "name")], "SortFilter"),
+    ("get_search_fields", lambda self: ["name"], "SearchFilter"),
 ]
 
 
