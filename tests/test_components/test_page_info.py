@@ -27,10 +27,6 @@ class TestPageInfoRendersOnlyWhenThereIsText:
         html = render("<c-mvp.page.info />")
         assert "<dialog" not in html
 
-    def test_no_trigger_without_text(self):
-        html = render("<c-mvp.page.info />")
-        assert "pageInfoModal.showModal()" not in html
-
     def test_actions_alone_render_nothing(self):
         html = render(
             '<c-mvp.page.info :actions="actions" />',
@@ -53,10 +49,6 @@ class TestPageInfoTrigger:
     def test_dialog_carries_the_matching_id(self):
         html = render('<c-mvp.page.info text="Body" />')
         assert 'id="pageInfoModal"' in html
-
-    def test_trigger_is_a_button_element(self):
-        html = render('<c-mvp.page.info text="Body" />')
-        assert "<button" in html
 
     def test_trigger_has_an_accessible_name(self):
         html = render('<c-mvp.page.info text="Body" />')

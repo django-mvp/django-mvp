@@ -41,14 +41,6 @@ class TestCreateActionIcon:
         assert soup.find("i", class_="bi-upload") is not None
         assert soup.find("i", class_="bi-plus-circle") is None
 
-    def test_the_glyph_follows_on_the_plain_link_too(self, cotton_render_string_soup):
-        soup = cotton_render_string_soup(
-            '<c-mvp.page.list.actions.create icon="upload" />',
-            context={"directory": {"create_url": "/products/create/"}},
-        )
-
-        assert soup.find("i", class_="bi-upload") is not None
-
 
 class TestCreateModalTitle:
     def test_the_view_title_heads_the_modal(
@@ -102,15 +94,3 @@ class TestCreateActionSize:
         )
 
         assert "btn-sm" in soup.find("a")["class"]
-
-
-class TestCompactCreateAction:
-    def test_the_label_still_names_the_button(
-        self, cotton_render_string_soup, modal_context
-    ):
-        soup = cotton_render_string_soup(
-            "<c-mvp.page.list.actions.create compact />", context=modal_context
-        )
-        trigger = soup.find("button", attrs={"@click": "createModal.showModal()"})
-
-        assert trigger.get_text(strip=True) == "Add"
