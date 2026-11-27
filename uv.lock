@@ -841,7 +841,7 @@ requires-dist = [
     { name = "django-filter", specifier = ">=26.1,<27" },
     { name = "django-flex-menus", specifier = ">=0.4.5" },
     { name = "django-mvp-forms", extras = ["timezone"], specifier = ">=0.11.0,<1.0" },
-    { name = "django-mvp-layout", specifier = ">=0.2.0,<0.3" },
+    { name = "django-mvp-layout", git = "https://github.com/django-mvp/django-mvp-layout.git?branch=fix-sidebar-slide-timing" },
     { name = "django-object-preferences", specifier = ">=0.3.1,<0.4" },
     { name = "django-timezone-field", specifier = ">=7.2,<8" },
     { name = "mergedeep", specifier = ">=1.3,<2.0" },
@@ -885,14 +885,10 @@ timezone = [
 [[package]]
 name = "django-mvp-layout"
 version = "0.2.0"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/django-mvp/django-mvp-layout.git?branch=fix-sidebar-slide-timing#cd412f41a8165c3bb5f1a024dc775a77b914338f" }
 dependencies = [
     { name = "django" },
     { name = "django-cotton" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/31/ff9cac68b993d354c24ce3de7852a866b69adfe5e791e484d6b62e8922c1/django_mvp_layout-0.2.0.tar.gz", hash = "sha256:8566597afaaa5f0933ab16e68601c1d84319e29f89d53ab21eb40079e538dcf1", size = 21200, upload-time = "2026-11-25T10:20:16.592Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/65/a59caa8f91cc35a7f920c1cb5c2c3fb1a7bedd2fcf21eb6716c9508b8eca/django_mvp_layout-0.2.0-py3-none-any.whl", hash = "sha256:b30de85fcedd57111c003f33b42bb51f5f511e1175454393734e1e06d9ddd3f3", size = 23900, upload-time = "2026-11-25T10:20:15.339Z" },
 ]
 
 [[package]]

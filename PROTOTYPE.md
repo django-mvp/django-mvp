@@ -183,6 +183,13 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   page links to it. (Sam)
 - 2026-11-27: The main sidebar shows no horizontal scrollbar. Its menu fills the layout's panel and
   sets no width of its own. (Sam)
+- 2026-11-27: A docked sidebar's page keeps to the panel's edge while it opens and closes, with no
+  empty strip behind the panel and no early jump of the page. Fixed in django-mvp-layout:
+  https://github.com/django-mvp/django-mvp-layout/issues/23,
+  https://github.com/django-mvp/django-mvp-layout/pull/24. The prototype installs that branch until
+  it is released. (Sam)
+- 2026-11-27: django-mvp-layout takes a time for a sidebar's open and close: one for the whole
+  site, and one per sidebar on `<c-layout.sidebar>`. Same pull request. (Sam)
 
 ## Decided on my own
 

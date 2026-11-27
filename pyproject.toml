@@ -94,6 +94,7 @@ dev = [
 
 [tool.uv.sources]
 mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.6.0" }
+django-mvp-layout = { git = "https://github.com/django-mvp/django-mvp-layout.git", branch = "fix-sidebar-slide-timing" }
 
 [build-system]
 requires = ["hatchling"]
