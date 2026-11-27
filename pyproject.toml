@@ -41,6 +41,7 @@ dependencies = [
     "django-crispy-forms (>=2.7,<3.0)",
     "django-mvp-forms[timezone]>=0.11.1,<1.0",   # the daisyUI template pack forms render with
     "daisy-cotton (>=0.3,<0.4)",
+    "django-mvp-layout>=0.3.0,<0.4",   # the header, body and footer stacking the card, dialog and sheet use
     "django-filter (>=26.1,<27)",  # every list page's search, sort and filters (ADR 0033)
     "css-inline>=0.23.1,<0.26",
     "tinycss2>=1.5.1,<2",
