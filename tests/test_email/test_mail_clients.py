@@ -11,6 +11,7 @@ import re
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.sites.models import Site
+from django.db import transaction
 from django.template import Context, Template
 from django_cotton.compiler_regex import CottonCompiler
 
@@ -61,15 +62,31 @@ def site(db, monkeypatch):
     Site.objects.clear_cache()
 
 
-_RENDERED = {}
+@pytest.fixture(scope="module")
+def html(django_db_setup, django_db_blocker):
+    """The child template rendered once for the module: most tests only read it.
 
-
-@pytest.fixture
-def html(site):
-    """The child template rendered once for the module: most tests only read it."""
-    if "child" not in _RENDERED:
-        _RENDERED["child"] = render()
-    return _RENDERED["child"]
+    The site is named and addressed inside a transaction that is rolled back,
+    and the settings and brand cache the render touches are restored, so the
+    one render leaves nothing behind for the next module.
+    """
+    with (
+        pytest.MonkeyPatch.context() as patch,
+        django_db_blocker.unblock(),
+        transaction.atomic(),
+    ):
+        patch.setitem(MVP_CONFIG, "site_name", None)
+        Site.objects.clear_cache()
+        Site.objects.filter(pk=1).update(domain="mail.example.com", name="Acme Mail")
+        Site.objects.clear_cache()
+        EmailBrand.current.cache_clear()
+        try:
+            rendered = render()
+        finally:
+            EmailBrand.current.cache_clear()
+            Site.objects.clear_cache()
+            transaction.set_rollback(True)
+    return rendered
 
 
 @pytest.fixture
