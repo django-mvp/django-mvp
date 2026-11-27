@@ -22475,7 +22475,7 @@
 .mvp-rail-only {
   display: none;
 }
-.mvpl-sidebar[data-mvpl-rail] .mvp-sidebar--icons {
+.mvpl-sidebar[data-mvpl-rail].mvp-sidebar--icons > .mvpl-panel {
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: none;
@@ -22573,12 +22573,11 @@
     display: flex;
   }
 }
-.mvp-sidebar {
-  max-height: 100dvh;
-}
-.mvpl-sidebar:not([data-mvpl-rail]) .mvp-sidebar {
-  overflow-y: auto;
+.mvpl-sidebar.mvp-sidebar:not([data-mvpl-rail]) > .mvpl-panel {
   scrollbar-gutter: stable;
+}
+.mvp-sidebar > .mvpl-panel {
+  background-color: inherit;
 }
 .mvpl-sidebar[data-mvpl-rail] > .mvpl-panel {
   translate: none;

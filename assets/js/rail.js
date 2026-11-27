@@ -54,7 +54,7 @@ export function startRail() {
   document.addEventListener(
     "scroll",
     (event) => {
-      if (event.target instanceof Element && event.target.matches(RAIL)) {
+      if (event.target instanceof Element && event.target.matches(`${RAIL} > .mvpl-panel`)) {
         placed.filter((item) => item.isConnected).forEach(place);
       }
     },

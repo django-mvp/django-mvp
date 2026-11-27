@@ -440,7 +440,7 @@
   display: none;
 }
 
-.mvpl-sidebar[data-mvpl-rail] .mvp-sidebar--icons {
+.mvpl-sidebar[data-mvpl-rail].mvp-sidebar--icons > .mvpl-panel {
   /* A rail taller than the window scrolls on its own instead of making the
      page taller (#563). A scroll box clips everything drawn against it, so
      the tooltips and group fly-outs below are drawn against the window and
@@ -616,21 +616,20 @@
   }
 }
 
-/* The sidebar is never taller than the window, in any state. Open it scrolls
-   (below), as a rail it scrolls on its own (above), and collapsed it is hidden
-   by width alone, where its menu would otherwise set the page's height (#562).
-   Collapsed, its overflow is hidden, so the limit clips nothing visible. */
-.mvp-sidebar {
-  max-height: 100dvh;
+/* The layout's panel is the sidebar's scroll box: django-mvp-layout scrolls a
+   fixed sidebar's panel and a drawer's, and HbF keeps the brand row and the
+   footer in place while it scrolls. Open, the panel reserves its scrollbar
+   gutter, so a vertical scrollbar appearing never widens the menu and
+   reflows it (#179). */
+.mvpl-sidebar.mvp-sidebar:not([data-mvpl-rail]) > .mvpl-panel {
+  scrollbar-gutter: stable;
 }
 
-/* Open, it reserves its scrollbar gutter, so a vertical scrollbar appearing
-   (enough menu items to overflow) never widens the sidebar and reflows the
-   main content (#179). It sets no width: the layout's panel is sized by the
-   sidebar's `width`, inside its border, and this fills it. */
-.mvpl-sidebar:not([data-mvpl-rail]) .mvp-sidebar {
-  overflow-y: auto;
-  scrollbar-gutter: stable;
+/* The sidebar's colour is its bg class, on the aside. As a drawer the panel
+   leaves the aside and django-mvp-layout paints it in its own default, so the
+   panel takes the aside's colour instead, whichever class set it. */
+.mvp-sidebar > .mvpl-panel {
+  background-color: inherit;
 }
 
 /* DaisyUI gives the sidebar a translate, for the drawer's slide, and a box

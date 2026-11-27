@@ -214,6 +214,10 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   default, settable for every sidebar or on one with `drawer-width`:
   https://github.com/django-mvp/django-mvp-layout/issues/25, in
   https://github.com/django-mvp/django-mvp-layout/pull/24. (Sam)
+- 2026-11-27: The main sidebar is django-mvp-layout's sidebar with `view="HbF"`, not a second box
+  inside it. `<c-app.sidebar>` draws `<c-layout.sidebar side="left" view="HbF">`, its brand row,
+  menu and footer sit straight inside the layout's panel, and the panel is the one thing that
+  scrolls. (Sam)
 
 ## Decided on my own
 
@@ -255,9 +259,14 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   itself, so the header, the footer and the close button stay in view without sticking, as before.
   A scrolling box would carry the close button away with it.
 - **The shell's left sidebar is `HbF`**, sticky header and footer, as its brand row and footer
-  were. The classes sit on `<c-app.sidebar>`'s own root, not on `<c-layout.sidebar view="HbF">`:
-  that root carries `boost`, `class`, the rail styles and the scroll rules, and the component form
-  needs the three parts straight inside the sidebar's panel.
+  were. `<c-app.sidebar>` is the layout's sidebar itself, so `boost`, `class` and `bg` land on its
+  `aside`, and `{% block app.sidebar %}` holds the whole sidebar.
+- **django-mvp-layout's stylesheet loads before django-mvp's**, as the package documents, so its
+  layer sits below Tailwind's components and utilities and a `bg` class on the sidebar beats the
+  layout's own background. As a drawer the panel takes the `aside`'s colour.
+- **`boost` off writes `hx-boost="false"`** on the sidebar rather than leaving the attribute out.
+  Cotton can't leave an attribute out of a component's tag, and false says what the setting says.
+- **The rail's scroll styles and its tooltip script follow the panel**, which is now what scrolls.
 - **A card with a figure is not stacked.** daisyUI places the figure above or beside the parts,
   which the three areas have no room for.
 - **The dialog is stacked only when it has a part.** The sheet and the search dialog call

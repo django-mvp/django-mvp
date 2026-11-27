@@ -59,6 +59,10 @@
       {% if icon_stylesheet_url %}
         <link rel="stylesheet" href="{{ icon_stylesheet_url }}" />
       {% endif %}
+      {# django-mvp-layout's stylesheet comes first, so its layer sits below #}
+      {# Tailwind's components and utilities, and a class on a sidebar, such #}
+      {# as its bg, beats the layout's own background. #}
+      <link rel="stylesheet" href="{% static 'mvp_layout/layout.css' %}" />
       {% block styles %}
         <link rel="stylesheet" href="{% static 'css/django-mvp.css' %}" />
       {% endblock styles %}
@@ -67,9 +71,8 @@
         load, so the UI does not depend on a third party staying up. Add
         your own Alpine plugins or htmx extensions by extending `head`.
       {% endcomment %}
-      {# The layout's stylesheet and script come from django-mvp-layout. Not #}
-      {# deferred: each layout mounts from a script right after its markup. #}
-      <link rel="stylesheet" href="{% static 'mvp_layout/layout.css' %}" />
+      {# The layout's script comes from django-mvp-layout. Not deferred: each #}
+      {# layout mounts from a script right after its markup. #}
       <script src="{% static 'mvp_layout/layout.js' %}"></script>
       <script defer src="{% static 'js/django-mvp.js' %}"></script>
     {% endblock head %}
@@ -157,35 +160,26 @@
                 </c-app.header>
               </c-layout.header>
             {% endblock app.header %}
-            <c-layout.sidebar side="left"
-                              :collapse="sb.collapse"
-                              :breakpoint="sb.breakpoint"
-                              :behavior="sb.behavior"
-                              :width="sb.width"
-                              persist="mvp-sidebar"
-                              class="mvp-sidebar-bg"
-                              label="{% trans 'Main navigation' %}">
-              {% block app.sidebar %}
-                {% comment %}
-                  A region block left empty draws the component's own default.
-                  Fill one and its content replaces that region outright.
-                {% endcomment %}
-                <c-app.sidebar :collapse="sb.collapse">
-                  <c-slot name="header">
-                    {% block app.sidebar.header %}
-                    {% endblock app.sidebar.header %}
-                  </c-slot>
-                  <c-slot name="body">
-                    {% block app.sidebar.body %}
-                    {% endblock app.sidebar.body %}
-                  </c-slot>
-                  <c-slot name="footer">
-                    {% block app.sidebar.footer %}
-                    {% endblock app.sidebar.footer %}
-                  </c-slot>
-                </c-app.sidebar>
-              {% endblock app.sidebar %}
-            </c-layout.sidebar>
+            {% block app.sidebar %}
+              {% comment %}
+                A region block left empty draws the component's own default.
+                Fill one and its content replaces that region outright.
+              {% endcomment %}
+              <c-app.sidebar :collapse="sb.collapse">
+                <c-slot name="header">
+                  {% block app.sidebar.header %}
+                  {% endblock app.sidebar.header %}
+                </c-slot>
+                <c-slot name="body">
+                  {% block app.sidebar.body %}
+                  {% endblock app.sidebar.body %}
+                </c-slot>
+                <c-slot name="footer">
+                  {% block app.sidebar.footer %}
+                  {% endblock app.sidebar.footer %}
+                </c-slot>
+              </c-app.sidebar>
+            {% endblock app.sidebar %}
             {% block app.main %}
               <c-layout.page>
                 <c-app.main>

@@ -1,7 +1,7 @@
-{# @description The app sidebar: brand header, AppMenu, fixed footer. #}
+{# @description The app sidebar: django-mvp-layout's left sidebar holding the brand header, AppMenu and a fixed footer. #}
 {# @prop bg:text | default:"mvp-sidebar-bg" | description:"Background class, passed to the header and footer." #}
 {# @prop brand-url:text | default:"/" | description:"URL the brand mark links to." #}
-{# @prop class:text | description:"Extra classes on the sidebar root." #}
+{# @prop class:text | description:"Extra classes on the sidebar's aside." #}
 {# @prop menu:text | default:"" | description:"Menu name to render. Empty renders AppMenu (or the mounted app's menu) with no back link." #}
 {# @prop :collapse:text | description:"How the sidebar collapses: icons for an icon rail, none to keep it open at/above the breakpoint, otherwise the default drawer behaviour." #}
 {# @prop :title:text | description:"Title text shown in the sidebar header." #}
@@ -9,7 +9,7 @@
 {# @slot:header — Replaces the top strip: brand icon, title, collapse toggle. #}
 {# @slot:body — Replaces the scrolling middle: the back link for a mounted app, then the menu. #}
 {# @slot:footer — Replaces the fixed bottom strip: user menu or log-in, theme, language. #}
-{% load flex_menu %}
+{% load i18n flex_menu %}
 {# The slots are declared so that an unfilled one is empty, rather than a #}
 {# page variable that happens to be called `header`, `body` or `footer`. #}
 <c-vars header=""
@@ -25,12 +25,21 @@
 {# The drawer lives inside <body>, and htmx swaps the body's innerHTML, so a #}
 {# boosted click renders a fresh drawer in its server-side (closed) state and #}
 {# the mobile overlay closes on its own. #}
-{# The layout's sidebar is the landmark and sets the width; this fills it. #}
-{# django-mvp-layout's HbF stacks the header, the menu and the footer, and #}
-{# keeps the header and the footer in place while the menu scrolls. #}
-<div class="mvp-sidebar HbF flex-1 w-full min-h-full {% if collapse == 'icons' %}mvp-sidebar--icons{% endif %} {{ bg }} {{ class }}"
-       {% if boost %}hx-boost="true"{% endif %}
-       {{ attrs }}>
+{# This is django-mvp-layout's left sidebar. view="HbF" stacks the header, #}
+{# the menu and the footer straight inside its panel, and keeps the header #}
+{# and the footer in place while the panel scrolls. #}
+{% with sb=mvp_config.layout.sidebar %}
+<c-layout.sidebar side="left"
+                  view="HbF"
+                  :collapse="collapse"
+                  :breakpoint="sb.breakpoint"
+                  :behavior="sb.behavior"
+                  :width="sb.width"
+                  persist="mvp-sidebar"
+                  label="{% trans 'Main navigation' %}"
+                  class="mvp-sidebar {% if collapse == 'icons' %}mvp-sidebar--icons{% endif %} {{ bg }} {{ class }}"
+                  hx-boost="{{ boost|yesno:'true,false' }}"
+                  :attrs="attrs">
   {% if header.strip %}
     {{ header }}
   {% else %}
@@ -60,4 +69,5 @@
   {% else %}
     <c-app.sidebar.footer :bg="bg" />
   {% endif %}
-</div>
+</c-layout.sidebar>
+{% endwith %}
