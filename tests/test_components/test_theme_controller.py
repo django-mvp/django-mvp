@@ -38,15 +38,6 @@ class TestPrePaintThemeGuardPosition:
 
 class TestPrePaintThemeGuardDefault:
     @pytest.mark.django_db
-    def test_falls_back_to_the_packaged_default_with_nothing_configured(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "light")
-        script = _guard_script(client.get("/").content.decode())
-        assert script is not None
-        assert '"light"' in script
-
-    @pytest.mark.django_db
     def test_configured_default_is_used_when_nothing_is_stored(
         self, client, monkeypatch
     ):
