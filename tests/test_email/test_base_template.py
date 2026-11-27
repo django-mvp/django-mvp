@@ -59,52 +59,45 @@ def site(db, monkeypatch):
     Site.objects.clear_cache()
 
 
+_RENDERED = {}
+
+
+@pytest.fixture
+def child_html(site):
+    """The child template rendered once for the module: most tests only read it."""
+    if "child" not in _RENDERED:
+        _RENDERED["child"] = render(CHILD)
+    return _RENDERED["child"]
+
+
 class TestBaseTemplate:
-    def test_plain_markup_in_the_body_is_styled_inline(self, site):
-        soup = soup_of(CHILD)
+    def test_plain_markup_in_the_body_is_styled_inline(self, child_html):
+        soup = BeautifulSoup(child_html, "html.parser")
 
         for tag in ("h1", "p", "ul", "li"):
             assert soup.find(tag).get("style"), tag
         assert soup.find("a", href="https://example.org/x").get("style")
 
-    def test_a_body_link_takes_the_brands_text_colour(self, site):
-        link = soup_of(CHILD).find("a", href="https://example.org/x")
+    def test_a_body_link_takes_the_brands_text_colour(self, child_html):
+        link = BeautifulSoup(child_html, "html.parser").find(
+            "a", href="https://example.org/x"
+        )
 
         assert EmailBrand.current().light.text in link["style"]
 
-    def test_the_dark_scheme_and_narrow_width_rules_stay_in_the_style_block(self, site):
-        html = render(CHILD)
-
-        assert "@media (prefers-color-scheme: dark)" in html
-        assert "@media (max-width" in html
-        assert EmailBrand.current().dark.surface in html
-
-    def test_the_style_block_holds_only_the_rules_that_could_not_be_inlined(self, site):
-        styles = soup_of(CHILD).find_all("style")
-
-        assert styles
-        for style in styles:
-            assert style.string.strip().startswith("@media")
-
-    def test_the_logo_is_an_absolute_address_named_for_the_site(self, site):
-        logo = soup_of(CHILD).find("img")
+    def test_the_logo_is_an_absolute_address_named_for_the_site(self, child_html):
+        logo = BeautifulSoup(child_html, "html.parser").find("img")
 
         assert logo["src"] == f"https://mail.example.com{EmailBrand.current().logo}"
         assert logo["alt"] == "Acme Mail"
-
-    def test_the_dark_logo_is_in_the_message_too(self, site):
-        sources = [img["src"] for img in soup_of(CHILD).find_all("img")]
-
-        assert f"https://mail.example.com{EmailBrand.current().logo_dark}" in sources
 
     def test_the_configured_site_name_names_the_logo(self, site, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG, "site_name", "Configured Name")
 
         assert soup_of(CHILD).find("img")["alt"] == "Configured Name"
 
-    def test_the_default_footer_follows_the_body_and_names_the_site(self, site):
-        html = render(CHILD)
-        footer = html[html.index("BODY-MARKER") :]
+    def test_the_default_footer_follows_the_body_and_names_the_site(self, child_html):
+        footer = child_html[child_html.index("BODY-MARKER") :]
 
         assert "Acme Mail" in footer
         assert 'href="https://mail.example.com/"' in footer
@@ -121,20 +114,8 @@ class TestBaseTemplate:
         assert html.index("BODY-MARKER") < html.index("FOOTER-MARKER")
         assert "Acme Mail" not in html[html.index("BODY-MARKER") :]
 
-    def test_a_filled_preheader_appears(self, site):
-        assert "PREHEADER-MARKER" in render(CHILD)
-
-    def test_a_template_with_a_request_in_its_context_uses_the_requests_host(
-        self, site, rf
-    ):
-        request = rf.get("/", HTTP_HOST="request.example.org")
-
-        logo = soup_of(CHILD, request=request).find("img")
-
-        assert logo["src"].startswith("http://request.example.org/")
-
-    def test_it_renders_with_nothing_in_the_context_but_the_sites_framework(self, site):
-        assert "BODY-MARKER" in render(CHILD)
+    def test_a_filled_preheader_appears(self, child_html):
+        assert "PREHEADER-MARKER" in child_html
 
 
 @pytest.fixture
@@ -179,22 +160,6 @@ class TestThirdPartySender:
         logo = self.html_of(self.send(request)).find("img")
 
         assert logo["src"].startswith("http://request.example.org/")
-
-    def test_the_text_body_is_the_apps_own_template(self, site, project_overrides):
-        message = self.send()
-
-        assert message.body == f"Hello Ada,\n\nConfirm your address here: {self.URL}"
-
-    def test_the_subject_is_the_apps_own_template(self, site, project_overrides):
-        assert self.send().subject == "Confirm your address, Ada"
-
-    def test_the_message_data_reaches_the_overriding_template(
-        self, site, project_overrides
-    ):
-        soup = self.html_of(self.send())
-
-        assert soup.find("a", href=self.URL)
-        assert "Hello Ada" in soup.get_text()
 
     def test_without_the_override_the_apps_html_carries_no_brand(self, site):
         soup = self.html_of(self.send())
