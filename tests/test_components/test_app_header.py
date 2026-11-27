@@ -11,6 +11,8 @@ carries, and all three fail loudly in HTML.
 """
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.test import RequestFactory
 
 from mvp.config import MVP_CONFIG
 from mvp.fixtures import _beautiful_soup
@@ -23,6 +25,21 @@ PAGE_WITHOUT_TRAIL = "/"
 
 def _soup(client, url):
     return _beautiful_soup()(client.get(url).content.decode(), "html.parser")
+
+
+@pytest.fixture
+def header(cotton_render_string_soup):
+    """Render ``<c-app.header>`` on its own, as it is configured at the time."""
+
+    def render():
+        request = RequestFactory().get(PAGE_WITH_TRAIL)
+        request.user = AnonymousUser()
+        return cotton_render_string_soup(
+            "<c-app.header />",
+            context={"mvp_config": MVP_CONFIG, "request": request},
+        )
+
+    return render
 
 
 @pytest.mark.django_db
@@ -42,33 +59,34 @@ class TestTheTrailLivesInTheHeader:
 
 @pytest.mark.django_db
 class TestTheHeaderLeadingEdge:
-    def test_the_site_icon_links_home(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        brand = soup.find("a", class_="mvp-navbar-brand")
+    def test_the_site_icon_links_home(self, header):
+        brand = header().find("a", class_="mvp-navbar-brand")
+
         assert brand is not None
         assert brand["href"] == "/"
 
 
 @pytest.mark.django_db
 class TestTheSidebarToggleOnMobile:
-    def _toggle_classes(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        toggle = soup.find(class_="navbar-start").find(
-            "label", attrs={"for": "mvp-app-toggle"}
+    def _toggle_classes(self, header):
+        toggle = (
+            header()
+            .find(class_="navbar-start")
+            .find("label", attrs={"for": "mvp-app-toggle"})
         )
         assert toggle is not None
         return toggle.get("class", [])
 
-    def test_the_toggle_gives_way_below_the_breakpoint_by_default(self, client):
-        assert "mvp-desktop-only" in self._toggle_classes(client)
+    def test_the_toggle_gives_way_below_the_breakpoint_by_default(self, header):
+        assert "mvp-desktop-only" in self._toggle_classes(header)
 
     def test_the_toggle_is_not_tied_to_the_desktop_when_the_setting_is_on(
-        self, client, monkeypatch
+        self, header, monkeypatch
     ):
         monkeypatch.setitem(
             MVP_CONFIG["layout"]["navbar"]["mobile"], "sidebar_toggle", True
         )
-        assert "mvp-desktop-only" not in self._toggle_classes(client)
+        assert "mvp-desktop-only" not in self._toggle_classes(header)
 
     def test_the_dock_still_carries_a_toggle_when_the_header_gives_its_own_up(
         self, client
@@ -79,8 +97,8 @@ class TestTheSidebarToggleOnMobile:
 
 @pytest.mark.django_db
 class TestTheHeaderShowsWhenHtmxIsWorking:
-    def test_the_header_draws_the_indicator(self, client):
-        indicator = _soup(client, PAGE_WITH_TRAIL).find(id="mvp-htmx-indicator")
+    def test_the_header_draws_the_indicator(self, header):
+        indicator = header().find(id="mvp-htmx-indicator")
 
         assert indicator is not None
         assert indicator.find_parent(class_="mvp-header") is not None
@@ -91,25 +109,25 @@ class TestTheHeaderShowsWhenHtmxIsWorking:
 class TestTheSiteNameBesideTheIcon:
     TITLE = "Example Portal"
 
-    def brand_of(self, client, monkeypatch, title=TITLE, **mobile):
+    def brand_of(self, header, monkeypatch, title=TITLE, **mobile):
         monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "title", title)
         for key, value in mobile.items():
             monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"]["mobile"], key, value)
-        return _soup(client, PAGE_WITH_TRAIL).find("a", class_="mvp-navbar-brand")
+        return header().find("a", class_="mvp-navbar-brand")
 
-    def test_the_header_shows_only_the_icon_by_default(self, client, monkeypatch):
-        brand = self.brand_of(client, monkeypatch)
+    def test_the_header_shows_only_the_icon_by_default(self, header, monkeypatch):
+        brand = self.brand_of(header, monkeypatch)
 
         assert self.TITLE not in brand.get_text()
 
     def test_the_header_shows_the_sidebar_title_beside_the_icon_when_asked(
-        self, client, monkeypatch
+        self, header, monkeypatch
     ):
-        brand = self.brand_of(client, monkeypatch, site_name=True)
+        brand = self.brand_of(header, monkeypatch, site_name=True)
 
         assert brand.get_text(strip=True) == self.TITLE
 
-    def test_no_sidebar_title_means_no_name_to_show(self, client, monkeypatch):
-        brand = self.brand_of(client, monkeypatch, title=None, site_name=True)
+    def test_no_sidebar_title_means_no_name_to_show(self, header, monkeypatch):
+        brand = self.brand_of(header, monkeypatch, title=None, site_name=True)
 
         assert brand.get_text(strip=True) == ""
