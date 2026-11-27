@@ -1,6 +1,48 @@
 {% extends "page_view.html" %}
 {% block page.actions %}
-  <c-mvp.actions.theme-controller />
+  {% comment %}
+    The theme menu here changes this page only. It sets data-theme without
+    saving it, so the next page is drawn in the site's own theme. The header's
+    theme menu still changes the whole site.
+  {% endcomment %}
+  <c-mvp.dropdown halign="end" only>
+    <c-slot name="button">
+      <c-button ghost
+                icon="theme.light"
+                size="sm"
+                class="btn-square"
+                tabindex="0"
+                role="button"
+                title="Try a theme on this page"
+                aria-label="Try a theme on this page" only />
+    </c-slot>
+    <c-menu aria-label="Try a theme on this page" size="sm" class="w-full" only>
+      {% for choice in mvp_config.theme.choices %}
+        <c-menu.item text="{{ choice }}" data-try-theme="{{ choice }}" only />
+      {% endfor %}
+    </c-menu>
+  </c-mvp.dropdown>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      // Remembered once, so a second visit in the same boosted session keeps
+      // the site's theme to go back to.
+      window.demoSiteTheme ??= root.getAttribute("data-theme");
+      document.querySelectorAll("[data-try-theme]").forEach((item) => {
+        item.addEventListener("click", () => root.setAttribute("data-theme", item.dataset.tryTheme));
+      });
+      if (window.demoThemeRestore) return;
+      // A boosted link swaps the body and keeps <html>, so the tried theme
+      // would stay. Put the site's theme back once this page is gone.
+      window.demoThemeRestore = () => {
+        if (document.querySelector("[data-try-theme]") || window.demoSiteTheme === undefined) return;
+        root.setAttribute("data-theme", window.demoSiteTheme);
+        window.demoSiteTheme = undefined;
+      };
+      document.addEventListener("htmx:afterSettle", window.demoThemeRestore);
+      document.addEventListener("htmx:historyRestore", window.demoThemeRestore);
+    })();
+  </script>
 {% endblock page.actions %}
 {% block page.content %}
   <c-mvp.text muted tight class="text-lg">
@@ -14,7 +56,8 @@
   </c-mvp.text>
   <c-mvp.text muted tight class="mt-2 text-lg">
     Everything a theme paints, on one page, drawn from the real components.
-    Pick a theme with the button beside the title, or edit one in
+    Try a theme with the button beside the title, which changes this page only,
+    or edit one in
     demo/static/css/themes.css and reload. The header, sidebar and dock around
     this page are part of the test.
   </c-mvp.text>
