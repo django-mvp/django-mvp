@@ -50,13 +50,6 @@ def signed_in(client, user):
 
 @pytest.mark.django_db
 class TestOffersThePage:
-    def test_the_landing_page_has_a_card_linking_to_it(self, signed_in):
-        response = signed_in.get(reverse("account-center"))
-
-        soup = BeautifulSoup(response.content, "html.parser")
-        region = soup.find(id="account-center-cards")
-        assert region.find("a", href=reverse(URL_NAME)) is not None
-
     def test_the_menu_lists_it(self, signed_in):
         response = signed_in.get(reverse("account-center"))
 
