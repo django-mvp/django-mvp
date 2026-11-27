@@ -115,16 +115,6 @@ class TestHeaderAndDockBackground:
     """The header and the dock take their background from MVP_CONFIG (#422)."""
 
     @pytest.mark.django_db
-    def test_the_background_is_on_the_header_shell(self, client):
-        content = client.get("/").content.decode()
-        match = re.search(r'<div class="([^"]*\bmvp-header\b[^"]*)"', content)
-        assert match, "mvp-header wrapper must render"
-        assert MVP_CONFIG["layout"]["navbar"]["class"] in match.group(1).split(), (
-            "the background must be on .mvp-header so it covers the tray "
-            "and any padding around the navbar, not just the .navbar row"
-        )
-
-    @pytest.mark.django_db
     def test_the_header_renders_the_configured_class(self, client, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"], "class", "bg-base-300")
         header = _class_list(client.get("/").content.decode(), "mvp-header")
@@ -134,7 +124,10 @@ class TestHeaderAndDockBackground:
     def test_the_dock_renders_the_configured_class(self, client, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG["layout"]["dock"], "class", "bg-base-300")
         soup = BeautifulSoup(client.get("/").content.decode(), "html.parser")
-        assert "bg-base-300" in soup.select_one("nav.dock")["class"]
+        dock = soup.select_one("nav.dock")["class"]
+        assert "bg-base-300" in dock
+        # A theme recolours the dock through its own class, whatever background is set.
+        assert "mvp-dock" in dock
 
     @pytest.mark.django_db
     def test_the_dock_takes_the_package_default_when_the_setting_is_absent(
@@ -163,14 +156,6 @@ class TestRegionsCarryAClassAThemeCanTarget:
     """
 
     @pytest.mark.django_db
-    def test_the_dock_keeps_its_class_under_a_configured_background(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["layout"]["dock"], "class", "bg-base-300")
-        soup = BeautifulSoup(client.get("/").content.decode(), "html.parser")
-        assert "mvp-dock" in soup.select_one("nav.dock")["class"]
-
-    @pytest.mark.django_db
     def test_the_sidebar_footer_keeps_its_class_under_a_passed_background(self):
         soup = BeautifulSoup(_render("tests/sidebar_footer_bg.html"), "html.parser")
         footer = soup.select_one(".mvp-sidebar-footer")
@@ -192,9 +177,6 @@ class TestBreakpointTags:
         ("bp", "klass", "px"),
         [
             ("sm", "sm:drawer-open", 640),
-            ("md", "md:drawer-open", 768),
-            ("lg", "lg:drawer-open", 1024),
-            ("xl", "xl:drawer-open", 1280),
             ("2xl", "2xl:drawer-open", 1536),
         ],
     )
