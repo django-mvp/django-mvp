@@ -38,7 +38,6 @@ urlpatterns = [
     path("search/", include("mvp.search.urls")),
     mount("library/", library),
     path("layout/", views.layout_demo, name="layout"),
-    path("layout/code/", views.layout_code_demo, name="layout-code"),
     path("layout/sidebar/", views.layout_sidebar_demo, name="layout-sidebar"),
     path("layout/header/", views.layout_header_demo, name="layout-header"),
     path("layout/full-page/", views.full_page_map_demo, name="full-page-map"),

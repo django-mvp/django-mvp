@@ -2,6 +2,9 @@
 {% block layout.intro %}
   Every page that extends <code>mvp/base.html</code> is drawn inside the app shell. The shell has
   five regions, and each one is a block a template can replace. The sidebar and the header have regions of their own, each on its own page.
+  One layout code in <code>MVP_CONFIG["layout"]["view"]</code> arranges them. Every code, and what
+  each letter does, is in
+  <a class="link" href="{{ layout_docs_url }}">django-mvp-layout's documentation</a>.
 {% endblock layout.intro %}
 {% block layout.diagram %}
   <c-demo.layout.region name="announcement" note="Above the shell. Scrolls away with the page." class="mb-2" />
@@ -14,3 +17,12 @@
     </c-demo.layout.shell>
   </c-demo.layout.region>
 {% endblock layout.diagram %}
+{% block app.secondary_sidebar %}
+  <div class="flex flex-col gap-4" id="app-layout-aside">
+    <h2 class="text-sm font-semibold text-base-content/70">The right sidebar</h2>
+    <p class="text-sm">
+      This page fills <code>app.secondary_sidebar</code>, so the shell draws a right sidebar and a
+      button in the navbar to open and close it. A page that leaves the block empty has none.
+    </p>
+  </div>
+{% endblock app.secondary_sidebar %}

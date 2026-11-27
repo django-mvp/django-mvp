@@ -40,7 +40,7 @@ gets a right sidebar by filling a template block.
 - The dock's Menu item is a button with `data-mvpl-toggle="left" data-mvpl-layout="mvp-app"`.
 - Full-height pages (`<c-mvp.page fill>`) fill the window inside the layout's grid.
 
-Screens: every page. http://devserver:8002/layout/code/ fills the right sidebar,
+Screens: every page. http://devserver:8002/layout/ fills the right sidebar,
 http://devserver:8002/products/ has none, http://devserver:8002/layout/full-page/ is a filled page.
 
 ### 2. A card built from parts, with a layout (feature)
@@ -96,9 +96,9 @@ http://devserver:8002/components/modal/#sections-in-a-sidebar, #two-sidebars,
 
 ### 4. Demo pages (resolve)
 
-The Layout code page (`/layout/code/`: the current code, a diagram of it, a form to try another,
-five presets, a table of the letters, the right sidebar filled) and the new card and modal
-examples. Nobody gets a new way of working from them, so this is resolve work that comes with
+The App page links to django-mvp-layout's documentation of the layout code
+(https://django-mvp.github.io/django-mvp-layout/developer/layout-code.html) and fills the right
+sidebar. The demo has no page of its own for the code. The new card and modal examples. Nobody gets a new way of working from them, so this is resolve work that comes with
 features 1 to 3.
 
 ## Shared pieces
@@ -110,7 +110,7 @@ features 1 to 3.
 | Box styles (part spacing, `--mvpl-sidebar-bg`, `--mvpl-line`, header and footer rules) | `mvp/tailwind/base.css`, the block in `@layer utilities { @layer daisyui.l1.l2 }` | Kept, keyed to `.mvp-box-layout` and the parts' classes | 2 |
 | Rail-aware variants `is-drawer-open` / `is-drawer-close` | `mvp/tailwind/base.css` (`@custom-variant`) | Kept, keyed to `.mvpl-sidebar[data-mvpl-rail]` | 1 |
 | Rail labels | `mvp-sidebar--icons` rules in `mvp/tailwind/base.css` and the package's `.mvpl-rail-hide` / `.mvpl-rail-only` | One mechanism: the package's classes, used by django-mvp's menu | 1 |
-| Parsing the code | `demo/views.py` (`LayoutCodeView`) and the package's `LayoutView.parse` | The package's parser, also called by a django-mvp system check on `layout.view` | 1 |
+| Parsing the code | The package's `LayoutView.parse` | The package's parser, also called by a django-mvp system check on `layout.view` | 1 |
 
 ## Duplication to remove
 
@@ -134,14 +134,13 @@ features 1 to 3.
 | `mvp/templates/cotton/mvp/box/header.html, footer.html` | 2 | Same paths |
 | `mvp/templates/cotton/mvp/sheet/index.html`, `search/dialog.html`, `page/info.html`, `page/list/actions/create.html`, `actions/language_switcher_modal.html`, `mvp/templates/mvp/account/overview.html`, `mvp/pwa/install.html` | 2, 3 | Same paths |
 | `docs/adr/0047-the-card-and-the-modal-override-daisy-cottons.md`, the status line of `docs/adr/0030-…` | 2, 3 | Same paths |
-| `demo/templates/demo/layout/code.html`, `demo/views.py` (`LayoutCodeView`), `demo/urls.py`, `demo/menus.py` | 4 | Same paths |
+| `demo/templates/demo/layout/app.html` (the link and the right sidebar), `demo/views.py`, `demo/urls.py`, `demo/menus.py` | 4 | Same paths |
 | `demo/templates/demo/components/card.html`, `modal.html` (every section) | 4 | Same paths |
 | Every other demo template with a card or dialog: `landing.html`, `dashboard.html`, `theme_customization.html`, `theme_preview.html`, `components/index.html`, `layout/code.html`, `cards/product_card.html`, `account_showcase/…/overview.html` | 2, 3 | Same paths |
 
 Screens for the parity check, each at 390 and 1440 wide, signed out and as `regular.user`:
 
-- http://devserver:8002/layout/code/, with each sidebar open and closed
-- http://devserver:8002/layout/code/?view=hHh+LpR+fFf
+- http://devserver:8002/layout/, with each sidebar open and closed
 - http://devserver:8002/products/ (no right sidebar)
 - http://devserver:8002/layout/full-page/
 - http://devserver:8002/components/card/ (every section, each sidebar opened and closed)
@@ -180,6 +179,8 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   parts. `<c-mvp.modal>` goes, with no alias. (Sam)
 - 2026-11-25: django-mvp uses django-mvp-layout 0.2.0's hbf classes for every header, body and
   footer stack. (Sam)
+- 2026-11-27: The demo has no layout code page. django-mvp-layout documents the code, and the App
+  page links to it. (Sam)
 
 ## Decided on my own
 
