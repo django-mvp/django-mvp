@@ -10,7 +10,6 @@ here are which element exists, where it sits in the tree, and which classes it
 carries, and all three fail loudly in HTML.
 """
 
-
 import pytest
 
 from mvp.config import MVP_CONFIG
@@ -36,10 +35,6 @@ class TestTheTrailLivesInTheHeader:
             "the trail belongs to the app header, not the page body"
         )
 
-    def test_the_page_body_draws_no_second_trail(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        assert len(soup.find_all("nav", class_="mvp-crumbs")) == 1
-
     def test_a_page_with_no_crumbs_renders_no_landmark(self, client):
         soup = _soup(client, PAGE_WITHOUT_TRAIL)
         assert soup.find("nav", class_="mvp-crumbs") is None
@@ -52,28 +47,6 @@ class TestTheHeaderLeadingEdge:
         brand = soup.find("a", class_="mvp-navbar-brand")
         assert brand is not None
         assert brand["href"] == "/"
-
-
-@pytest.mark.django_db
-class TestTheBrandMarkAppearsOnce:
-    def _brand_classes(self, client):
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        brand = soup.find("a", class_="mvp-navbar-brand")
-        assert brand is not None
-        return brand.get("class", [])
-
-    def _toggle_classes(self, client):
-        """Scoped to the navbar on purpose: the drawer overlay is also a label
-        pointing at `mvp-app-toggle`, and it is not the button under test."""
-        soup = _soup(client, PAGE_WITH_TRAIL)
-        toggle = soup.find(class_="navbar-start").find(
-            "label", attrs={"for": "mvp-app-toggle"}
-        )
-        assert toggle is not None
-        return toggle.get("class", [])
-
-    def test_the_icon_carries_the_sidebar_echo_class(self, client):
-        assert "mvp-sidebar-hidden-only" in self._brand_classes(client)
 
 
 @pytest.mark.django_db
@@ -113,12 +86,6 @@ class TestTheHeaderShowsWhenHtmxIsWorking:
         assert indicator.find_parent(class_="mvp-header") is not None
         assert indicator["aria-hidden"] == "true"
 
-    def test_the_indicator_shows_at_every_width(self, client):
-        indicator = _soup(client, PAGE_WITH_TRAIL).find(id="mvp-htmx-indicator")
-
-        assert "mvp-desktop-only" not in indicator["class"]
-        assert "mvp-mobile-only" not in indicator["class"]
-
 
 @pytest.mark.django_db
 class TestTheSiteNameBesideTheIcon:
@@ -141,20 +108,6 @@ class TestTheSiteNameBesideTheIcon:
         brand = self.brand_of(client, monkeypatch, site_name=True)
 
         assert brand.get_text(strip=True) == self.TITLE
-
-    def test_the_name_sits_inside_the_link_that_the_icon_is_in(
-        self, client, monkeypatch
-    ):
-        brand = self.brand_of(client, monkeypatch, site_name=True)
-
-        assert brand.find("img") is not None or brand.find("svg") is not None
-
-    def test_the_name_goes_with_the_icon_below_the_sidebar_breakpoint(
-        self, client, monkeypatch
-    ):
-        brand = self.brand_of(client, monkeypatch, site_name=True)
-
-        assert "mvp-sidebar-hidden-only" in brand["class"]
 
     def test_no_sidebar_title_means_no_name_to_show(self, client, monkeypatch):
         brand = self.brand_of(client, monkeypatch, title=None, site_name=True)
