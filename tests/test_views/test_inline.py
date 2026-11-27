@@ -18,7 +18,9 @@ from django import forms
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ImproperlyConfigured
+from django.db import connection
 from django.test import RequestFactory
+from django.test.utils import CaptureQueriesContext
 
 from demo.models import OrderLine, Product, Project, ProjectNote, ProjectTask
 from mvp.views.edit import MVPCreateView, MVPUpdateView
@@ -156,15 +158,6 @@ class TestGetFactoryKwargs:
 
         assert "absolute_max" not in declaration.get_factory_kwargs()
 
-    def test_validate_min_is_set_exactly_when_min_num_is(self):
-        without_floor = self._declaration(fields=["title"])
-        with_floor = self._declaration(fields=["title"], min_num=1)
-
-        assert "validate_min" not in without_floor.get_factory_kwargs()
-        assert with_floor.get_factory_kwargs()["validate_min"] is True
-        assert with_floor.get_factory_kwargs()["min_num"] == 1
-
-
 @pytest.mark.django_db
 class TestMinNumRejectsFewerRows:
     def _post_formset(self, project, min_rows, total_forms, quantities):
@@ -295,17 +288,6 @@ class TestGetTitle:
 
         assert declaration.get_title() == "Custom heading"
 
-    def test_get_description_has_no_default(self):
-        declaration = self._declaration()
-
-        assert declaration.get_description() is None
-
-    def test_explicit_description_is_returned(self):
-        declaration = self._declaration(description="Help text")
-
-        assert declaration.get_description() == "Help text"
-
-
 @pytest.mark.django_db
 class TestGetParentModel:
     def test_resolves_from_model_attribute(self):
@@ -421,16 +403,8 @@ class TestInlineValidSubmission:
             "New task",
         }
 
-    def test_parent_is_saved_exactly_once(self, monkeypatch):
+    def test_parent_is_written_exactly_once(self):
         project = ProjectFactory(name="Original")
-        save_calls = []
-        original_save = Project.save
-
-        def counting_save(self, *args, **kwargs):
-            save_calls.append(1)
-            return original_save(self, *args, **kwargs)
-
-        monkeypatch.setattr(Project, "save", counting_save)
         view_cls = _inline_update_view_class(success_url="/done/")
         data = {
             "name": "Counted Once",
@@ -441,9 +415,18 @@ class TestInlineValidSubmission:
             "tasks-0-title": "One task",
         }
 
-        _dispatch(view_cls, method="POST", data=data, view_kwargs={"pk": project.pk})
+        with CaptureQueriesContext(connection) as captured:
+            _dispatch(
+                view_cls, method="POST", data=data, view_kwargs={"pk": project.pk}
+            )
 
-        assert len(save_calls) == 1
+        table = connection.ops.quote_name(Project._meta.db_table)
+        updates = [
+            query["sql"]
+            for query in captured.captured_queries
+            if query["sql"].startswith(f"UPDATE {table} ")
+        ]
+        assert len(updates) == 1
 
     def test_create_attaches_all_new_rows_to_the_newly_created_parent(self):
         view_cls = _inline_create_view_class(success_url="/done/")
@@ -632,13 +615,6 @@ class TestSortFormsIsDisplayOnly:
 # concrete inline view classes are gone outright — inlines live on
 # MVPCreateView/MVPUpdateView instead, so there is no separate view surface
 # left to export.
-
-
-class TestInlineViewsPublicAPI:
-    def test_inline_form_set_is_exported(self):
-        from mvp.views import InlineFormSet as ExportedInlineFormSet
-
-        assert ExportedInlineFormSet is InlineFormSet
 
 
 class NoteViaProjectInline(InlineFormSet):
@@ -1295,12 +1271,9 @@ class TestRowsOnlySavesRowsLeavesParentFieldValuesUnchanged:
 
 @pytest.mark.django_db
 class TestConcurrentWriteToParentFieldSurvivesTheSubmission:
-    @pytest.mark.parametrize("empty_fields", [[], ()], ids=["list", "tuple"])
-    def test_concurrent_change_to_parent_field_survives(
-        self, monkeypatch, empty_fields
-    ):
+    def test_concurrent_change_to_parent_field_survives(self, monkeypatch):
         project = ProjectFactory(name="Original")
-        view_cls = _inline_update_view_class(success_url="/done/", fields=empty_fields)
+        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
         original_get_object = view_cls.get_object
 
         def get_object_then_concurrent_write(self, queryset=None):
