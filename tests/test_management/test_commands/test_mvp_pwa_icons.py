@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.test import override_settings
 
 from mvp.config import MVP_CONFIG
 from mvp.pwa import IMAGE_DIRECTORY, IMAGES
@@ -98,11 +99,34 @@ def mark(brand_dir):
     return path
 
 
-@pytest.fixture
-def images(output_dir, mark):
-    call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
-    directory = output_dir / IMAGE_DIRECTORY
+def render_images(tmp_path_factory, svg, theme_color):
+    """Run the command once on ``svg`` and give every image it wrote, by key."""
+    root = tmp_path_factory.mktemp("pwa-icons")
+    static = root / "project-static"
+    (static / "brand").mkdir(parents=True)
+    (static / "brand" / "icon.svg").write_text(svg)
+    with (
+        override_settings(STATICFILES_DIRS=[static]),
+        pytest.MonkeyPatch.context() as patch,
+    ):
+        patch.setitem(MVP_CONFIG, "pwa", {"theme_color": theme_color})
+        call_command(
+            "mvp_pwa_icons", output_dir=str(root / "out"), stdout=io.StringIO()
+        )
+    directory = root / "out" / IMAGE_DIRECTORY
     return {key: (directory / file).read_bytes() for key, file in IMAGES.items()}
+
+
+@pytest.fixture(scope="module")
+def images(tmp_path_factory):
+    """The four images drawn from a red square: tests only read them."""
+    return render_images(tmp_path_factory, RED_SQUARE, "#ffffff")
+
+
+@pytest.fixture(scope="module")
+def round_images(tmp_path_factory):
+    """The four images drawn from a round mark on a green theme colour."""
+    return render_images(tmp_path_factory, ROUND_MARK, "#00ff00")
 
 
 class TestMvpPwaIcons:
@@ -111,14 +135,16 @@ class TestMvpPwaIcons:
             assert png_size(images[key]) == (side, side)
 
     def test_rerunning_after_the_mark_changes_rewrites_the_images(
-        self, images, mark, output_dir
+        self, mark, output_dir
     ):
+        icon = output_dir / IMAGE_DIRECTORY / IMAGES["icon_512"]
+        call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
+        first = icon.read_bytes()
         mark.write_text(BLUE_SQUARE)
 
         call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
 
-        rewritten = (output_dir / IMAGE_DIRECTORY / IMAGES["icon_512"]).read_bytes()
-        assert rewritten != images["icon_512"]
+        assert icon.read_bytes() != first
 
     def test_a_non_square_mark_is_centred_not_stretched(self, mark, output_dir):
         mark.write_text(TALL_MARK)
@@ -132,26 +158,13 @@ class TestMvpPwaIcons:
         assert row[-1][3] == 0
         assert row[len(row) // 2] == (255, 0, 0, 255)
 
-    def test_plain_icons_have_a_transparent_corner(self, mark, output_dir):
-        mark.write_text(ROUND_MARK)
-
-        call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
-
+    def test_plain_icons_have_a_transparent_corner(self, round_images):
         for key in ("icon_192", "icon_512"):
-            data = (output_dir / IMAGE_DIRECTORY / IMAGES[key]).read_bytes()
-            assert first_row(data)[0][3] == 0
+            assert first_row(round_images[key])[0][3] == 0
 
-    def test_maskable_and_apple_images_are_opaque_in_the_corner(
-        self, mark, output_dir, monkeypatch
-    ):
-        mark.write_text(ROUND_MARK)
-        monkeypatch.setitem(MVP_CONFIG, "pwa", {"theme_color": "#00ff00"})
-
-        call_command("mvp_pwa_icons", output_dir=str(output_dir), stdout=io.StringIO())
-
+    def test_maskable_and_apple_images_are_opaque_in_the_corner(self, round_images):
         for key in ("icon_maskable_512", "apple_touch_icon"):
-            data = (output_dir / IMAGE_DIRECTORY / IMAGES[key]).read_bytes()
-            assert first_row(data)[0] == (0, 255, 0, 255)
+            assert first_row(round_images[key])[0] == (0, 255, 0, 255)
 
     def test_the_padded_images_keep_the_mark_inside_the_safe_zone(self, images):
         row = first_row(images["icon_maskable_512"])
