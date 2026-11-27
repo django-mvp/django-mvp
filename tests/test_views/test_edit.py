@@ -1592,6 +1592,16 @@ class TestCreateViewWithOnlyFormClassIsUnaffectedByInlinesMixin:
             },
         )
 
+    @pytest.mark.django_db
+    def test_saves_on_valid_submission(self):
+        response = _dispatch_with_messages(
+            self._view_class(),
+            method="POST",
+            data={"name": "New Product", "description": "", "price": ""},
+        )
+        assert response.status_code == 302
+        assert Product.objects.filter(name="New Product").exists()
+
 
 class TestUpdateViewWithNoInlinesIsUnaffectedByInlinesMixin:
     def _view_class(self, **extra_attrs):
@@ -1608,6 +1618,22 @@ class TestUpdateViewWithNoInlinesIsUnaffectedByInlinesMixin:
                 **extra_attrs,
             },
         )
+
+    @pytest.mark.django_db
+    def test_valid_submission_redirects_and_saves(self):
+        product = ProductFactory(name="Original")
+
+        response = _dispatch_with_messages(
+            self._view_class(),
+            method="POST",
+            data={"name": "Renamed"},
+            view_kwargs={"pk": product.pk},
+        )
+
+        assert response.status_code == 302
+        assert response["Location"] == "/done/"
+        product.refresh_from_db()
+        assert product.name == "Renamed"
 
     @pytest.mark.django_db
     def test_invalid_submission_does_not_re_read_the_object_from_the_database(
