@@ -22591,7 +22591,7 @@
   display: none;
 }
 .mvp-actions .btn {
-  --size: calc(var(--size-field, 0.25rem) * 10);
+  --size: calc(var(--size-field, 0.25rem) * 8);
 }
 .mvp-actions .btn-square, .mvp-actions .dropdown > .btn {
   width: var(--size);
@@ -23754,7 +23754,7 @@ html {
 }
 @media (pointer: coarse) {
   .mvp-crumbs > ol > li > a {
-    padding-block: 0.375rem;
+    padding-block: 0.25rem;
   }
   .mvp-crumbs-fold-button {
     height: 2.25rem;
@@ -23770,8 +23770,12 @@ html {
 @container mvp-header (width < 36rem) {
   .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) {
     flex-wrap: wrap;
-    row-gap: 0.25rem;
-    padding-bottom: 0.625rem;
+    row-gap: 0;
+    min-height: 0;
+    padding-block: 0.25rem;
+  }
+  .mvp-header .mvp-local-nav .tab {
+    --tab-height: 2rem;
   }
   .mvp-header .navbar-start:has(> .mvp-crumbs) {
     display: contents;

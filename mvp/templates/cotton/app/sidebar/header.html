@@ -19,7 +19,7 @@
   </div>
   {# The header's actions, here only while the sidebar is a drawer (base.css). #}
   {% if mvp_config.layout.navbar.actions %}
-    <div class="mvp-actions mvp-sidebar-actions mt-2 flex items-center gap-1">
+    <div class="mvp-actions mvp-sidebar-actions mt-1 flex items-center gap-0">
       {% for widget in mvp_config.layout.navbar.actions %}
         <c-component :is="widget" />
       {% endfor %}

@@ -52,19 +52,19 @@
                id="mvp-htmx-indicator"
                aria-hidden="true"
                only />
+    {{ end }}
+    {% for widget in mvp_config.layout.navbar.end %}
+      <c-component :is="widget" />
+    {% endfor %}
     {# The header's actions give way to the sidebar's own copy while the #}
     {# sidebar is a drawer (base.css). #}
     {% if mvp_config.layout.navbar.actions %}
-      <div class="mvp-actions mvp-header-actions flex items-center gap-1">
+      <div class="mvp-actions mvp-header-actions flex items-center gap-0">
         {% for widget in mvp_config.layout.navbar.actions %}
           <c-component :is="widget" />
         {% endfor %}
       </div>
     {% endif %}
-    {{ end }}
-    {% for widget in mvp_config.layout.navbar.end %}
-      <c-component :is="widget" />
-    {% endfor %}
     {# Drawn only on a page with a secondary sidebar that can be toggled. #}
     <c-layout.toggle side="right"
                      :label="mvp_config.layout.secondary_sidebar.label"

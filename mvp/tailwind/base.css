@@ -620,15 +620,16 @@
    header, and in a row under the sidebar's brand. Only one shows. While the
    left sidebar is a drawer, which django-mvp-layout marks with
    data-mvpl-mode="overlay" before first paint, a phone has no room in the
-   header, so they sit in the sidebar. Every action is the same square, so a
-   theme menu and a language menu never differ in size. */
+   header, so they sit in the sidebar. Every action is the same small square
+   with no gap between them, so a theme menu and a language menu never differ
+   in size and five actions still fit beside the search. */
 .mvp-app:has(.mvp-sidebar[data-mvpl-mode="overlay"]) .mvp-header-actions,
 .mvp-sidebar:not([data-mvpl-mode="overlay"]) .mvp-sidebar-actions {
   display: none;
 }
 
 .mvp-actions .btn {
-  --size: calc(var(--size-field, 0.25rem) * 10);
+  --size: calc(var(--size-field, 0.25rem) * 8);
 }
 
 .mvp-actions .btn-square,
@@ -638,8 +639,8 @@
   padding-inline: 0;
 }
 
-/* The log-in button is the header's last item, after the actions, wherever
-   layout.navbar.end lists it. */
+/* The log-in button is the header's last item, after the search and the
+   actions, wherever layout.navbar.end lists it. */
 .mvp-header .navbar-end > .mvp-login {
   order: 1;
 }
@@ -2315,7 +2316,7 @@ html {
 
 @media (pointer: coarse) {
   .mvp-crumbs > ol > li > a {
-    padding-block: 0.375rem;
+    padding-block: 0.25rem;
   }
 
   .mvp-crumbs-fold-button {
@@ -2340,10 +2341,17 @@ html {
 }
 
 @container mvp-header (width < 36rem) {
+  /* A phone keeps the header short, since a fixed header takes its height
+     from every page: the brand row, the breadcrumbs and the tabs sit close. */
   .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) {
     flex-wrap: wrap;
-    row-gap: 0.25rem;
-    padding-bottom: 0.625rem;
+    row-gap: 0;
+    min-height: 0;
+    padding-block: 0.25rem;
+  }
+
+  .mvp-header .mvp-local-nav .tab {
+    --tab-height: 2rem;
   }
 
   .mvp-header .navbar-start:has(> .mvp-crumbs) {

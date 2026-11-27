@@ -225,6 +225,10 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   lists the ones that sit in the header while the sidebar is docked and move to a row under the
   sidebar's brand row while it is a drawer (theme and language). Every action button is the same
   square size. (Sam)
+- 2026-11-27: The actions sit to the right of the search, before Log in. They are small squares,
+  2rem in the header, with no gap between them, so five fit beside the search. (Sam)
+- 2026-11-27: A phone's header is kept short, since a fixed header takes its height from every
+  page: the brand row, the breadcrumbs and the tabs sit close, 104px with local navigation. (Sam)
 - 2026-11-27: The site's name shows beside the icon in the header and the sidebar. A project shows a
   full logo instead by overriding `cotton/mvp/brand/mark.html`. (Sam)
 - 2026-11-27: Local navigation sits under the breadcrumbs in the header, with room above and below
@@ -315,6 +319,8 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   drawn as daisyUI bordered tabs. A view names its menu with `local_menu` in its context and the
   base template renders it in the header's tray.
 - **Log in stays the header's last item** wherever `end` lists it.
+- **The actions in the drawer keep the sidebar's touch size**, 44px squares, still with no gap,
+  because a drawer is opened with a finger.
 - **The demo's product pages get three tabs**: Overview, Order lines and Edit.
 
 ## Faked or skipped
