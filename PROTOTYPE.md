@@ -181,6 +181,8 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   footer stack. (Sam)
 - 2026-11-27: The demo has no layout code page. django-mvp-layout documents the code, and the App
   page links to it. (Sam)
+- 2026-11-27: The main sidebar shows no horizontal scrollbar. Its menu fills the layout's panel and
+  sets no width of its own. (Sam)
 
 ## Decided on my own
 

@@ -626,10 +626,9 @@
 
 /* Open, it reserves its scrollbar gutter, so a vertical scrollbar appearing
    (enough menu items to overflow) never widens the sidebar and reflows the
-   main content (#179). Unlayered on purpose: the width must beat the
-   `is-drawer-open:w-65` utility. */
+   main content (#179). It sets no width: the layout's panel is sized by the
+   sidebar's `width`, inside its border, and this fills it. */
 .mvpl-sidebar:not([data-mvpl-rail]) .mvp-sidebar {
-  width: var(--mvp-sidebar-width, 16.25rem);
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
