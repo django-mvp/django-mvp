@@ -793,7 +793,7 @@ wheels = [
 
 [[package]]
 name = "django-mvp"
-version = "0.39.3"
+version = "0.40.0"
 source = { editable = "." }
 dependencies = [
     { name = "coloraide" },
