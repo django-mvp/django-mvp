@@ -27,7 +27,7 @@
          only>
   {# Stacked by django-mvp-layout's hbf, like the card and the dialog: the #}
   {# grab bar, head and description are the header, then the body and foot. #}
-  <div class="mvpl-header flex flex-col gap-2">
+  <div class="mvpl-header flex flex-col">
     {% if fixed %}
       <div class="flex-none grid h-6 place-items-center self-stretch cursor-grab touch-none before:h-1 before:w-10 before:rounded-full before:bg-base-content/25 sm:hidden" data-mvp-sheet-grab aria-hidden="true"></div>
     {% else %}
@@ -48,7 +48,7 @@
               aria-label="{% translate "Close" %}"
               onclick="this.closest('dialog').close()"><c-icon name="x" aria-hidden="true" /></button>
     </div>
-    {% if description.strip %}<div class="flex-none text-sm" id="{{ id }}-description">{{ description }}</div>{% endif %}
+    {% if description.strip %}<div class="mt-2 flex-none text-sm" id="{{ id }}-description">{{ description }}</div>{% endif %}
   </div>
   <div class="mvpl-body -mx-4 -my-1 min-h-0 flex-auto overflow-y-auto overscroll-contain scroll-py-1 px-4 py-1" data-mvp-sheet-body>{{ slot }}</div>
   <div class="mvpl-footer flex-none pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]" data-mvp-sheet-foot>
