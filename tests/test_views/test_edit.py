@@ -1402,7 +1402,9 @@ class TestMVPDeleteViewTypeToConfirm:
 
 @pytest.mark.django_db
 class TestMVPUpdateViewDeleteUrl:
-    def test_get_delete_url_points_back_to_update_and_next_to_list(self, client, product):
+    def test_get_delete_url_points_back_to_update_and_next_to_list(
+        self, client, product
+    ):
         url = reverse("product-update", kwargs={"pk": product.pk})
         response = client.get(url)
         delete_url = response.context["delete_url"]
