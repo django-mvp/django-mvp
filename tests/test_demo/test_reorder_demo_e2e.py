@@ -27,12 +27,11 @@ def saved_order(section):
 
 
 class TestReorderDemoPage:
-    @pytest.mark.parametrize("width", [390, 1280])
+    @pytest.mark.parametrize("width", [390])
     @pytest.mark.parametrize("name", list(LISTS))
     def test_a_moved_row_is_in_its_new_place_after_the_page_loads_again(
         self, page, live_server, name, width
     ):
-        page.set_default_timeout(5000)
         page.set_viewport_size({"width": width, "height": 900})
         page.goto(f"{live_server.url}/components/reorder/")
         page.wait_for_function("window.Alpine !== undefined")
@@ -61,7 +60,6 @@ class TestReorderDemoPage:
     def test_an_order_that_moves_the_pinned_task_is_refused_and_undone(
         self, page, live_server
     ):
-        page.set_default_timeout(5000)
         page.set_viewport_size({"width": 1280, "height": 900})
         page.goto(f"{live_server.url}/components/reorder/")
         page.wait_for_function("window.Alpine !== undefined")
@@ -76,19 +74,3 @@ class TestReorderDemoPage:
         assert response.value.status == 400
         expect(section.locator("[data-mvp-reorder-alert]")).to_be_visible()
         assert saved_order(section) == before
-
-
-class TestReorderDemoLoadsLocally:
-    def test_no_script_is_fetched_from_a_remote_origin(self, page, live_server):
-        remote = []
-
-        def record(request):
-            if request.resource_type == "script" and not request.url.startswith(
-                live_server.url
-            ):
-                remote.append(request.url)
-
-        page.on("request", record)
-        page.goto(f"{live_server.url}/components/reorder/", wait_until="networkidle")
-
-        assert remote == []

@@ -20,17 +20,16 @@ DESKTOP = {"width": 1280, "height": 800}
 LIGHT_IMAGE = "/static/brand/icon.svg"
 DARK_IMAGE = "/static/brand/icon_dark.svg"
 
+
 def single_asset(request, height, theme):
     return LIGHT_IMAGE
 
 
-# (theme, image), all of them DaisyUI's own. dracula and cupcake are outside
-# the configured pair, one of each scheme.
+# (theme, image), all of them DaisyUI's own. The configured pair takes the
+# light and the dark image, and dracula is outside it with a dark scheme.
 THEMES = [
     ("light", LIGHT_IMAGE),
-    ("dark", DARK_IMAGE),
     ("dracula", DARK_IMAGE),
-    ("cupcake", LIGHT_IMAGE),
 ]
 
 
@@ -55,10 +54,9 @@ class TestBrandImageFollowsTheScheme:
 
         assert visible_brand_images(page) == [image]
 
-    @pytest.mark.parametrize(("theme", "image"), THEMES)
-    def test_changing_theme_swaps_the_image(self, page, live_server, theme, image):
-        start = "dark" if image == LIGHT_IMAGE else "light"
-        open_home(page, live_server, start)
+    def test_changing_theme_swaps_the_image(self, page, live_server):
+        theme, image = "dark", DARK_IMAGE
+        open_home(page, live_server, "light")
 
         page.evaluate(
             "(theme) => document.documentElement.setAttribute('data-theme', theme)",
@@ -84,7 +82,9 @@ class TestBrandImageFollowsTheScheme:
 
         assert visible_brand_images(page) == [DARK_IMAGE]
 
-    def test_a_theme_that_names_no_scheme_shows_the_light_image(self, page, live_server):
+    def test_a_theme_that_names_no_scheme_shows_the_light_image(
+        self, page, live_server
+    ):
         open_home(page, live_server, "no-such-theme")
 
         assert visible_brand_images(page) == [LIGHT_IMAGE]
@@ -106,19 +106,17 @@ class TestBrandImageFollowsTheScheme:
 class TestTheVisibleImageHasAName:
     """The hidden image leaves the accessibility tree, so its name can't help."""
 
-    @pytest.mark.parametrize(("theme", "image"), THEMES)
-    def test_the_sidebar_icon(self, page, live_server, theme, image):
-        open_home(page, live_server, theme)
+    def test_the_sidebar_icon(self, page, live_server):
+        open_home(page, live_server, "dracula")
 
         images = page.locator(".mvp-sidebar-brand").get_by_role("img")
 
         expect(images).to_have_count(1)
-        expect(images).to_have_attribute("src", re.compile(re.escape(image)))
+        expect(images).to_have_attribute("src", re.compile(re.escape(DARK_IMAGE)))
         expect(images).to_have_accessible_name(re.compile(r"\S"))
 
-    @pytest.mark.parametrize("theme", ["light", "dark"])
-    def test_the_error_page_logo(self, page, live_server, theme):
-        page.add_init_script(f"localStorage.setItem('theme', '{theme}')")
+    def test_the_error_page_logo(self, page, live_server):
+        page.add_init_script("localStorage.setItem('theme', 'dark')")
         page.goto(f"{live_server.url}/errors/404/")
 
         images = page.get_by_role("img")

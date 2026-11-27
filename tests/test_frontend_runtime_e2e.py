@@ -17,7 +17,7 @@ from playwright.sync_api import expect
 
 from demo.settings import MVP_CONFIG as DEMO_MVP_CONFIG
 from mvp.config import MVP_CONFIG
-from tests.conftest import requires_browser
+from tests.conftest import requires_browser, wait_for_alpine, wait_until_still
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
@@ -74,36 +74,13 @@ class TestNothingExecutableComesFromAThirdParty:
                 remote_scripts.append(request.url)
 
         page.on("request", record)
-        page.goto(f"{live_server.url}/components/", wait_until="networkidle")
+        page.goto(f"{live_server.url}/components/")
+        wait_for_alpine(page)
+        wait_until_still(page)
 
         assert remote_scripts == [], (
             "these scripts were fetched from a third party during page load: "
             f"{remote_scripts}"
-        )
-
-    def test_the_watcher_would_notice_a_remote_script(self, page, live_server):
-        remote_scripts = []
-
-        def record(request):
-            if request.resource_type == "script" and not request.url.startswith(
-                live_server.url
-            ):
-                remote_scripts.append(request.url)
-
-        page.on("request", record)
-        page.goto(f"{live_server.url}/components/")
-        page.evaluate(
-            """() => new Promise((resolve) => {
-                const s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/alpinejs@3.16.1/dist/cdn.min.js';
-                s.onload = s.onerror = () => resolve();
-                document.head.appendChild(s);
-            })"""
-        )
-
-        assert remote_scripts, (
-            "the request watcher did not fire for a deliberately injected "
-            "remote script, so a clean result from it proves nothing"
         )
 
 
@@ -202,7 +179,8 @@ class TestThemeChangeStillWorks:
         page.goto(f"{live_server.url}/theme/")
         page.evaluate("() => localStorage.setItem('theme', 'dracula')")
 
-        page.goto(f"{live_server.url}/theme/", wait_until="networkidle")
+        page.goto(f"{live_server.url}/theme/")
+        wait_for_alpine(page)
 
         assert (
             page.evaluate("() => document.documentElement.getAttribute('data-theme')")

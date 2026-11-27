@@ -81,6 +81,12 @@ class TestDropdownFlipsWhenTheDeclaredSideDoesNotFit:
 
         panel = laid_out["panel"]
         viewport = laid_out["viewport"]
+        room_below = viewport["height"] - laid_out["trigger"]["bottom"]
+        assert room_below < panel["height"] + GAP, (
+            f"there was {room_below}px below the trigger and the panel needs "
+            f"{panel['height'] + GAP}px, so it would have fitted where it was told "
+            "to go and this scenario is not exercising placement at all"
+        )
 
         assert panel["width"] > 0 and panel["height"] > 0, (
             f"the panel has no area ({panel}), so 'inside the viewport' would "
@@ -94,18 +100,6 @@ class TestDropdownFlipsWhenTheDeclaredSideDoesNotFit:
         )
         assert panel["right"] <= viewport["width"], (
             f"panel runs off the right: {panel} in {viewport}"
-        )
-
-    def test_the_declared_side_genuinely_had_no_room(self, page, live_server):
-        laid_out = open_bottom_dropdown_at_the_foot_of_the_window(page, live_server)
-
-        room_below = laid_out["viewport"]["height"] - laid_out["trigger"]["bottom"]
-        needed = laid_out["panel"]["height"] + GAP
-
-        assert room_below < needed, (
-            f"there was {room_below}px below the trigger and the panel needs "
-            f"{needed}px, so it would have fitted where it was told to go and "
-            "this scenario is not exercising placement at all"
         )
 
 

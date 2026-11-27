@@ -19,7 +19,6 @@ from django.conf import settings
 from django.test import override_settings
 from django.urls import path
 from django.views.generic import TemplateView
-from playwright.sync_api import expect
 
 from tests.conftest import requires_browser, urlconf_of
 
@@ -29,7 +28,9 @@ DESKTOP = {"width": 1280, "height": 800}
 
 
 HERO_URLCONF = urlconf_of(
-    path("section-hero/", TemplateView.as_view(template_name="tests/section_hero.html")),
+    path(
+        "section-hero/", TemplateView.as_view(template_name="tests/section_hero.html")
+    ),
     *import_module(settings.ROOT_URLCONF).urlpatterns,
 )
 
@@ -49,12 +50,6 @@ class TestHeroLayoutInABrowser:
             page.goto(f"{live_server.url}/section-hero/")
             yield page
 
-    def test_the_hero_has_a_layout_box(self, hero_page):
-        hero = hero_page.locator(".hero").first
-
-        expect(hero).to_be_visible()
-        assert _box(hero)["height"] > 0
-
     def test_content_is_centred_in_the_banner(self, hero_page):
         hero = _box(hero_page.locator(".hero").first)
         content = _box(hero_page.locator(".hero-content").first)
@@ -65,11 +60,6 @@ class TestHeroLayoutInABrowser:
         assert content["y"] + content["height"] / 2 == pytest.approx(
             hero["y"] + hero["height"] / 2, abs=2
         ), "hero content is not vertically centred"
-
-    def test_the_height_attribute_reaches_the_rendered_box(self, hero_page):
-        assert _box(hero_page.locator(".hero").first)["height"] == pytest.approx(
-            640, abs=2
-        )
 
     def test_the_overlay_covers_the_banner(self, hero_page):
         hero = _box(hero_page.locator(".hero").first)

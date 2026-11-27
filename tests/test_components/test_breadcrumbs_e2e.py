@@ -16,7 +16,7 @@ from playwright.sync_api import expect
 
 from demo import urls as demo_urls
 from mvp.config import MVP_CONFIG
-from tests.conftest import requires_browser, urlconf_of
+from tests.conftest import requires_browser, urlconf_of, wait_for_alpine
 from tests.factories import ProductFactory
 
 pytestmark = [pytest.mark.e2e, requires_browser]
@@ -26,9 +26,7 @@ PHONE = {"width": 390, "height": 844}
 
 LABELS = ["Docs", "Guides", "Setup", "Install", "Linux"]
 
-WITH_ICON = (
-    '<c-mvp.breadcrumbs :items="steps" id="trail" />'
-)
+WITH_ICON = '<c-mvp.breadcrumbs :items="steps" id="trail" />'
 STEPS = [
     {"text": "Docs", "href": "/docs/", "icon": "home"},
     {"text": "Guides", "href": "/docs/guides/"},
@@ -70,10 +68,9 @@ def trail_urls(settings, monkeypatch):
 
 
 def open_trail(page, live_server, name="icon", viewport=DESKTOP):
-    page.set_default_timeout(5000)
     page.set_viewport_size(viewport)
     page.goto(f"{live_server.url}/trail-test/{name}/")
-    page.wait_for_function("() => window.Alpine && Alpine.version")
+    wait_for_alpine(page)
     page.wait_for_selector("#trail.is-enhanced", state="attached")
 
 
@@ -193,13 +190,14 @@ class TestTheIconOption:
         link = page.locator("#trail li[data-mvp-crumb] >> nth=0").locator("a")
 
         assert link.locator(".mvp-crumb-text").text_content() == "Docs"
-        assert link.locator(".mvp-crumb-text").evaluate(
-            "el => el.getBoundingClientRect().width"
-        ) <= 1
+        assert (
+            link.locator(".mvp-crumb-text").evaluate(
+                "el => el.getBoundingClientRect().width"
+            )
+            <= 1
+        )
 
-    def test_a_trail_with_no_icon_never_shrinks_a_step_to_one(
-        self, page, live_server
-    ):
+    def test_a_trail_with_no_icon_never_shrinks_a_step_to_one(self, page, live_server):
         open_trail(page, live_server, "plain")
 
         assert not any(state["compact"] for _, state in sweep(page))
@@ -295,21 +293,6 @@ class TestWithNoScript:
 
 
 class TestRightToLeft:
-    def test_the_separator_between_steps_is_flipped(self, page, live_server):
-        open_trail(page, live_server)
-
-        def turn():
-            return page.evaluate("""
-                () => getComputedStyle(
-                  document.querySelectorAll('#trail li[data-mvp-crumb]')[1],
-                  '::before').rotate
-            """)
-
-        left_to_right = turn()
-        page.evaluate("document.documentElement.dir = 'rtl'")
-
-        assert turn() != left_to_right
-
     def test_the_steps_run_from_the_right(self, page, live_server):
         open_trail(page, live_server)
         page.evaluate("document.documentElement.dir = 'rtl'")

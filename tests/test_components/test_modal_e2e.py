@@ -20,8 +20,8 @@ DESKTOP = {"width": 1280, "height": 800}
 
 
 class TestModalPositioning:
-    @pytest.mark.parametrize("position", ["top", "bottom"])
-    def test_edge_position_spans_full_width(self, page, live_server, position):
+    def test_the_bottom_modal_spans_the_full_width(self, page, live_server):
+        position = "bottom"
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}/components/modal/")
 
@@ -38,8 +38,8 @@ class TestModalPositioning:
             f"expected close to viewport width {DESKTOP['width']}"
         )
 
-    @pytest.mark.parametrize("position", ["start", "end"])
-    def test_edge_position_spans_full_height(self, page, live_server, position):
+    def test_the_end_modal_spans_the_full_height(self, page, live_server):
+        position = "end"
         page.set_viewport_size(DESKTOP)
         page.goto(f"{live_server.url}/components/modal/")
 

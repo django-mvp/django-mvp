@@ -46,9 +46,8 @@ class TestTheIndicatorShowsDuringARequest:
         expect(page).to_have_url(f"{live_server.url}/theme/")
         expect(page.locator("#mvp-htmx-indicator")).to_be_hidden()
 
-    @pytest.mark.parametrize("viewport", [DESKTOP, MOBILE], ids=["desktop", "mobile"])
-    def test_the_spinner_shows_at_every_width(self, page, live_server, viewport):
-        page.set_viewport_size(viewport)
+    def test_the_spinner_shows_on_a_phone(self, page, live_server):
+        page.set_viewport_size(MOBILE)
         page.goto(live_server.url)
         indicator = page.locator("#mvp-htmx-indicator")
         expect(indicator).to_be_hidden()

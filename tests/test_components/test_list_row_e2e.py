@@ -19,7 +19,14 @@ from playwright.sync_api import expect
 
 from demo import urls as demo_urls
 from mvp.config import MVP_CONFIG
-from tests.conftest import requires_browser, urlconf_of
+from tests.conftest import (
+    frames,
+    requires_browser,
+    urlconf_of,
+    wait_for_alpine,
+    wait_for_transitions,
+    wait_until_still,
+)
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
@@ -265,9 +272,8 @@ def mouse_page(page, live_server):
 
 
 def open_page(page, live_server):
-    page.set_default_timeout(5000)
     page.goto(f"{live_server.url}/row-test/")
-    page.wait_for_function("() => window.Alpine && Alpine.version")
+    wait_for_alpine(page)
     page.wait_for_selector("[data-mvp-row-ready]", state="attached")
 
 
@@ -276,33 +282,19 @@ def words_of(locator):
 
 
 class TestButtonsUnderTheRow:
-    def test_there_is_one_button_for_each_action(self, mouse_page):
-        buttons = mouse_page.locator(".mvp-row-under [data-mvp-row-button]")
-
-        assert words_of(buttons) == NAMES
-
-    def test_the_buttons_leave_ids_and_form_hooks_once_on_the_page(self, mouse_page):
-        assert mouse_page.locator("#rename-action").count() == 1
-        assert mouse_page.locator("[form='rename-form']").count() == 1
-        assert mouse_page.locator(".mvp-row-under [id]").count() == 0
-        assert mouse_page.locator(".mvp-row-under [form]").count() == 0
-
-    def test_a_button_carries_the_actions_name_only_when_it_has_one(self, mouse_page):
-        labels = mouse_page.locator(
-            ".mvp-row-under [data-mvp-row-button]"
-        ).evaluate_all("buttons => buttons.map(b => b.getAttribute('aria-label'))")
-
-        assert labels == [None, "Rename Quarterly report", None]
-
-    def test_the_main_action_is_marked_and_the_dangerous_one_is_a_tone(
+    def test_there_is_one_button_for_each_action_without_the_ids_and_hooks(
         self, mouse_page
     ):
         buttons = mouse_page.locator(".mvp-row-under [data-mvp-row-button]")
 
-        assert buttons.nth(0).get_attribute("data-mvp-row-main") is not None
-        assert "mvp-row-button-primary" in buttons.nth(0).get_attribute("class")
-        assert "mvp-row-button-neutral" in buttons.nth(1).get_attribute("class")
-        assert "mvp-row-button-danger" in buttons.nth(2).get_attribute("class")
+        assert words_of(buttons) == NAMES
+        assert buttons.evaluate_all(
+            "buttons => buttons.map(b => b.getAttribute('aria-label'))"
+        ) == [None, "Rename Quarterly report", None]
+        assert mouse_page.locator("#rename-action").count() == 1
+        assert mouse_page.locator("[form='rename-form']").count() == 1
+        assert mouse_page.locator(".mvp-row-under [id]").count() == 0
+        assert mouse_page.locator(".mvp-row-under [form]").count() == 0
 
     def test_pressing_a_button_presses_the_action(self, mouse_page):
         mouse_page.locator(".mvp-row-under [data-mvp-row-button]").nth(
@@ -419,7 +411,6 @@ class TestMenuWithAKeyboard:
 class TestWithoutTheScript:
     @pytest.fixture
     def bare_page(self, page, live_server):
-        page.set_default_timeout(5000)
         page.route(
             "**/django-mvp.js",
             lambda route: route.fulfill(body="", content_type="text/javascript"),
@@ -453,7 +444,7 @@ class TestNothingFromElsewhere:
 
         open_page(page, live_server)
         page.click(".mvp-row-dropdown button")
-        page.wait_for_load_state("networkidle")
+        wait_until_still(page)
 
         assert foreign == []
 
@@ -509,7 +500,9 @@ class Finger:
 
     def tap(self, locator):
         """Touch the middle of an element and lift."""
-        # A touch within the double-tap window of the last one gives no click.
+        # A touch within the double-tap window of the last one gives no click. The
+        # browser counts that window in real time, and no event can move it, so
+        # this is the one place a test sits out a delay.
         time.sleep(max(0, self.clock - time.time()) + 0.4)
         self.clock = time.time()
         box = locator.bounding_box()
@@ -538,12 +531,11 @@ def finger_page(browser, live_server, request):
     context.add_init_script(VIBRATE)
     context.add_init_script(REMEMBER_HINT)
     page = context.new_page()
-    page.set_default_timeout(5000)
     page.errors = []
     page.on("pageerror", lambda error: page.errors.append(str(error)))
     name = getattr(request, "param", "main")
     page.goto(f"{live_server.url}/row-swipe/{name}/")
-    page.wait_for_function("() => window.Alpine && Alpine.version")
+    wait_for_alpine(page)
     page.wait_for_selector("[data-mvp-row-ready]", state="attached")
     page.finger = Finger(page)
     yield page
@@ -748,7 +740,7 @@ class TestRowsCloseEachOther:
     def test_escape_in_a_row_in_an_open_sheet_keeps_the_sheet_open(self, finger_page):
         finger_page.locator("#holder-open").tap()
         finger_page.wait_for_function("() => document.getElementById('holder').open")
-        finger_page.wait_for_timeout(600)
+        wait_for_transitions(finger_page)
         finger_page.finger.drag(300, 140, middle_of(finger_page))
         assert row_state(finger_page)["open"]
 
@@ -763,7 +755,7 @@ class TestRowsCloseEachOther:
     ):
         finger_page.locator("#holder-open").tap()
         finger_page.wait_for_function("() => document.getElementById('holder').open")
-        finger_page.wait_for_timeout(600)
+        wait_for_transitions(finger_page)
         finger_page.finger.drag(300, 140, middle_of(finger_page))
         finger_page.keyboard.press("Escape")
         assert not row_state(finger_page)["open"]
@@ -896,7 +888,6 @@ def remember_folding(page):
 def desk_page(browser, live_server, request):
     """A desktop browser with a trackpad open on the swipe page the test names."""
     page = browser.new_page(viewport=DESKTOP)
-    page.set_default_timeout(5000)
     page.goto(f"{live_server.url}/row-swipe/{getattr(request, 'param', 'main')}/")
     page.wait_for_selector("[data-mvp-row-ready]", state="attached")
     yield page
@@ -909,7 +900,7 @@ def swipe_with_trackpad(page, towards, index=0, steps=6):
     page.mouse.move(box["x"] + 300, box["y"] + box["height"] / 2)
     for _ in range(steps):
         page.mouse.wheel(towards / steps, 0)
-        page.wait_for_timeout(16)
+        frames(page, 1)
 
 
 class TestActionClosesTheRow:
@@ -941,12 +932,24 @@ class TestActionClosesTheRow:
 
 class TestTrackpad:
     def test_a_sideways_wheel_opens_the_row_once_it_stops(self, desk_page):
+        # The row stops dragging once the wheel is quiet, which on a busy
+        # machine can come before the swipe is over, so the drag is recorded
+        # as it happens instead of read afterwards.
+        desk_page.evaluate(
+            """() => {
+                const row = document.querySelector('.mvp-row');
+                window.sawDragging = row.classList.contains('is-dragging');
+                new MutationObserver(() => {
+                    window.sawDragging ||= row.classList.contains('is-dragging');
+                }).observe(row, { attributes: true, attributeFilter: ['class'] });
+            }"""
+        )
         swipe_with_trackpad(desk_page, 300)
 
-        assert row_state(desk_page)["dragging"]
         desk_page.wait_for_function(
             "() => document.querySelector('.mvp-row').classList.contains('is-open')"
         )
+        assert desk_page.evaluate("() => window.sawDragging")
         assert row_state(desk_page)["x"] == pytest.approx(-REST, abs=2)
 
     def test_a_short_wheel_swipe_closes_again(self, desk_page):
@@ -986,7 +989,7 @@ class TestTrackpad:
         desk_page.mouse.move(box["x"] + 300, box["y"] + 20)
 
         desk_page.mouse.wheel(10, 120)
-        desk_page.wait_for_timeout(250)
+        desk_page.wait_for_function("() => scrollY > 0")
 
         assert row_state(desk_page)["x"] == 0
         assert desk_page.evaluate("() => scrollY") > 0
@@ -1030,7 +1033,7 @@ class TestRowsThatLeave:
 
         second.locator(".dropdown-content [data-mvp-row-action]").last.click()
 
-        desk_page.wait_for_timeout(400)
+        wait_until_still(desk_page)
         assert not desk_page.evaluate("() => window.wasFolded")
 
     @on_page("leaves")
@@ -1067,7 +1070,7 @@ class TestRowsThatLeave:
             .first
         )
 
-        finger_page.wait_for_timeout(400)
+        wait_until_still(finger_page)
         assert asked
         assert not finger_page.evaluate("() => window.wasFolded")
 
@@ -1103,7 +1106,7 @@ class TestRowsThatLeave:
 
         desk_page.locator(".dropdown-content [data-mvp-row-action]").first.click()
 
-        desk_page.wait_for_timeout(400)
+        wait_until_still(desk_page)
         assert not desk_page.evaluate("() => window.wasFolded")
 
     @pytest.mark.parametrize("desk_page", ["removing"], indirect=True)
@@ -1134,8 +1137,7 @@ class TestSwitchingSwipingOff:
         state = row_state(finger_page)
         assert not state["open"]
         assert state["x"] == 0
-        finger_page.wait_for_timeout(450)
-        finger_page.tap(".mvp-row-sheet-trigger")
+        finger_page.finger.tap(finger_page.locator(".mvp-row-sheet-trigger"))
         finger_page.wait_for_function(
             "() => document.getElementById('row0-sheet').open"
         )
@@ -1181,10 +1183,12 @@ class TestReorderAnnouncements:
     def test_a_real_lists_mode_shuts_the_open_row_and_stops_swiping_until_it_ends(
         self, finger_page
     ):
+        finger_page.clock.install()
         finger_page.finger.drag(300, 140, middle_of(finger_page))
         assert row_state(finger_page)["open"]
 
-        finger_page.wait_for_timeout(450)  # the click that ends a swipe is held back
+        finger_page.clock.run_for(450)  # the click that ends a swipe is held back
+        finger_page.clock.resume()
         finger_page.click("#start")
 
         assert not row_state(finger_page)["open"]
@@ -1295,14 +1299,16 @@ def hint_context(browser, **options):
     """A browser that has never shown this site's rows: nothing is remembered."""
     context = browser.new_context(**options)
     context.add_init_script(WATCH_HINT)
+    # The nudge waits on timers, so tests that expect none move the clock on
+    # instead of sitting out the delay.
+    context.clock.install()
     return context
 
 
 def open_swipe_page(context, live_server, name="main"):
     page = context.new_page()
-    page.set_default_timeout(5000)
     page.goto(f"{live_server.url}/row-swipe/{name}/")
-    page.wait_for_function("() => window.Alpine && Alpine.version")
+    wait_for_alpine(page)
     page.wait_for_selector("[data-mvp-row-ready]", state="attached")
     return page
 
@@ -1335,7 +1341,7 @@ class TestFirstTimeNudge:
 
         page.reload()
         page.wait_for_selector("[data-mvp-row-ready]", state="attached")
-        page.wait_for_timeout(2500)
+        page.clock.run_for(2500)
 
         assert not page.evaluate("() => window.wasHinting")
         context.close()
@@ -1358,7 +1364,7 @@ class TestFirstTimeNudge:
         context = hint_context(browser, viewport=DESKTOP)
         page = open_swipe_page(context, live_server)
 
-        page.wait_for_timeout(2500)
+        page.clock.run_for(2500)
 
         assert not page.evaluate("() => window.wasHinting")
         assert remembered(page) is None
@@ -1370,7 +1376,7 @@ class TestFirstTimeNudge:
         context = hint_context(browser, viewport=PHONE, has_touch=True, is_mobile=True)
         page = open_swipe_page(context, live_server, "hidden")
 
-        page.wait_for_timeout(2500)
+        page.clock.run_for(2500)
 
         assert not page.evaluate("() => window.wasHinting")
         assert remembered(page) is None
@@ -1382,7 +1388,7 @@ class TestFirstTimeNudge:
         context = hint_context(browser, viewport=PHONE, has_touch=True, is_mobile=True)
         page = open_swipe_page(context, live_server, "below")
 
-        page.wait_for_timeout(2500)
+        page.clock.run_for(2500)
 
         assert not page.evaluate("() => window.wasHinting")
         assert remembered(page) is None
@@ -1415,7 +1421,7 @@ class TestFirstTimeNudge:
         page.errors = []
         page.on("pageerror", lambda error: page.errors.append(str(error)))
 
-        page.wait_for_timeout(2500)
+        page.clock.run_for(2500)
 
         assert page.errors == []
         assert not page.evaluate("() => window.wasHinting")

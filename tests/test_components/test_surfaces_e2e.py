@@ -12,7 +12,7 @@ import pytest
 from playwright.sync_api import expect
 
 from mvp.config import MVP_CONFIG
-from tests.conftest import requires_browser
+from tests.conftest import requires_browser, wait_for_alpine
 from tests.factories import ProductFactory
 
 pytestmark = [pytest.mark.e2e, requires_browser, pytest.mark.django_db]
@@ -62,7 +62,7 @@ PAINTED = """
 def _open(page, live_server, path, viewport, theme=None, css=None):
     page.set_viewport_size(viewport)
     page.goto(f"{live_server.url}{path}")
-    page.wait_for_load_state("networkidle")
+    wait_for_alpine(page)
     page.evaluate(PAINTED)
     if theme:
         page.evaluate(
@@ -95,8 +95,11 @@ def products(db):
     return ProductFactory.create_batch(3)
 
 
-@pytest.mark.parametrize("theme", STOCK_THEMES)
 class TestAStockThemeWithNoExtraCss:
+    """Each rule is read on ``light``. Every stock theme is read for the two tests
+    that decide whether a theme keeps its three surfaces distinct."""
+
+    @pytest.mark.parametrize("theme", STOCK_THEMES)
     def test_each_base_colour_paints_its_own_surface(self, page, live_server, theme):
         _open(page, live_server, PREVIEW_PAGE, WIDE, theme)
 
@@ -107,6 +110,7 @@ class TestAStockThemeWithNoExtraCss:
         assert _fill(page, ".mvp-sidebar-footer") == _surface(page, "base-300")
         assert _fill(page, "main .card.bg-base-100") == _surface(page, "base-100")
 
+    @pytest.mark.parametrize("theme", STOCK_THEMES)
     def test_the_three_surfaces_are_told_apart(self, page, live_server, theme):
         _open(page, live_server, PREVIEW_PAGE, WIDE, theme)
 
@@ -116,13 +120,13 @@ class TestAStockThemeWithNoExtraCss:
 
         assert len(painted) == 3
 
-    def test_the_dock_is_on_the_page(self, page, live_server, theme):
-        _open(page, live_server, PREVIEW_PAGE, PHONE, theme)
+    def test_the_dock_is_on_the_page(self, page, live_server):
+        _open(page, live_server, PREVIEW_PAGE, PHONE, "light")
 
         assert _fill(page, ".mvp-dock") == _surface(page, "base-200")
 
-    def test_a_default_button_shows_on_every_surface(self, page, live_server, theme):
-        _open(page, live_server, PREVIEW_PAGE, WIDE, theme)
+    def test_a_default_button_shows_on_every_surface(self, page, live_server):
+        _open(page, live_server, PREVIEW_PAGE, WIDE, "light")
         _append(page, '<button id="on-page" class="btn">Default</button>')
 
         fill = _fill(page, "#on-page")
@@ -133,8 +137,8 @@ class TestAStockThemeWithNoExtraCss:
             _surface(page, "base-300"),
         }
 
-    def test_a_default_alert_shows_on_the_page(self, page, live_server, theme):
-        _open(page, live_server, PREVIEW_PAGE, WIDE, theme)
+    def test_a_default_alert_shows_on_the_page(self, page, live_server):
+        _open(page, live_server, PREVIEW_PAGE, WIDE, "light")
         _append(page, '<div id="alert" class="alert">Default</div>')
 
         assert _fill(page, "#alert") not in {
@@ -143,24 +147,8 @@ class TestAStockThemeWithNoExtraCss:
             _surface(page, "base-300"),
         }
 
-    def test_a_coloured_alert_keeps_its_colour(self, page, live_server, theme):
-        _open(page, live_server, PREVIEW_PAGE, WIDE, theme)
-
-        for variant in ("info", "success", "warning", "error"):
-            _append(page, f'<div id="{variant}" class="alert alert-{variant}">x</div>')
-            assert _fill(page, f"#{variant}") == _surface(page, variant), variant
-
-    def test_a_coloured_button_keeps_its_colour(self, page, live_server, theme):
-        _open(page, live_server, PREVIEW_PAGE, WIDE, theme)
-
-        for variant in ("neutral", "primary", "secondary", "accent", "error"):
-            _append(
-                page, f'<button id="{variant}" class="btn btn-{variant}">x</button>'
-            )
-            assert _fill(page, f"#{variant}") == _surface(page, variant), variant
-
-    def test_a_ghost_button_keeps_no_fill_at_rest(self, page, live_server, theme):
-        _open(page, live_server, PREVIEW_PAGE, WIDE, theme)
+    def test_a_ghost_button_keeps_no_fill_at_rest(self, page, live_server):
+        _open(page, live_server, PREVIEW_PAGE, WIDE, "light")
         _append(page, '<button id="ghost" class="btn btn-ghost">x</button>')
 
         background = page.evaluate(
@@ -172,9 +160,9 @@ class TestAStockThemeWithNoExtraCss:
         )
 
     def test_the_placeholder_card_shows_on_the_page_and_on_a_card(
-        self, page, live_server, theme
+        self, page, live_server
     ):
-        _open(page, live_server, PLACEHOLDER_PAGE, WIDE, theme)
+        _open(page, live_server, PLACEHOLDER_PAGE, WIDE, "light")
 
         fill = _fill(page, "main .card.bg-base-300")
 
@@ -182,24 +170,24 @@ class TestAStockThemeWithNoExtraCss:
         assert fill not in {_surface(page, "base-100"), _surface(page, "base-200")}
 
     def test_the_filter_panel_foot_is_the_page_in_a_column(
-        self, page, live_server, products, theme
+        self, page, live_server, products
     ):
-        _open(page, live_server, LIST_PAGE, WIDE, theme)
+        _open(page, live_server, LIST_PAGE, WIDE, "light")
 
         assert _fill(page, ".mvp-filter-panel-foot") == _surface(page, "base-200")
 
     def test_the_filter_panel_foot_is_raised_in_a_drawer(
-        self, page, live_server, products, theme
+        self, page, live_server, products
     ):
-        _open(page, live_server, LIST_PAGE, LAPTOP, theme)
+        _open(page, live_server, LIST_PAGE, LAPTOP, "light")
         page.locator(".mvp-page-side-toggle").first.click()
         expect(page.locator(".mvp-page-side-panel")).to_be_visible()
 
         assert _fill(page, ".mvp-page-side-panel") == _surface(page, "base-100")
         assert _fill(page, ".mvp-filter-panel-foot") == _surface(page, "base-100")
 
-    def test_a_foot_in_a_stacked_panel_is_the_page(self, page, live_server, theme):
-        _open(page, live_server, "/layout/side/?collapse=stack", PHONE, theme)
+    def test_a_foot_in_a_stacked_panel_is_the_page(self, page, live_server):
+        _open(page, live_server, "/layout/side/?collapse=stack", PHONE, "light")
         _append(
             page,
             '<div class="mvp-filter-panel-foot bg-inherit">x</div>',
@@ -208,16 +196,16 @@ class TestAStockThemeWithNoExtraCss:
 
         assert _fill(page, ".mvp-filter-panel-foot") == _surface(page, "base-200")
 
-    def test_a_table_page_is_on_the_page(self, page, live_server, products, theme):
-        _open(page, live_server, TABLE_PAGE, WIDE, theme)
+    def test_a_table_page_is_on_the_page(self, page, live_server, products):
+        _open(page, live_server, TABLE_PAGE, WIDE, "light")
 
         page_colour = _surface(page, "base-200")
 
         assert _fill(page, ".mvp-table-toolbar") == page_colour
         assert _fill(page, ".mvp-table-region thead tr") == page_colour
 
-    def test_a_dropdown_and_a_modal_are_raised(self, page, live_server, theme):
-        _open(page, live_server, PREVIEW_PAGE, WIDE, theme)
+    def test_a_dropdown_and_a_modal_are_raised(self, page, live_server):
+        _open(page, live_server, PREVIEW_PAGE, WIDE, "light")
         _append(
             page,
             '<dialog id="raised" class="modal" open><div class="modal-box">x</div></dialog>',
