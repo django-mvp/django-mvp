@@ -2234,3 +2234,14 @@ class TestListPageToolbarRow:
         soup = _filtered_list_page(rf, toolbar_filters=["o", "q"])
 
         assert len(soup.find_all(attrs={"name": "o"})) == 1
+
+    def test_every_field_in_the_toolbar_leaves_no_panel_and_no_panel_button(
+        self, rf, cat
+    ):
+        _product(cat, "Lamp")
+
+        soup = _filtered_list_page(rf, toolbar_filters=["q", "o", "name", "status"])
+
+        assert soup.find("button", attrs={"aria-controls": "filters"}) is None
+        assert soup.find(id="filters") is None
+        assert soup.find("form", id="filterForm") is not None
