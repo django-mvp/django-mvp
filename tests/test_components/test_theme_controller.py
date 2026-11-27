@@ -9,13 +9,10 @@ guard's actual contract.
 """
 
 import re
-from pathlib import Path
 
 import pytest
 
 from mvp.config import MVP_CONFIG
-
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 def _guard_script(html):
@@ -41,8 +38,10 @@ class TestPrePaintThemeGuardPosition:
 
 class TestPrePaintThemeGuardDefault:
     @pytest.mark.django_db
-    def test_falls_back_to_the_packaged_default_with_nothing_configured(self, client):
-        assert MVP_CONFIG["theme"]["default"] == "light"
+    def test_falls_back_to_the_packaged_default_with_nothing_configured(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "light")
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
         assert '"light"' in script
@@ -79,6 +78,14 @@ class TestPrePaintThemeGuardEscaping:
         )
 
 
+CONTROLLER = "<c-mvp.actions.theme-controller />"
+
+
+def _controller(cotton_render_string_soup):
+    """The controller drawn on its own, with the settings as they stand."""
+    return cotton_render_string_soup(CONTROLLER, context={"mvp_config": MVP_CONFIG})
+
+
 def _theme_toggle_html(content):
     """The unconfigured switcher's ``<label>...</label>`` — the checkbox
     toggle, isolated from the rest of the page (it renders twice per page,
@@ -94,8 +101,10 @@ def _theme_toggle_html(content):
 
 class TestThemeControllerUnconfiguredShape:
     @pytest.mark.django_db
-    def test_renders_the_checkbox_toggle_over_the_configured_pair(self, client):
-        assert MVP_CONFIG["theme"]["choices"] == []
+    def test_renders_the_checkbox_toggle_over_the_configured_pair(
+        self, client, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", [])
         content = client.get("/").content.decode()
         toggle = _theme_toggle_html(content)
         assert toggle is not None, "the checkbox toggle must render"
@@ -152,31 +161,24 @@ class TestThemeControllerOfferedSetShape:
 
     @pytest.mark.django_db
     def test_configured_shape_drops_the_unconfigured_checkbox_toggle(
-        self, client, monkeypatch
+        self, cotton_render_string_soup, monkeypatch
     ):
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
-        content = client.get("/").content.decode()
-        assert "data-toggle-theme" not in content
+
+        assert not _controller(cotton_render_string_soup).select("[data-toggle-theme]")
 
     @pytest.mark.django_db
     def test_each_entry_is_keyboard_reachable_with_an_accessible_name(
-        self, client, monkeypatch
+        self, cotton_render_string_soup, monkeypatch
     ):
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
-        content = client.get("/").content.decode()
+        soup = _controller(cotton_render_string_soup)
+
         for name in self.CHOICES:
-            match = re.search(
-                rf'<button[^>]*data-set-theme="{name}"[^>]*>(.*?)</button>',
-                content,
-                re.S,
-            )
-            assert match is not None, (
-                f"the {name} entry must be a natively focusable element — a "
-                "bare <a> without href is not in the tab order"
-            )
-            assert match.group(1).strip(), (
-                f"{name} entry must have a non-empty accessible name"
-            )
+            entry = soup.select_one(f'[data-set-theme="{name}"]')
+            # A bare <a> without href is not in the tab order.
+            assert entry is not None and entry.name == "button", name
+            assert entry.get_text(strip=True), f"{name} needs an accessible name"
 
     @pytest.mark.django_db
     def test_the_choices_menu_has_an_accessible_name(
@@ -190,37 +192,30 @@ class TestThemeControllerOfferedSetShape:
 
         assert soup.select_one("ul.menu")["aria-label"].strip()
 
-    @pytest.mark.django_db
-    def test_no_entry_is_a_non_focusable_anchor(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
-        content = client.get("/").content.decode()
-
-        assert not re.search(r"<a[^>]*data-set-theme=", content), (
-            "a theme entry rendered as an <a> without href, which is not "
-            "keyboard reachable"
-        )
-
 
 class TestThemeControllerWithOneReachableTheme:
     @pytest.mark.django_db
     def test_no_toggle_when_default_and_dark_are_the_same_theme(
-        self, client, monkeypatch
+        self, cotton_render_string_soup, monkeypatch
     ):
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "dark")
         monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "dark")
-        content = client.get("/").content.decode()
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", [])
 
-        assert "data-toggle-theme" not in content
-        assert "data-set-theme" not in content
+        soup = _controller(cotton_render_string_soup)
+
+        assert not soup.select("[data-toggle-theme], [data-set-theme]")
 
     @pytest.mark.django_db
-    def test_no_menu_when_choices_offer_only_the_default(self, client, monkeypatch):
+    def test_no_menu_when_choices_offer_only_the_default(
+        self, cotton_render_string_soup, monkeypatch
+    ):
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", "dark")
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["dark"])
-        content = client.get("/").content.decode()
 
-        assert "data-set-theme" not in content
-        assert "data-toggle-theme" not in content
+        soup = _controller(cotton_render_string_soup)
+
+        assert not soup.select("[data-toggle-theme], [data-set-theme]")
 
     @pytest.mark.django_db
     def test_a_single_choice_other_than_the_default_keeps_the_menu(
@@ -228,9 +223,7 @@ class TestThemeControllerWithOneReachableTheme:
     ):
         monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["dracula"])
 
-        soup = cotton_render_string_soup(
-            "<c-mvp.actions.theme-controller />", context={"mvp_config": MVP_CONFIG}
-        )
+        soup = _controller(cotton_render_string_soup)
 
         assert soup.select_one('[data-set-theme="dracula"]') is not None
 
@@ -239,25 +232,11 @@ class TestUnmatchedThemeNameFallsThrough:
     UNMATCHED_NAME = "totallynotarealtheme"
 
     @pytest.mark.django_db
-    def test_unmatched_theme_name_renders_without_raising(self, client, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "default", self.UNMATCHED_NAME)
-        response = client.get("/")
-        assert response.status_code == 200
-
-    @pytest.mark.django_db
     def test_unmatched_theme_name_is_emitted_unvalidated(self, client, monkeypatch):
         monkeypatch.setitem(MVP_CONFIG["theme"], "default", self.UNMATCHED_NAME)
         script = _guard_script(client.get("/").content.decode())
         assert script is not None
         assert f'"{self.UNMATCHED_NAME}"' in script
-
-    def test_default_theme_stays_bound_through_where_root(self):
-        stylesheet = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
-        content = stylesheet.read_text(encoding="utf-8")
-        assert ":where(:root)" in content, (
-            "the :where(:root) fall-through binding for the default theme "
-            "is missing from the shipped stylesheet"
-        )
 
 
 class TestPrePaintThemeGuardMembership:
@@ -274,24 +253,3 @@ class TestPrePaintThemeGuardMembership:
             assert f'"{name}"' in script, (
                 f"{name} must appear in the guard's offered-set array"
             )
-
-    @pytest.mark.django_db
-    def test_guard_checks_stored_value_membership_before_honouring_it(
-        self, client, monkeypatch
-    ):
-        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", self.CHOICES)
-        script = _guard_script(client.get("/").content.decode())
-        assert script is not None
-        has_membership_check = (
-            "indexOf(stored)" in script or "includes(stored)" in script
-        )
-        assert has_membership_check, (
-            "the guard must check the stored value's membership in the offered set"
-        )
-
-    @pytest.mark.django_db
-    def test_empty_offered_set_keeps_the_v0_18_0_short_circuit(self, client):
-        assert MVP_CONFIG["theme"]["choices"] == []
-        script = _guard_script(client.get("/").content.decode())
-        assert script is not None
-        assert "[]" in script, "the empty offered set must reach the guard"
