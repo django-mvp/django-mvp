@@ -26,6 +26,19 @@ def render_sheet(cotton_render_string_soup):
     return render
 
 
+class TestSheetStack:
+    def test_the_box_is_stacked_with_the_head_body_and_foot_as_its_parts(
+        self, render_sheet
+    ):
+        soup = render_sheet()
+
+        box = soup.select_one(".modal-box")
+        assert "hbf" in box["class"]
+        assert box.select_one(":scope > .mvpl-header [data-mvp-sheet-head]") is not None
+        assert box.select_one(":scope > .mvpl-body #body") is not None
+        assert box.select_one(":scope > .mvpl-footer[data-mvp-sheet-foot]") is not None
+
+
 class TestSheetDialog:
     def test_it_is_a_closed_modal_dialog_named_by_its_title(self, render_sheet):
         soup = render_sheet()
