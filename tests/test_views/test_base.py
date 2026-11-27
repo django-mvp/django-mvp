@@ -252,7 +252,7 @@ class TestPageTitleLayoutSetting:
 
         assert self._table_view_class()().get_page_title_layout() == "centred"
 
-    @pytest.mark.parametrize("named", ["page", "table"])
+    @pytest.mark.parametrize("named", ["page", "form", "detail", "delete", "table"])
     def test_a_dict_naming_one_type_changes_only_that_type(self, monkeypatch, named):
         self._setting(monkeypatch, {named: "centred"})
 
