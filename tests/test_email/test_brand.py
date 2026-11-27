@@ -160,6 +160,7 @@ class TestEmailBrandProjectStylesheets:
             "[data-theme=brandx]",
             "[data-theme='brandx']",
             ":root[data-theme=brandx]",
+            "[data-theme=brandx]:root",
             ":root:has(input.theme-controller[value=brandx]:checked),[data-theme=brandx]",
             "[data-theme=brandx],.card [data-theme=other]",
         ],
