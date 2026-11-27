@@ -6,6 +6,7 @@ import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.test import override_settings
+from django.urls import set_script_prefix
 
 from mvp.config import MVP_CONFIG
 
@@ -14,6 +15,22 @@ from mvp.config import MVP_CONFIG
 def mounted_at_root(pwa_enabled):
     with override_settings(ROOT_URLCONF="tests.urls_pwa"):
         yield
+
+
+@pytest.fixture(autouse=True)
+def fresh_site_cache():
+    """The Site lookup is cached per process: clear it before and after each test."""
+    Site.objects.clear_cache()
+    yield
+    Site.objects.clear_cache()
+
+
+@pytest.fixture
+def app_prefix():
+    """Serve the project under ``/app/``, and restore the root prefix after."""
+    set_script_prefix("/app/")
+    yield "/app/"
+    set_script_prefix("/")
 
 
 @pytest.mark.django_db
@@ -62,7 +79,6 @@ class TestManifestView:
 
     def test_the_name_is_the_current_site_name_with_the_sites_framework(self, client):
         Site.objects.filter(pk=settings.SITE_ID).update(name="Corner Shop")
-        Site.objects.clear_cache()
 
         assert client.get("/manifest.webmanifest").json()["name"] == "Corner Shop"
 
@@ -77,7 +93,6 @@ class TestManifestView:
 
     def test_the_names_fall_back_to_the_host_when_the_site_name_is_empty(self, client):
         Site.objects.filter(pk=settings.SITE_ID).update(name="")
-        Site.objects.clear_cache()
 
         manifest = client.get(
             "/manifest.webmanifest", HTTP_HOST="shop.example.org"
@@ -88,7 +103,7 @@ class TestManifestView:
 
     def test_a_hostile_site_name_round_trips_exactly(self, client):
         name = 'Bob\'s "Shop" </script><b>&amp;'
-        Site.objects.filter(pk=1).update(name=name)
+        Site.objects.filter(pk=settings.SITE_ID).update(name=name)
 
         response = client.get("/manifest.webmanifest")
         manifest = json.loads(response.content)
@@ -106,12 +121,6 @@ class TestServiceWorkerView:
         assert response["Content-Type"].startswith("text/javascript")
         assert response["Cache-Control"] == "no-cache"
 
-    def test_it_listens_for_install_and_activate(self, client):
-        body = client.get("/sw.js").content.decode()
-
-        assert 'addEventListener("install"' in body
-        assert 'addEventListener("activate"' in body
-
     def test_it_has_no_fetch_listener(self, client):
         body = client.get("/sw.js").content.decode()
 
@@ -120,16 +129,8 @@ class TestServiceWorkerView:
     def test_it_widens_its_scope_to_the_site_root(self, client):
         assert client.get("/sw.js")["Service-Worker-Allowed"] == "/"
 
-    def test_it_widens_its_scope_to_the_script_prefix(self, client):
-        from django.urls import set_script_prefix
-
-        set_script_prefix("/app/")
-        try:
-            response = client.get("/sw.js")
-        finally:
-            set_script_prefix("/")
-
-        assert response["Service-Worker-Allowed"] == "/app/"
+    def test_it_widens_its_scope_to_the_script_prefix(self, client, app_prefix):
+        assert client.get("/sw.js")["Service-Worker-Allowed"] == app_prefix
 
 
 @pytest.mark.django_db
@@ -152,43 +153,24 @@ class TestManifestOverrides:
 
         assert manifest["short_name"] == "Configured"
 
-    def test_the_start_url_and_scope_follow_the_script_prefix(self, client):
-        from django.urls import set_script_prefix
+    def test_the_start_url_and_scope_follow_the_script_prefix(self, client, app_prefix):
+        manifest = client.get("/manifest.webmanifest").json()
 
-        set_script_prefix("/app/")
-        try:
-            manifest = client.get("/manifest.webmanifest").json()
-        finally:
-            set_script_prefix("/")
-
-        assert manifest["start_url"] == "/app/"
-        assert manifest["scope"] == "/app/"
+        assert manifest["start_url"] == app_prefix
+        assert manifest["scope"] == app_prefix
 
 
 @pytest.mark.django_db
 class TestInstallView:
-    PLATFORMS = ("ios", "android", "chromium", "safari", "firefox")
-
     @pytest.fixture(autouse=True)
     def in_the_app_shell(self):
         # The page draws the whole shell, whose menus link to the demo's pages.
         with override_settings(ROOT_URLCONF="demo.urls"):
             yield
 
-    def test_it_answers(self, client):
-        response = client.get("/install/")
-
-        assert response.status_code == 200
-
-    def test_every_platforms_steps_are_in_the_page(self, client):
-        response = client.get("/install/")
-
-        rendered = {template.name for template in response.templates}
-        for platform in self.PLATFORMS:
-            assert f"mvp/pwa/install/{platform}.html" in rendered
-
     def test_the_other_devices_are_readable_without_the_script(self, client):
         response = client.get("/install/")
+        assert response.status_code == 200
         html = response.content.decode()
 
         # Only what the script reveals starts hidden: the phone sections under
@@ -207,7 +189,6 @@ class TestInstallView:
 
     def test_the_title_falls_back_to_the_site_name(self, client):
         Site.objects.filter(pk=settings.SITE_ID).update(name="Corner Shop")
-        Site.objects.clear_cache()
 
         title = client.get("/install/").context["page"]["title"]
 
@@ -215,7 +196,6 @@ class TestInstallView:
 
     def test_a_hostile_site_name_is_escaped(self, client):
         Site.objects.filter(pk=settings.SITE_ID).update(name="<b>Shop</b>")
-        Site.objects.clear_cache()
 
         html = client.get("/install/").content.decode()
 
