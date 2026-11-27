@@ -4,6 +4,8 @@ Each error page is rendered once per module. 404 is the representative page
 and 500 is the boundary, because it has its own template and context.
 """
 
+from pathlib import Path
+
 import pytest
 from bs4 import BeautifulSoup
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
@@ -152,12 +154,14 @@ class TestBadRequestHandler:
 # Scoped to the class below, not the module: a module-level importorskip or
 # pytestmark would skip and re-mark this module's unit tests too.
 
-AXE_CDN = "https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.9.1/axe.min.js"
+# axe-core 4.9.1 (Mozilla Public License 2.0, header kept in the file), vendored so
+# the test needs no network.
+AXE_JS = Path(__file__).parent / "vendor" / "axe.min.js"
 
 
 def _inject_axe(page):
     """Inject axe-core into the page and run it; return list of critical violations."""
-    page.add_script_tag(url=AXE_CDN)
+    page.add_script_tag(path=str(AXE_JS))
     violations = page.evaluate(
         """
         async () => {
