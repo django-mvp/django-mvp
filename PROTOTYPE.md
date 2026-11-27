@@ -40,7 +40,7 @@ gets a right sidebar by filling a template block.
 - The dock's Menu item is a button with `data-mvpl-toggle="left" data-mvpl-layout="mvp-app"`.
 - Full-height pages (`<c-mvp.page fill>`) fill the window inside the layout's grid.
 
-Screens: every page. http://devserver:8002/layout/ fills the right sidebar,
+Screens: every page. http://devserver:8002/components/card/ has sidebars in a box,
 http://devserver:8002/products/ has none, http://devserver:8002/layout/full-page/ is a filled page.
 
 ### 2. A card built from parts, with a layout (feature)
@@ -101,12 +101,13 @@ The sidebar's Layout group and the two theme pages become one group, Look & Feel
 - **App layout** (`/layout/`): the shell's own regions, the sidebar's and the header's, each with
   its diagram and its table of blocks, then a short section on how the page sits in the shell. It
   links to django-mvp-layout's documentation of the layout code
-  (https://django-mvp.github.io/django-mvp-layout/developer/layout-code.html) and fills the right
-  sidebar. The demo has no page of its own for the code.
+  (https://django-mvp.github.io/django-mvp-layout/developer/layout-code.html). The page itself has
+  no right sidebar: the diagrams show the layout. The demo has no page of its own for the code.
 - **Page layout** (`/layout/page/`): the page title and the side panel together, one form for the
   options of both, and an "On this page" panel listing both halves.
-- **Theme** (`/theme/`): what was Theme Preview, with a short explanation at the top and the theme
-  menu as the page title's action. Theme Customization is gone.
+- **Theme** (`/theme/`): what was Theme Preview, with a short explanation at the top and a theme
+  menu as the page title's action. That menu changes this page only and saves nothing, so the next
+  page is in the site's theme. Theme Customization is gone.
 
 The new card and modal examples go with these. Nobody gets a new way of working from them, so this
 is resolve work that comes with features 1 to 3.
@@ -204,6 +205,10 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   (app, sidebar and header, and a short section on the page), Page layout (page title and side
   panel) and Theme (the preview, with a theme menu as the title's action). Theme Customization is
   removed. (Sam)
+- 2026-11-27: App layout has no right sidebar. It shows the layout in its diagrams, not in its own
+  page. (Sam)
+- 2026-11-27: The theme menu on the Theme page changes that page only. Leaving the page, by a link
+  or a new load, shows the site's own theme again. (Sam)
 
 ## Decided on my own
 
@@ -261,8 +266,9 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
 - **App layout, Page layout and Theme keep the URLs `/layout/`, `/layout/page/` and `/theme/`.**
   `/layout/sidebar/`, `/layout/header/`, `/layout/title/`, `/layout/side/` and `/theme/preview/`
   are gone, and the diagram's sidebar and header regions link to their sections on App layout.
-- **The theme action is the header's theme menu**, `<c-mvp.actions.theme-controller>`, the same
-  control in the page title's actions.
+- **The Theme page's menu is the demo's own**, built like the header's theme menu but with its own
+  attribute and a short script, so theme-change never saves it. A boosted link keeps `<html>`, so
+  the script puts the site's theme back once the page is gone.
 - **Theme's explanation is the opening paragraph Theme Customization had**, without its list of the
   demo's themes, followed by the preview's own.
 - **Page layout's sample title and eyebrow read "Page layout" and "Look & Feel"**, and its Contents
