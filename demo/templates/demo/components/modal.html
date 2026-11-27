@@ -1,68 +1,84 @@
 {% extends "demo/components/base.html" %}
 {% block component.docs %}
   <c-components.section title="Default"
-                        description="Give the modal an id, then open it from any element with id.showModal(). Clicking the backdrop closes it. The title, body and actions are drawn on daisyUI's modal box.">
+                        description="Give the modal an id, then open it from any element with id.showModal(). Clicking the backdrop closes it. The dialog is built from parts: c-modal.header, c-modal.body and c-modal.footer, drawn on daisyUI's modal box.">
     {% cotton:verbatim %}
     <c-button text="Open modal" variant="primary" onclick="basic_modal.showModal()" />
-    <c-mvp.modal id="basic_modal" title="Hello">
-      <c-mvp.text tight>This is a modal dialog. Click outside the box to dismiss it.</c-mvp.text>
-    </c-mvp.modal>
+    <c-modal id="basic_modal">
+      <c-modal.header title="Hello" />
+      <c-modal.body>
+        <c-mvp.text tight>This is a modal dialog. Click outside the box to dismiss it.</c-mvp.text>
+      </c-modal.body>
+    </c-modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Title icon"
-                        description="title and icon head the box.">
+                        description="The header's title and icon head the box.">
     {% cotton:verbatim %}
     <c-button text="Show info" variant="info" onclick="info_modal.showModal()" />
-    <c-mvp.modal id="info_modal" title="Good to know" icon="info-circle" closable>
-      <c-mvp.text tight>Modals are built on the native &lt;dialog&gt; element, so they work without extra JavaScript libraries. Add closable for the ✕ in the corner.</c-mvp.text>
-    </c-mvp.modal>
+    <c-modal id="info_modal" closable>
+      <c-modal.header title="Good to know" icon="info-circle" />
+      <c-modal.body>
+        <c-mvp.text tight>Modals are built on the native &lt;dialog&gt; element, so they work without extra JavaScript libraries. Add closable for the ✕ in the corner.</c-mvp.text>
+      </c-modal.body>
+    </c-modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Footer actions"
-                        description="Put action buttons in footer_end so they sit at the end of the actions row. Call id.close() to dismiss.">
+                        description="Put action buttons in the end slot of c-modal.footer so they sit at the end of the actions row. Call id.close() to dismiss.">
     {% cotton:verbatim %}
     <c-button text="Delete item" variant="error" onclick="confirm_modal.showModal()" />
-    <c-mvp.modal id="confirm_modal" title="Are you sure?" icon="trash">
-      <c-mvp.text tight>This action cannot be undone.</c-mvp.text>
-      <c-slot name="footer_end">
-        <c-button text="Cancel" ghost onclick="confirm_modal.close()" />
-        <c-button text="Delete" variant="error" onclick="confirm_modal.close()" />
-      </c-slot>
-    </c-mvp.modal>
+    <c-modal id="confirm_modal">
+      <c-modal.header title="Are you sure?" icon="trash" />
+      <c-modal.body>
+        <c-mvp.text tight>This action cannot be undone.</c-mvp.text>
+      </c-modal.body>
+      <c-modal.footer>
+        <c-slot name="end">
+          <c-button text="Cancel" ghost onclick="confirm_modal.close()" />
+          <c-button text="Delete" variant="error" onclick="confirm_modal.close()" />
+        </c-slot>
+      </c-modal.footer>
+    </c-modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Tall content"
                         description="A body taller than the screen scrolls inside the box, and the heading and the actions row stay in view.">
     {% cotton:verbatim %}
     <c-button text="Open tall modal" variant="neutral" onclick="tall_modal.showModal()" />
-    <c-mvp.modal id="tall_modal" title="Terms" icon="info-circle" closable>
-      <c-mvp.text tight>
-        <p>Every paragraph below is here to make the body taller than the screen.</p>
-        <p>First paragraph of a long body.</p>
-        <p>Second paragraph of a long body.</p>
-        <p>Third paragraph of a long body.</p>
-        <p>Fourth paragraph of a long body.</p>
-        <p>Fifth paragraph of a long body.</p>
-        <p>Sixth paragraph of a long body.</p>
-        <p>Seventh paragraph of a long body.</p>
-        <p>Eighth paragraph of a long body.</p>
-        <p>Ninth paragraph of a long body.</p>
-        <p>Tenth paragraph of a long body.</p>
-        <p>Eleventh paragraph of a long body.</p>
-        <p>Twelfth paragraph of a long body.</p>
-        <p>Thirteenth paragraph of a long body.</p>
-        <p>Fourteenth paragraph of a long body.</p>
-        <p>Fifteenth paragraph of a long body.</p>
-        <p>Sixteenth paragraph of a long body.</p>
-        <p>Seventeenth paragraph of a long body.</p>
-        <p>Eighteenth paragraph of a long body.</p>
-        <p>Nineteenth paragraph of a long body.</p>
-        <p>Twentieth paragraph of a long body.</p>
-      </c-mvp.text>
-      <c-slot name="footer_end">
-        <c-button text="Close" variant="primary" onclick="tall_modal.close()" />
-      </c-slot>
-    </c-mvp.modal>
+    <c-modal id="tall_modal" closable>
+      <c-modal.header title="Terms" icon="info-circle" />
+      <c-modal.body>
+        <c-mvp.text tight>
+          <p>Every paragraph below is here to make the body taller than the screen.</p>
+          <p>First paragraph of a long body.</p>
+          <p>Second paragraph of a long body.</p>
+          <p>Third paragraph of a long body.</p>
+          <p>Fourth paragraph of a long body.</p>
+          <p>Fifth paragraph of a long body.</p>
+          <p>Sixth paragraph of a long body.</p>
+          <p>Seventh paragraph of a long body.</p>
+          <p>Eighth paragraph of a long body.</p>
+          <p>Ninth paragraph of a long body.</p>
+          <p>Tenth paragraph of a long body.</p>
+          <p>Eleventh paragraph of a long body.</p>
+          <p>Twelfth paragraph of a long body.</p>
+          <p>Thirteenth paragraph of a long body.</p>
+          <p>Fourteenth paragraph of a long body.</p>
+          <p>Fifteenth paragraph of a long body.</p>
+          <p>Sixteenth paragraph of a long body.</p>
+          <p>Seventeenth paragraph of a long body.</p>
+          <p>Eighteenth paragraph of a long body.</p>
+          <p>Nineteenth paragraph of a long body.</p>
+          <p>Twentieth paragraph of a long body.</p>
+        </c-mvp.text>
+      </c-modal.body>
+      <c-modal.footer>
+        <c-slot name="end">
+          <c-button text="Close" variant="primary" onclick="tall_modal.close()" />
+        </c-slot>
+      </c-modal.footer>
+    </c-modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Size"
@@ -71,13 +87,16 @@
     <c-button text="Open large modal"
               variant="neutral"
               onclick="large_modal.showModal()" />
-    <c-mvp.modal id="large_modal" title="Roomier" icon="maximize" size="lg" closable>
-      <c-mvp.text tight>A larger dialog for content that needs more breathing room — forms, tables, side-by-side layouts.</c-mvp.text>
-    </c-mvp.modal>
+    <c-modal id="large_modal" size="lg" closable>
+      <c-modal.header title="Roomier" icon="maximize" />
+      <c-modal.body>
+        <c-mvp.text tight>A larger dialog for content that needs more breathing room — forms, tables, side-by-side layouts.</c-mvp.text>
+      </c-modal.body>
+    </c-modal>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Position"
-                        description="By default the dialog is centred. Use position to pin it to an edge instead: top, bottom, start, or end.">
+                        description="By default the dialog is centred. Use placement to pin it to an edge instead: top, bottom, start, or end.">
     {% cotton:verbatim %}
     <div class="flex flex-wrap gap-2">
       <c-button text="Top" variant="neutral" onclick="top_modal.showModal()" />
@@ -85,18 +104,155 @@
       <c-button text="Start" variant="neutral" onclick="start_modal.showModal()" />
       <c-button text="End" variant="neutral" onclick="end_modal.showModal()" />
     </div>
-    <c-mvp.modal id="top_modal" title="Pinned to the top" icon="info-circle" position="top" closable>
-      <c-mvp.text tight>This dialog opens against the top edge of the screen.</c-mvp.text>
-    </c-mvp.modal>
-    <c-mvp.modal id="bottom_modal" title="Pinned to the bottom" icon="info-circle" position="bottom" closable>
-      <c-mvp.text tight>This dialog opens against the bottom edge — handy on mobile.</c-mvp.text>
-    </c-mvp.modal>
-    <c-mvp.modal id="start_modal" title="Pinned to the start" icon="info-circle" position="start" closable>
-      <c-mvp.text tight>This dialog opens against the start edge (left in LTR) and fills the screen height.</c-mvp.text>
-    </c-mvp.modal>
-    <c-mvp.modal id="end_modal" title="Pinned to the end" icon="info-circle" position="end" closable>
-      <c-mvp.text tight>This dialog opens against the end edge (right in LTR) and fills the screen height.</c-mvp.text>
-    </c-mvp.modal>
+    <c-modal id="top_modal" placement="top" closable>
+      <c-modal.header title="Pinned to the top" icon="info-circle" />
+      <c-modal.body>
+        <c-mvp.text tight>This dialog opens against the top edge of the screen.</c-mvp.text>
+      </c-modal.body>
+    </c-modal>
+    <c-modal id="bottom_modal" placement="bottom" closable>
+      <c-modal.header title="Pinned to the bottom" icon="info-circle" />
+      <c-modal.body>
+        <c-mvp.text tight>This dialog opens against the bottom edge — handy on mobile.</c-mvp.text>
+      </c-modal.body>
+    </c-modal>
+    <c-modal id="start_modal" placement="start" closable>
+      <c-modal.header title="Pinned to the start" icon="info-circle" />
+      <c-modal.body>
+        <c-mvp.text tight>This dialog opens against the start edge (left in LTR) and fills the screen height.</c-mvp.text>
+      </c-modal.body>
+    </c-modal>
+    <c-modal id="end_modal" placement="end" closable>
+      <c-modal.header title="Pinned to the end" icon="info-circle" />
+      <c-modal.body>
+        <c-mvp.text tight>This dialog opens against the end edge (right in LTR) and fills the screen height.</c-mvp.text>
+      </c-modal.body>
+    </c-modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Sections in a sidebar"
+                        description="Set view and the box is laid out by that layout code. Place c-layout.sidebar and c-layout.page between the c-modal.header and the c-modal.footer: the heading row on top, the sidebar beside the body, the actions row below. The box keeps daisyUI's height cap and the body scrolls inside it. On a narrow screen the sidebar becomes a drawer inside the dialog, opened from the heading row, and Escape closes the drawer before the dialog.">
+    {% cotton:verbatim %}
+    <c-button text="Open settings" icon="gear" onclick="settings_modal.showModal()" />
+    <c-modal id="settings_modal" view="hHh LpR fFf" size="lg" closable x-data="{ section: 'profile' }">
+      <c-modal.header title="Settings" icon="gear" />
+      <c-layout.sidebar side="left" label="Settings sections" breakpoint="sm">
+        <div class="flex min-h-full flex-col p-2">
+          <c-menu class="w-full">
+            <c-menu.item icon="person" href="#settings-profile" @click="section = 'profile'" ::class="section === 'profile' && 'menu-active'"><span>Profile</span></c-menu.item>
+            <c-menu.item icon="bell" href="#settings-notifications" @click="section = 'notifications'" ::class="section === 'notifications' && 'menu-active'"><span>Notifications</span></c-menu.item>
+            <c-menu.item icon="palette" href="#settings-appearance" @click="section = 'appearance'" ::class="section === 'appearance' && 'menu-active'"><span>Appearance</span></c-menu.item>
+            <c-menu.item icon="lock" href="#settings-security" @click="section = 'security'" ::class="section === 'security' && 'menu-active'"><span>Security</span></c-menu.item>
+          </c-menu>
+        </div>
+      </c-layout.sidebar>
+      <c-layout.page class="p-4">
+        <div x-show="section === 'profile'" class="flex flex-col gap-4" data-section="profile">
+          <h3 class="text-base font-semibold">Profile</h3>
+          <label class="flex flex-col gap-1 text-sm">Name<input class="input w-full" value="Mira Okafor" /></label>
+          <label class="flex flex-col gap-1 text-sm">Role<input class="input w-full" value="Field geologist" /></label>
+          <label class="flex flex-col gap-1 text-sm">About<textarea class="textarea w-full" rows="3">Works on the northern transect.</textarea></label>
+        </div>
+        <div x-show="section === 'notifications'" x-cloak class="flex flex-col gap-3" data-section="notifications">
+          <h3 class="text-base font-semibold">Notifications</h3>
+          <label class="flex items-center justify-between gap-3 text-sm">A dataset I follow changes<input type="checkbox" class="toggle" checked /></label>
+          <label class="flex items-center justify-between gap-3 text-sm">Someone mentions me<input type="checkbox" class="toggle" checked /></label>
+          <label class="flex items-center justify-between gap-3 text-sm">A weekly summary<input type="checkbox" class="toggle" /></label>
+        </div>
+        <div x-show="section === 'appearance'" x-cloak class="flex flex-col gap-3" data-section="appearance">
+          <h3 class="text-base font-semibold">Appearance</h3>
+          <label class="flex flex-col gap-1 text-sm">Density<select class="select w-full"><option>Comfortable</option><option>Compact</option></select></label>
+        </div>
+        <div x-show="section === 'security'" x-cloak class="flex flex-col gap-3" data-section="security">
+          <h3 class="text-base font-semibold">Security</h3>
+          <p class="text-sm text-base-content/70">Two-step sign-in is on. You last signed in from Potsdam.</p>
+          <div><c-button size="sm" text="Sign out of other devices" /></div>
+        </div>
+      </c-layout.page>
+      <c-modal.footer>
+        <c-slot name="end">
+          <c-button text="Cancel" ghost onclick="settings_modal.close()" />
+          <c-button text="Save" variant="primary" onclick="settings_modal.close()" />
+        </c-slot>
+      </c-modal.footer>
+    </c-modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Two sidebars"
+                        description="A dialog can have both sidebars. Here the folders sit on the left and the chosen file's details on the right. The right sidebar becomes a drawer below its own breakpoint, so on a phone both open from the heading row.">
+    {% cotton:verbatim %}
+    <c-button text="Choose a file" icon="file" onclick="picker_modal.showModal()" />
+    <c-modal id="picker_modal" view="hHh LpR fFf" size="xl" closable>
+      <c-modal.header title="Choose a file" icon="folder" />
+      <c-layout.sidebar side="left" label="Folders" breakpoint="sm">
+        <div class="flex min-h-full flex-col p-2">
+          <c-menu class="w-full">
+            <c-menu.item icon="folder" href="#picker-field" active><span>Field data</span></c-menu.item>
+            <c-menu.item icon="folder" href="#picker-papers"><span>Papers</span></c-menu.item>
+            <c-menu.item icon="folder" href="#picker-images"><span>Images</span></c-menu.item>
+            <c-menu.item icon="cloud" href="#picker-shared"><span>Shared with me</span></c-menu.item>
+          </c-menu>
+        </div>
+      </c-layout.sidebar>
+      <c-layout.page class="p-4">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border-2 border-primary bg-primary/5 p-4 text-sm"><c-icon name="sheet" class="text-3xl" />site-4-cores.xlsx</button>
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="pdf" class="text-3xl" />sampling-sheet.pdf</button>
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="image-file" class="text-3xl" />core-401.jpg</button>
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="image-file" class="text-3xl" />core-402.jpg</button>
+          <button type="button" class="flex flex-col items-center gap-2 rounded-box border border-base-300 p-4 text-sm"><c-icon name="file-text" class="text-3xl" />field-notes.md</button>
+        </div>
+      </c-layout.page>
+      <c-layout.sidebar side="right" label="File details" breakpoint="md">
+        <div class="flex min-h-full flex-col p-3">
+          <dl class="flex flex-col gap-2 text-sm">
+            <dt class="font-semibold">site-4-cores.xlsx</dt>
+            <dd class="text-base-content/70">Spreadsheet · 84 KB</dd>
+            <dt class="mt-2 text-xs uppercase text-base-content/60">Modified</dt><dd>Today, 09:12 by Mira Okafor</dd>
+            <dt class="mt-2 text-xs uppercase text-base-content/60">Shared with</dt><dd>Field team</dd>
+          </dl>
+        </div>
+      </c-layout.sidebar>
+      <c-modal.footer>
+        <span class="text-sm text-base-content/60">1 file selected</span>
+        <c-slot name="end">
+          <c-button text="Cancel" ghost onclick="picker_modal.close()" />
+          <c-button text="Attach" variant="primary" icon="paperclip" onclick="picker_modal.close()" />
+        </c-slot>
+      </c-modal.footer>
+    </c-modal>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Options in a drawer"
+                        description="behavior=overlay on the sidebar keeps the options a drawer over the body at every width, so the message keeps the whole box until they are wanted.">
+    {% cotton:verbatim %}
+    <c-button text="New message" icon="envelope" onclick="compose_modal.showModal()" />
+    <c-modal id="compose_modal" view="hHh LpR fFf" closable>
+      <c-modal.header title="New message" icon="envelope" />
+      <c-layout.page class="p-4">
+        <div class="flex flex-col gap-3">
+          <label class="flex flex-col gap-1 text-sm">To<input class="input w-full" value="field-team@example.org" /></label>
+          <label class="flex flex-col gap-1 text-sm">Subject<input class="input w-full" value="Core labels" /></label>
+          <label class="flex flex-col gap-1 text-sm">Message<textarea class="textarea w-full" rows="6">Please check the labels against the sampling sheet before Friday.</textarea></label>
+        </div>
+      </c-layout.page>
+      <c-layout.sidebar side="right" behavior="overlay" label="Sending options">
+        <div class="flex min-h-full flex-col p-3">
+          <div class="flex flex-col gap-3">
+            <h3 class="text-sm font-semibold">Sending options</h3>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" /> Ask for a read receipt</label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" checked /> Send a copy to me</label>
+            <label class="flex flex-col gap-1 text-sm">Send<select class="select select-sm"><option>Now</option><option>Tomorrow at 08:00</option></select></label>
+          </div>
+        </div>
+      </c-layout.sidebar>
+      <c-modal.footer>
+        <c-slot name="end">
+          <c-button text="Discard" ghost onclick="compose_modal.close()" />
+          <c-button text="Send" variant="primary" icon="send" onclick="compose_modal.close()" />
+        </c-slot>
+      </c-modal.footer>
+    </c-modal>
   {% endcotton:verbatim %}
   </c-components.section>
 {% endblock component.docs %}

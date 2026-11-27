@@ -40,13 +40,16 @@
       </c-section.col>
       <c-section.col>
         <c-reveal.enter effect="left">
-          <c-card class="bg-base-100 shadow-xl" title="Your first page">
-            <c-steps vertical>
-              <c-steps.step variant="primary">Install the package</c-steps.step>
-              <c-steps.step variant="primary">Add it to your installed apps</c-steps.step>
-              <c-steps.step variant="primary">Point a view at one of your models</c-steps.step>
-              <c-steps.step variant="primary" icon="check-circle-fill">Open a finished, searchable list page</c-steps.step>
-            </c-steps>
+          <c-card class="shadow-xl">
+            <c-card.header title="Your first page" />
+            <c-card.body>
+              <c-steps vertical>
+                <c-steps.step variant="primary">Install the package</c-steps.step>
+                <c-steps.step variant="primary">Add it to your installed apps</c-steps.step>
+                <c-steps.step variant="primary">Point a view at one of your models</c-steps.step>
+                <c-steps.step variant="primary" icon="check-circle-fill">Open a finished, searchable list page</c-steps.step>
+              </c-steps>
+            </c-card.body>
           </c-card>
         </c-reveal.enter>
       </c-section.col>
@@ -62,20 +65,28 @@
       </c-slot>
       <c-reveal.cascade per="2" class="grid gap-6 md:grid-cols-2">
         <c-card border>
-          <c-slot name="title"><c-icon name="list" class="text-primary" /> List pages<c-icon name="check-circle-fill" class="ms-auto text-success" /></c-slot>
-          <p>Search across the fields you name, ordering from a whitelist and pagination that keeps the query string. Every result has a URL you can bookmark.</p>
+          <c-card.header><c-icon name="list" class="text-primary" /> List pages<c-slot name="actions"><c-icon name="check-circle-fill" class="text-lg text-success" /></c-slot></c-card.header>
+          <c-card.body>
+            <p>Search across the fields you name, ordering from a whitelist and pagination that keeps the query string. Every result has a URL you can bookmark.</p>
+          </c-card.body>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="form" class="text-primary" /> Forms and formsets<c-icon name="check-circle-fill" class="ms-auto text-success" /></c-slot>
-          <p>Create and update pages with errors placed where they belong. Related rows add, delete and validate on the same page as their parent.</p>
+          <c-card.header><c-icon name="form" class="text-primary" /> Forms and formsets<c-slot name="actions"><c-icon name="check-circle-fill" class="text-lg text-success" /></c-slot></c-card.header>
+          <c-card.body>
+            <p>Create and update pages with errors placed where they belong. Related rows add, delete and validate on the same page as their parent.</p>
+          </c-card.body>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="exclamation-circle" class="text-primary" /> Delete flows<c-icon name="check-circle-fill" class="ms-auto text-success" /></c-slot>
-          <p>The confirmation page lists what else goes with the record, and can ask for its name to be typed before the button works.</p>
+          <c-card.header><c-icon name="exclamation-circle" class="text-primary" /> Delete flows<c-slot name="actions"><c-icon name="check-circle-fill" class="text-lg text-success" /></c-slot></c-card.header>
+          <c-card.body>
+            <p>The confirmation page lists what else goes with the record, and can ask for its name to be typed before the button works.</p>
+          </c-card.body>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="layout" class="text-primary" /> Detail, dashboard and error pages<c-icon name="check-circle-fill" class="ms-auto text-success" /></c-slot>
-          <p>Detail pages with their actions, a dashboard to land on, and 403, 404 and 500 pages that look like the rest of the site.</p>
+          <c-card.header><c-icon name="layout" class="text-primary" /> Detail, dashboard and error pages<c-slot name="actions"><c-icon name="check-circle-fill" class="text-lg text-success" /></c-slot></c-card.header>
+          <c-card.body>
+            <p>Detail pages with their actions, a dashboard to land on, and 403, 404 and 500 pages that look like the rest of the site.</p>
+          </c-card.body>
         </c-card>
       </c-reveal.cascade>
     </c-section>
@@ -110,16 +121,22 @@
       </c-slot>
       <c-reveal.cascade per="3" class="grid gap-6 md:grid-cols-3">
         <c-card border>
-          <c-slot name="title"><c-icon name="gears" class="text-primary" /> Configure</c-slot>
-          <p>Start with settings and view attributes. Layout, navigation, themes, search fields and ordering change without touching a template.</p>
+          <c-card.header><c-icon name="gears" class="text-primary" /> Configure</c-card.header>
+          <c-card.body>
+            <p>Start with settings and view attributes. Layout, navigation, themes, search fields and ordering change without touching a template.</p>
+          </c-card.body>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="code-slash" class="text-primary" /> Override</c-slot>
-          <p>Need a different card, page or menu entry? Put your own template of the same name in your app and it replaces ours, everywhere it is used.</p>
+          <c-card.header><c-icon name="code-slash" class="text-primary" /> Override</c-card.header>
+          <c-card.body>
+            <p>Need a different card, page or menu entry? Put your own template of the same name in your app and it replaces ours, everywhere it is used.</p>
+          </c-card.body>
         </c-card>
         <c-card border>
-          <c-slot name="title"><c-icon name="image" class="text-primary" /> Make it yours</c-slot>
-          <p>Define your own theme, add your own components and bring your own Tailwind classes. One command writes the build configuration.</p>
+          <c-card.header><c-icon name="image" class="text-primary" /> Make it yours</c-card.header>
+          <c-card.body>
+            <p>Define your own theme, add your own components and bring your own Tailwind classes. One command writes the build configuration.</p>
+          </c-card.body>
         </c-card>
       </c-reveal.cascade>
     </c-section>

@@ -1,0 +1,29 @@
+{# @description The heading row a card or a dialog is built from, shared by c-card.header and c-modal.header: the heading, its badges and the actions at the end. In a card or dialog with a view it is the layout's header, with a toggle at each end for the sidebar on that side; the toggles show only there, and only for a sidebar that can close. #}
+{# @prop kind:select['card','modal'] | default:"card" | description:"Which box the row heads." #}
+{# @prop title:text | description:"Heading text." #}
+{# @prop icon:text | description:"Leading icon name for the heading." #}
+{# @prop href:text | description:"Cards only. The title becomes a link stretched over the whole card." #}
+{# @prop class:text | description:"Extra classes on the row." #}
+{# @slot Heading markup — Drawn inside the heading, after the icon and the title. #}
+{# @slot:badges Status, counts — Just after the heading. #}
+{# @slot:actions Buttons, dropdown — End-aligned. #}
+<c-vars kind="card" title="" icon="" href="" class="" badges="" actions="" />
+<header class="mvpl-header mvp-box-header mvp-{{ kind }}-header {{ class }}" {{ attrs }}>
+  <c-layout.toggle side="left" class="btn btn-ghost btn-sm btn-square" />
+  {% if title or icon or slot.strip %}
+    <h2 class="mvp-box-title{% if kind == "card" %} card-title{% else %} mvp-modal-title{% endif %}">
+      {% if icon %}<c-icon name="{{ icon }}" />{% endif %}
+      {% if title and href and kind == "card" %}
+        <a href="{{ href }}" class="card-link">{{ title }}</a>
+      {% elif title %}
+        <span class="mvp-box-title-text">{{ title }}</span>
+      {% endif %}
+      {{ slot }}
+    </h2>
+  {% endif %}
+  {% if badges %}<div class="flex items-center gap-1">{{ badges }}</div>{% endif %}
+  <div class="mvp-box-end ms-auto flex items-center gap-1">
+    {{ actions }}
+    <c-layout.toggle side="right" class="btn btn-ghost btn-sm btn-square" />
+  </div>
+</header>

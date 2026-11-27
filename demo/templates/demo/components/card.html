@@ -1,112 +1,310 @@
 {% extends "demo/components/base.html" %}
 {% block component.docs %}
   <c-components.section title="Default"
-                        description="A padded, elevated surface. Put any content in the default slot.">
+                        description="An elevated surface built from parts. c-card.body is the padded body; put any content in it.">
     {% cotton:verbatim %}
-    <c-mvp.card>
-      <c-mvp.text tight>A plain card — a clean surface for whatever you need.</c-mvp.text>
-    </c-mvp.card>
+    <c-card>
+      <c-card.body>
+        <c-mvp.text tight>A plain card — a clean surface for whatever you need.</c-mvp.text>
+      </c-card.body>
+    </c-card>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Title & icon"
-                        description="Pass title for a heading and, optionally, icon for a leading glyph.">
+                        description="c-card.header heads the card: title for the heading and, optionally, icon for a leading glyph.">
     {% cotton:verbatim %}
-    <c-mvp.card title="Statistics" icon="chart-bar">
-      <c-mvp.text size="xl" tight>1,248</c-mvp.text>
-      <c-mvp.text muted size="sm" tight>Total visitors this week</c-mvp.text>
-    </c-mvp.card>
+    <c-card>
+      <c-card.header title="Statistics" icon="chart-bar" />
+      <c-card.body>
+        <c-mvp.text size="xl" tight>1,248</c-mvp.text>
+        <c-mvp.text muted size="sm" tight>Total visitors this week</c-mvp.text>
+      </c-card.body>
+    </c-card>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Link"
-                        description="Give the card an href and its title becomes the one link, stretched over the whole card: a click or tap anywhere opens it, a keyboard user tabs to it once, and buttons and menus inside keep working.">
+                        description="Give the header an href and its title becomes the one link, stretched over the whole card: a click or tap anywhere opens it, a keyboard user tabs to it once, and buttons and menus inside keep working.">
     {% cotton:verbatim %}
-    <c-mvp.card id="linked_card" title="Project Atlas" icon="folder" href="/components/card/#opened">
-      <c-slot name="actions">
-        <c-button id="linked_card_button" text="Archive" size="sm" ghost onclick="this.dataset.pressed = 'yes'" />
-      </c-slot>
-      <c-mvp.text muted tight>Click anywhere on the card to open it.</c-mvp.text>
-    </c-mvp.card>
+    <c-card id="linked_card">
+      <c-card.header title="Project Atlas" icon="folder" href="/components/card/#opened">
+        <c-slot name="actions"><c-button id="linked_card_button" text="Archive" size="sm" ghost onclick="this.dataset.pressed = 'yes'" /></c-slot>
+      </c-card.header>
+      <c-card.body>
+        <c-mvp.text muted tight>Click anywhere on the card to open it.</c-mvp.text>
+      </c-card.body>
+    </c-card>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Title badges"
-                        description="The badges slot sits just after the title — great for a status, a count, or a version tag.">
+                        description="The header's badges slot sits just after the title — great for a status, a count, or a version tag.">
     {% cotton:verbatim %}
-    <c-mvp.card title="Release 2.4" icon="star">
-      <c-slot name="badges">
-        <c-badge variant="success" size="sm">Stable</c-badge>
-      </c-slot>
-      <c-mvp.text muted tight>Badges line up right after the title.</c-mvp.text>
-    </c-mvp.card>
+    <c-card>
+      <c-card.header title="Release 2.4" icon="star">
+        <c-slot name="badges"><c-badge variant="success" size="sm">Stable</c-badge></c-slot>
+      </c-card.header>
+      <c-card.body>
+        <c-mvp.text muted tight>Badges line up right after the title.</c-mvp.text>
+      </c-card.body>
+    </c-card>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Header actions"
-                        description="The actions slot sits at the end of the header — ideal for a button, a dropdown, or any per-card controls. Give the dropdown halign=end so its panel stays inside the card.">
+                        description="The header's actions slot sits at the end of the row — ideal for a button, a dropdown, or any per-card controls. Give the dropdown halign=end so its panel stays inside the card.">
     {% cotton:verbatim %}
-    <c-mvp.card title="Project Atlas" icon="folder">
-      <c-slot name="badges">
-        <c-badge variant="info" size="sm" outline>3 tasks</c-badge>
-      </c-slot>
-      <c-slot name="actions">
-        <c-mvp.dropdown halign="end" ghost size="sm" icon="gears">
-          <c-menu>
-            <c-menu.item text="Rename" icon="pencil" href="#" />
-            <c-menu.item text="Archive" icon="box-seam" href="#" />
-          </c-menu>
-        </c-mvp.dropdown>
-      </c-slot>
-      <c-mvp.text muted tight>A card with a status badge and its own controls in the header.</c-mvp.text>
-    </c-mvp.card>
+    <c-card>
+      <c-card.header title="Project Atlas" icon="folder">
+        <c-slot name="badges"><c-badge variant="info" size="sm" outline>3 tasks</c-badge></c-slot>
+        <c-slot name="actions">
+          <c-mvp.dropdown halign="end" ghost size="sm" icon="gears">
+            <c-menu>
+              <c-menu.item text="Rename" icon="pencil" href="#" />
+              <c-menu.item text="Archive" icon="box-seam" href="#" />
+            </c-menu>
+          </c-mvp.dropdown>
+        </c-slot>
+      </c-card.header>
+      <c-card.body>
+        <c-mvp.text muted tight>A card with a status badge and its own controls in the header.</c-mvp.text>
+      </c-card.body>
+    </c-card>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Footer"
-                        description="The footer slot aligns to the start, footer_end to the end — put metadata on one side and actions on the other.">
+                        description="c-card.footer ends the card. Its content aligns to the start and its end slot to the end — put metadata on one side and actions on the other.">
     {% cotton:verbatim %}
-    <c-mvp.card title="Upgrade your plan" icon="star">
-      <c-mvp.text muted tight>Unlock advanced features and priority support.</c-mvp.text>
-      <c-slot name="footer">
+    <c-card>
+      <c-card.header title="Upgrade your plan" icon="star" />
+      <c-card.body>
+        <c-mvp.text muted tight>Unlock advanced features and priority support.</c-mvp.text>
+      </c-card.body>
+      <c-card.footer>
         <c-badge variant="warning">Pro</c-badge>
-      </c-slot>
-      <c-slot name="footer_end">
-        <c-button text="Learn more" ghost size="sm" />
-        <c-button text="Upgrade" variant="primary" size="sm" />
-      </c-slot>
-    </c-mvp.card>
+        <c-slot name="end">
+          <c-button text="Learn more" ghost size="sm" />
+          <c-button text="Upgrade" variant="primary" size="sm" />
+        </c-slot>
+      </c-card.footer>
+    </c-card>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="In a grid"
                         description="Cards fill their container, so they line up neatly inside a c-mvp.grid.">
     {% cotton:verbatim %}
     <c-mvp.grid cols="1" md="3" gap="4">
-      <c-mvp.card title="Design" icon="pencil">
-        <c-mvp.text muted tight>Craft the interface.</c-mvp.text>
-      </c-mvp.card>
-      <c-mvp.card title="Build" icon="gears">
-        <c-mvp.text muted tight>Ship the feature.</c-mvp.text>
-      </c-mvp.card>
-      <c-mvp.card title="Measure" icon="graph-up">
-        <c-mvp.text muted tight>Learn from usage.</c-mvp.text>
-      </c-mvp.card>
+      <c-card>
+        <c-card.header title="Design" icon="pencil" />
+        <c-card.body>
+          <c-mvp.text muted tight>Craft the interface.</c-mvp.text>
+        </c-card.body>
+      </c-card>
+      <c-card>
+        <c-card.header title="Build" icon="gears" />
+        <c-card.body>
+          <c-mvp.text muted tight>Ship the feature.</c-mvp.text>
+        </c-card.body>
+      </c-card>
+      <c-card>
+        <c-card.header title="Measure" icon="graph-up" />
+        <c-card.body>
+          <c-mvp.text muted tight>Learn from usage.</c-mvp.text>
+        </c-card.body>
+      </c-card>
     </c-mvp.grid>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Tight"
-                        description="Add tight to drop the body padding — handy when the content brings its own edges, like a table or a menu.">
+                        description="Add tight to c-card.body to drop its padding — handy when the content brings its own edges, like a table or a menu.">
     {% cotton:verbatim %}
-    <c-mvp.card tight class="overflow-hidden">
-      <c-menu>
-        <c-menu.item text="Inbox" icon="email" href="#" />
-        <c-menu.item text="Starred" icon="star" href="#" />
-        <c-menu.item text="Trash" icon="trash" href="#" />
-      </c-menu>
-    </c-mvp.card>
+    <c-card class="overflow-hidden">
+      <c-card.body tight>
+        <c-menu>
+          <c-menu.item text="Inbox" icon="email" href="#" />
+          <c-menu.item text="Starred" icon="star" href="#" />
+          <c-menu.item text="Trash" icon="trash" href="#" />
+        </c-menu>
+      </c-card.body>
+    </c-card>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Bare surface"
-                        description="c-mvp.card.wrapper is the low-level primitive — just the card surface, no layout. Reach for it when you want full control over the interior.">
+                        description="A card with no parts is just the surface. Reach for it when you want full control over the interior.">
     {% cotton:verbatim %}
-    <c-mvp.card.wrapper class="p-6">
-      <c-mvp.text tight>A wrapper gives you the surface and nothing else — lay out the inside however you like.</c-mvp.text>
-    </c-mvp.card.wrapper>
+    <c-card class="p-6">
+      <c-mvp.text tight>A card with no parts gives you the surface and nothing else — lay out the inside however you like.</c-mvp.text>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Sidebars"
+                        description="Set view and the card is laid out by that layout code. Place django-mvp-layout's c-layout.sidebar and c-layout.page between the c-card.header and the c-card.footer: the header row becomes the layout's header, with a toggle for each sidebar, and the footer stays below. A card with a view grows with its content; this one has a height, so its body scrolls inside it.">
+    {% cotton:verbatim %}
+    <c-card id="card-inbox" view="hHh LpR fFf" height="30rem">
+      <c-card.header title="Inbox" icon="inbox">
+        <c-slot name="badges"><c-badge size="sm">12 unread</c-badge></c-slot>
+      </c-card.header>
+      <c-layout.sidebar side="left" label="Folders" breakpoint="sm">
+        <div class="flex min-h-full flex-col p-2">
+          <c-menu class="w-full">
+            <c-menu.item icon="inbox" href="#inbox" active><span>Inbox</span><span class="badge badge-sm ms-auto">12</span></c-menu.item>
+            <c-menu.item icon="star" href="#starred"><span>Starred</span></c-menu.item>
+            <c-menu.item icon="send" href="#sent"><span>Sent</span></c-menu.item>
+            <c-menu.item icon="archive" href="#archive"><span>Archive</span></c-menu.item>
+            <c-menu.item icon="trash" href="#trash"><span>Bin</span></c-menu.item>
+          </c-menu>
+        </div>
+      </c-layout.sidebar>
+      <c-layout.page>
+        <ul class="list">
+          <li class="list-row bg-base-200/60"><div class="list-col-grow"><div class="font-semibold">Mira Okafor</div><div class="text-sm">Field samples for the March survey</div><div class="text-xs text-base-content/60">The cores from site 4 arrived this morning…</div></div><span class="text-xs text-base-content/60">09:24</span></li>
+          <li class="list-row"><div class="list-col-grow"><div class="font-semibold">Jonas Weber</div><div class="text-sm">Re: Lab booking</div><div class="text-xs text-base-content/60">Thursday works, the centrifuge is free…</div></div><span class="text-xs text-base-content/60">08:51</span></li>
+          <li class="list-row"><div class="list-col-grow"><div class="font-medium">Data portal</div><div class="text-sm">Your export is ready</div><div class="text-xs text-base-content/60">heatflow-2026-11.csv, 4.2 MB</div></div><span class="text-xs text-base-content/60">Yesterday</span></li>
+          <li class="list-row"><div class="list-col-grow"><div class="font-medium">Ana Lima</div><div class="text-sm">Draft for the methods section</div><div class="text-xs text-base-content/60">I rewrote the calibration paragraph…</div></div><span class="text-xs text-base-content/60">Mon</span></li>
+          <li class="list-row"><div class="list-col-grow"><div class="font-medium">Seminar office</div><div class="text-sm">Room change for Friday</div><div class="text-xs text-base-content/60">The talk moves to lecture hall B…</div></div><span class="text-xs text-base-content/60">Mon</span></li>
+          <li class="list-row"><div class="list-col-grow"><div class="font-medium">Priya Nair</div><div class="text-sm">Instrument log</div><div class="text-xs text-base-content/60">Two readings look off on the 14th…</div></div><span class="text-xs text-base-content/60">Sun</span></li>
+        </ul>
+      </c-layout.page>
+      <c-layout.sidebar side="right" label="Message" breakpoint="md">
+        <div class="flex min-h-full flex-col p-3">
+          <div class="flex flex-col gap-3 text-sm">
+            <div><div class="font-semibold">Field samples for the March survey</div><div class="text-base-content/60">Mira Okafor · 09:24</div></div>
+            <p>The cores from site 4 arrived this morning. Two are cracked at the base, so I have logged them as partial.</p>
+            <p>Can you check the labels against the sampling sheet before Friday?</p>
+            <div class="flex gap-2"><c-button size="sm" icon="reply" text="Reply" /><c-button size="sm" ghost icon="archive" text="Archive" /></div>
+          </div>
+        </div>
+      </c-layout.sidebar>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Icon rail"
+                        description="collapse=icons on the sidebar closes it to a rail of icons instead of hiding it. Text with mvpl-rail-hide gives way in the rail. persist remembers whether it was open. With no height, the card is as tall as its content.">
+    {% cotton:verbatim %}
+    <c-card id="card-rail" view="hHh LpR fFf">
+      <c-card.header title="Project Atlas" icon="kanban" />
+      <c-layout.sidebar side="left" collapse="icons" label="Project sections" persist="atlas-card" breakpoint="sm">
+        <div class="flex min-h-full flex-col p-2">
+          <c-menu class="w-full">
+            <c-menu.item icon="kanban" href="#board" active aria-label="Board"><span class="mvpl-rail-hide">Board</span></c-menu.item>
+            <c-menu.item icon="calendar" href="#timeline" aria-label="Timeline"><span class="mvpl-rail-hide">Timeline</span></c-menu.item>
+            <c-menu.item icon="people" href="#team" aria-label="Team"><span class="mvpl-rail-hide">Team</span></c-menu.item>
+            <c-menu.item icon="file-text" href="#files" aria-label="Files"><span class="mvpl-rail-hide">Files</span></c-menu.item>
+          </c-menu>
+        </div>
+      </c-layout.sidebar>
+      <c-layout.page class="p-4">
+        <div class="grid gap-3 sm:grid-cols-3">
+          <div class="rounded-box bg-base-200 p-3"><div class="mb-2 text-sm font-semibold">To do</div><div class="rounded-field bg-base-100 p-2 text-sm shadow-sm">Order core liners</div></div>
+          <div class="rounded-box bg-base-200 p-3"><div class="mb-2 text-sm font-semibold">Doing</div><div class="rounded-field bg-base-100 p-2 text-sm shadow-sm">Calibrate probe 2</div></div>
+          <div class="rounded-box bg-base-200 p-3"><div class="mb-2 text-sm font-semibold">Done</div><div class="rounded-field bg-base-100 p-2 text-sm shadow-sm">Site 4 survey</div></div>
+        </div>
+      </c-layout.page>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="Another layout code"
+                        description="view changes how the areas meet. In lHh lpr lff the sidebar runs the full height of the card, beside the title row and the footer, as an outline beside a document does.">
+    {% cotton:verbatim %}
+    <c-card id="card-outline" view="lHh lpr lff">
+      <c-card.header title="Methods" icon="journal" />
+      <c-layout.sidebar side="left" label="Outline" width="12rem" breakpoint="sm">
+        <div class="flex min-h-full flex-col p-2">
+          <p class="px-2 pb-2 pt-2 text-xs font-semibold uppercase text-base-content/60">Outline</p>
+          <c-menu size="sm" class="w-full">
+            <c-menu.item href="#sites" text="Study sites" active />
+            <c-menu.item href="#sampling" text="Sampling" />
+            <c-menu.item href="#calibration" text="Calibration" />
+            <c-menu.item href="#analysis" text="Analysis" />
+          </c-menu>
+        </div>
+      </c-layout.sidebar>
+      <c-layout.page class="p-4">
+        <div class="prose prose-sm max-w-none">
+          <h3>Study sites</h3>
+          <p>Cores were taken at six sites along the northern transect, each at least two kilometres from the last.</p>
+          <h3>Sampling</h3>
+          <p>Every core was split lengthwise. One half went to the archive and the other to the lab for conductivity readings.</p>
+          <h3>Calibration</h3>
+          <p>The probe was calibrated against a fused silica standard before and after each run.</p>
+        </div>
+      </c-layout.page>
+      <c-card.footer>
+        <span class="text-sm text-base-content/60">Last edited by Ana Lima</span>
+        <c-slot name="end">
+          <c-button size="sm" text="Edit" icon="pencil" />
+        </c-slot>
+      </c-card.footer>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="A drawer at every width"
+                        description="behavior=overlay keeps the right sidebar a drawer over the body whatever the card's width, opened from the toggle in the header row. Filters are the usual case.">
+    {% cotton:verbatim %}
+    <c-card id="card-filters" view="hHh LpR fFf">
+      <c-card.header title="Readings" icon="chart-bar" />
+      <c-layout.page>
+        <table class="table table-sm">
+          <thead><tr><th scope="col">Core</th><th scope="col">Site</th><th scope="col" class="text-end">Conductivity</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">C-401</th><td>Site 4</td><td class="text-end">2.31</td></tr>
+            <tr><th scope="row">C-402</th><td>Site 4</td><td class="text-end">2.28</td></tr>
+            <tr><th scope="row">C-511</th><td>Site 5</td><td class="text-end">1.97</td></tr>
+            <tr><th scope="row">C-512</th><td>Site 5</td><td class="text-end">2.04</td></tr>
+            <tr><th scope="row">C-613</th><td>Site 6</td><td class="text-end">2.45</td></tr>
+          </tbody>
+        </table>
+      </c-layout.page>
+      <c-layout.sidebar side="right" behavior="overlay" label="Filters">
+        <div class="flex min-h-full flex-col p-3">
+          <div class="flex flex-col gap-3">
+            <h3 class="text-sm font-semibold">Filters</h3>
+            <label class="flex flex-col gap-1 text-sm">Site<select class="select select-sm"><option>All sites</option><option>Site 4</option></select></label>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm" checked /> Hide partial cores</label>
+            <c-button size="sm" variant="primary" text="Apply" onclick="MvpLayout.close(this.closest('.mvpl'), 'right')" />
+          </div>
+        </div>
+      </c-layout.sidebar>
+    </c-card>
+  {% endcotton:verbatim %}
+  </c-components.section>
+  <c-components.section title="In a narrow card"
+                        description="A sidebar becomes a drawer when the card is narrower than its breakpoint, measured on the card and not the window. These two cards sit side by side, so their folders open over the body.">
+    {% cotton:verbatim %}
+    <c-mvp.grid md="2">
+      <c-card id="card-narrow-1" view="hHh LpR fFf">
+        <c-card.header title="Shared files" icon="folder" />
+        <c-layout.sidebar side="left" label="Folders" breakpoint="sm">
+          <div class="flex min-h-full flex-col p-2">
+            <c-menu class="w-full">
+              <c-menu.item icon="folder" href="#field" text="Field data" active />
+              <c-menu.item icon="folder" href="#papers" text="Papers" />
+            </c-menu>
+          </div>
+        </c-layout.sidebar>
+        <c-layout.page class="p-4">
+          <ul class="flex flex-col gap-2 text-sm">
+            <li class="flex items-center gap-2"><c-icon name="sheet" />site-4-cores.xlsx</li>
+            <li class="flex items-center gap-2"><c-icon name="pdf" />sampling-sheet.pdf</li>
+            <li class="flex items-center gap-2"><c-icon name="image-file" />core-401.jpg</li>
+          </ul>
+        </c-layout.page>
+      </c-card>
+      <c-card id="card-narrow-2" view="hHh LpR fFf">
+        <c-card.header title="Team" icon="people" />
+        <c-layout.sidebar side="left" label="Groups" breakpoint="sm">
+          <div class="flex min-h-full flex-col p-2">
+            <c-menu class="w-full">
+              <c-menu.item href="#everyone" text="Everyone" active />
+              <c-menu.item href="#lab" text="Lab" />
+              <c-menu.item href="#field-team" text="Field" />
+            </c-menu>
+          </div>
+        </c-layout.sidebar>
+        <c-layout.page class="p-4">
+          <ul class="flex flex-col gap-2 text-sm">
+            <li>Mira Okafor</li><li>Jonas Weber</li><li>Ana Lima</li><li>Priya Nair</li>
+          </ul>
+        </c-layout.page>
+      </c-card>
+    </c-mvp.grid>
   {% endcotton:verbatim %}
   </c-components.section>
 {% endblock component.docs %}

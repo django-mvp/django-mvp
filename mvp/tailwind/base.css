@@ -2281,3 +2281,185 @@ html {
     margin-inline-start: auto;
   }
 }
+
+/* In daisyUI's own layer, one level above the rules for its components'
+   parts, so these beat daisyUI's padding and a caller's utility classes
+   still beat these. */
+@layer utilities {
+@layer daisyui.l1.l2 {
+  /* The card and the dialog, built from header, body and footer parts
+     (cotton/card, cotton/modal and the rows they share, cotton/mvp/box). */
+  .mvp-box-header {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .mvp-box-title {
+    min-width: 0;
+  }
+  .mvp-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-lg);
+    line-height: var(--text-lg--line-height);
+    font-weight: 700;
+  }
+  .mvp-box-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* The sidebar toggles in a heading row show only where the row is the
+     header of a card's or dialog's own layout. Anywhere else they would reach
+     the layout around the card, such as the shell's. */
+  .mvp-box-header .mvpl-toggle {
+    display: none !important;
+  }
+  .mvpl[data-mvpl-container] > .mvpl-grid > .mvp-box-header > .mvpl-toggle:not([hidden]),
+  .mvpl[data-mvpl-container] > .mvpl-grid > .mvp-box-header > .mvp-box-end > .mvpl-toggle:not([hidden]) {
+    display: inline-flex !important;
+  }
+
+  /* A card's parts share daisyUI's card padding and type size, which daisyUI
+     sets on .card-body only. The header sits closer to the body than the
+     card's edge, as the title did inside the body. */
+  .card {
+    --mvp-card-p: 1.5rem;
+    --mvp-card-fs: 0.875rem;
+  }
+  .card-xs { --mvp-card-p: 0.5rem; --mvp-card-fs: 0.6875rem; }
+  .card-sm { --mvp-card-p: 1rem; --mvp-card-fs: 0.75rem; }
+  .card-md { --mvp-card-p: 1.5rem; --mvp-card-fs: 0.875rem; }
+  .card-lg { --mvp-card-p: 2rem; --mvp-card-fs: 1rem; }
+  .card-xl { --mvp-card-p: 2.5rem; --mvp-card-fs: 1.125rem; }
+  .card > .mvp-card-header {
+    padding: var(--mvp-card-p) var(--mvp-card-p) 0;
+    font-size: var(--mvp-card-fs);
+  }
+  .card > .mvp-card-header:last-child,
+  .card > .mvp-card-header:has(+ .mvp-card-body-tight) {
+    padding-bottom: var(--mvp-card-p);
+  }
+  .card > .mvp-card-header + .card-body:not(.mvp-card-body-tight) {
+    padding-top: 0.5rem;
+  }
+  .card > .card-body:not(.mvp-card-body-tight):has(+ .mvp-card-footer) {
+    padding-bottom: 0;
+  }
+  .card > .mvp-card-footer {
+    padding: 1rem var(--mvp-card-p) var(--mvp-card-p);
+    font-size: var(--mvp-card-fs);
+  }
+  .card > .mvp-card-body-tight {
+    padding: 0;
+  }
+
+  /* A card whose header title is a link: the link grows an ::after over the
+     whole card, and every other link, button or form control inside the card
+     is lifted above it so it still takes its own click. The card shows the
+     keyboard focus the link itself does not draw. */
+  .card:has(> .mvp-card-header .card-link) {
+    position: relative;
+    cursor: pointer;
+  }
+  .card:has(> .mvp-card-header .card-link:focus-visible) {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .card-link:focus-visible {
+    outline: none;
+  }
+  .card-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+  .card:has(> .mvp-card-header .card-link)
+    :is(a[href], button, input, select, textarea, label, summary, [role="button"]):not(.card-link) {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* A dialog built from parts is stacked by django-mvp-layout's hbf and never
+     outgrows the screen: the body scrolls inside the box instead of the box,
+     so the header, the footer and the close button stay in view. The footer
+     sits where daisyUI's modal-action does. */
+  .modal-box.hbf {
+    overflow: hidden;
+  }
+  .modal-box.hbf > .mvpl-body {
+    min-height: 0;
+    overflow-y: auto;
+    margin-inline: -0.25rem;
+    padding-inline: 0.25rem;
+  }
+  .modal-box > .mvp-modal-footer {
+    margin-top: 1.5rem;
+  }
+  .mvp-modal-close {
+    position: absolute;
+    inset-inline-end: 0.5rem;
+    top: 0.5rem;
+    z-index: 3;
+  }
+  .modal-box:has(> .mvp-modal-close) > .mvp-modal-header {
+    padding-inline-end: 2rem;
+  }
+
+  /* A card or a dialog laid out by a layout code (django-mvp-layout). The
+     sidebars sit on a tint of the surface, and the header and footer rows
+     are ruled off from the body. */
+  .mvp-box-layout > .mvpl {
+    --mvpl-sidebar-bg: color-mix(in oklab, var(--color-base-200) 55%, var(--color-base-100));
+    --mvpl-line: var(--color-base-300);
+  }
+  .modal-box.mvp-box-layout {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+  /* A card stretched by its row, as in a grid of cards, stretches its layout
+     with it, so the sidebars and the body reach the card's bottom edge. */
+  .card.mvp-box-layout > .mvpl {
+    flex: 1 1 auto;
+  }
+  .mvpl-grid > .mvp-box-header {
+    min-height: 3.5rem;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-base-300);
+    background-color: var(--color-base-100);
+  }
+  .mvpl-grid > .mvp-box-header > .card-title {
+    font-size: var(--text-base);
+  }
+  .mvpl-grid > .mvp-box-header .mvp-box-title-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mvpl-grid > .mvp-box-footer {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--color-base-300);
+    background-color: var(--color-base-100);
+  }
+  .mvpl-grid > .mvp-modal-footer {
+    padding-block: 0.75rem;
+  }
+  .mvp-box-layout > .mvp-modal-close {
+    top: 0.75rem;
+    inset-inline-end: 0.75rem;
+  }
+  .mvp-box-layout:has(> .mvp-modal-close) > .mvpl > .mvpl-grid > .mvp-modal-header {
+    padding-inline-end: 3.25rem;
+  }
+}
+}
+

@@ -41,7 +41,7 @@ Delivers FR-001, FR-002, FR-003, FR-004, FR-005 (markup), FR-009, FR-019 (wide s
 
 #### T001 — The sheet and its view
 
-**Files**: `mvp/templates/cotton/mvp/sheet/index.html`, `mvp/templates/cotton/mvp/sheet/view.html`,
+**Files**: `mvp/templates/cotton/mvp/bottom_sheet/index.html`, `mvp/templates/cotton/mvp/bottom_sheet/view.html`,
 `tests/test_components/test_sheet.py`
 
 The contract in `plan.md`. Port the sheet from the agreed design into daisy-cotton's `c-modal`
@@ -54,7 +54,7 @@ set data attributes and the wide size class. Tests: US1 scenarios 1, 2, 7 (marku
 
 #### T002 — The trigger
 
-**Files**: `mvp/templates/cotton/mvp/sheet/trigger.html`, `tests/test_components/test_sheet.py`
+**Files**: `mvp/templates/cotton/mvp/bottom_sheet/trigger.html`, `tests/test_components/test_sheet.py`
 
 Link with `href`, button without, `aria-haspopup="dialog"`, name "More for {label}" from `label`,
 icon-only when the slot is empty and worded otherwise, a click handler that prevents the link
@@ -63,8 +63,8 @@ and dispatches `mvp-sheet-open` on `window` with `{ id, view, returns, opener }`
 
 #### T003 — The menu and its rows
 
-**Files**: `mvp/templates/cotton/mvp/sheet/menu/index.html`,
-`mvp/templates/cotton/mvp/sheet/menu/item.html`, `tests/test_components/test_sheet.py`
+**Files**: `mvp/templates/cotton/mvp/bottom_sheet/menu/index.html`,
+`mvp/templates/cotton/mvp/bottom_sheet/menu/item.html`, `tests/test_components/test_sheet.py`
 
 Wrappers over `c-menu` and `c-menu.item` (D15). `danger` marks a row destructive. Rows are
 links or buttons, icons hidden from assistive technology, words as the name. Scenario 6.
@@ -211,7 +211,7 @@ fixed sheet's follow distance assert the requirement instead. Focus checks retry
 
 #### T014 — Review fixes in the markup, demo and docs
 
-**Files**: `mvp/templates/cotton/mvp/sheet/index.html`, `demo/templates/demo/components/sheet.html`,
+**Files**: `mvp/templates/cotton/mvp/bottom_sheet/index.html`, `demo/templates/demo/components/sheet.html`,
 `tests/test_components/test_sheet.py`, `tests/test_demo/test_sheet_demo.py`,
 `docs/components.md`, `mvp/tailwind/base.css`, `mvp/static/css/django-mvp.css`,
 `mvp/static/css/django-mvp.css.br`

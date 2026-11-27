@@ -5,7 +5,7 @@
 ## Summary
 
 Two Cotton components under `mvp/templates/cotton/mvp/list/row/`: `c-mvp.list.row` (over daisy-cotton's
-`c-list.row`) and `c-mvp.list.row.action` (a thin wrapper of `c-mvp.sheet.menu.item`). One
+`c-list.row`) and `c-mvp.list.row.action` (a thin wrapper of `c-mvp.bottom_sheet.menu.item`). One
 registered Alpine component, `mvpRowActions`, in `assets/js/row_actions.js`. A block of rules in
 `mvp/tailwind/base.css` under `mvp-row-`. One default icon name, `ellipsis`. One template filter
 that rejects a second main action. The look is ported from the agreed design, never redrawn: its
@@ -50,13 +50,13 @@ layer and a menu (the menu has to sit in a dropdown and a sheet, and the swipe l
   `x-data`, no ⋯ (FR-003).
 - **With actions**: `<c-list.row class="mvp-row" x-data="mvpRowActions" data-mvp-row>` holding
   1. `div.mvp-row-face` (carries `list-row` and `face_class`): the content, then the ⋯ control,
-  2. `c-mvp.sheet id="{id}-sheet" title="{label}" lead="{lead}"` whose body holds an empty
+  2. `c-mvp.bottom_sheet id="{id}-sheet" title="{label}" lead="{lead}"` whose body holds an empty
      `div[data-mvp-row-sheet-body]`.
   The under layer is not in markup. The script adds `div.mvp-row-under` after the face.
 - **The ⋯ control** (`.mvp-row-more`, inside the face): a `c-mvp.dropdown` (`class="mvp-row-dropdown"`,
   `halign="end"`, trigger a ghost square small button with `c-icon name="ellipsis"` and
-  `aria-label="More for {label}"`) whose panel holds `<c-mvp.sheet.menu data-mvp-row-menu>{{ actions }}</c-mvp.sheet.menu>`,
-  and a `c-mvp.sheet.trigger for="{id}-sheet" label="{label}" icon="ellipsis" class="mvp-row-sheet-trigger"`.
+  `aria-label="More for {label}"`) whose panel holds `<c-mvp.bottom_sheet.menu data-mvp-row-menu>{{ actions }}</c-mvp.bottom_sheet.menu>`,
+  and a `c-mvp.bottom_sheet.trigger for="{id}-sheet" label="{label}" icon="ellipsis" class="mvp-row-sheet-trigger"`.
   CSS: the dropdown shows for `(pointer: fine)` and the sheet trigger is hidden. For
   `(pointer: coarse)`, and only inside a row carrying `data-mvp-row-ready`, the dropdown is hidden and
   the sheet trigger shown. A page with no script therefore shows the dropdown everywhere (FR-027).
@@ -65,7 +65,7 @@ layer and a menu (the menu has to sit in a dropdown and a sheet, and the swipe l
   sheet's `close` event fires. A click on an action inside the sheet closes the sheet after the
   action's own click has run (a `setTimeout`, so a link or form still proceeds).
 - `<c-mvp.list.row.action text icon href danger main leaves label type class>`: renders
-  `c-mvp.sheet.menu.item` with `data-mvp-row-action`, `data-mvp-row-main` when `main`,
+  `c-mvp.bottom_sheet.menu.item` with `data-mvp-row-action`, `data-mvp-row-main` when `main`,
   `data-mvp-row-leaves` when `leaves`, `aria-label="{label}"` when given (FR-023), and `:attrs`.
   `id`, `form`, `hx-*` and the rest land on the link or button as the sheet menu item already does.
 - **A second main action** (FR-006): the row passes its rendered `actions` through a template filter

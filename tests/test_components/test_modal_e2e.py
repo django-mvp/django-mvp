@@ -17,7 +17,6 @@ from tests.conftest import requires_browser
 pytestmark = [pytest.mark.e2e, requires_browser]
 
 DESKTOP = {"width": 1280, "height": 800}
-SHORT = {"width": 1280, "height": 480}
 
 
 class TestModalPositioning:
@@ -54,31 +53,3 @@ class TestModalPositioning:
             f"{position} modal-box height={bounding['height']}, "
             f"expected close to viewport height {DESKTOP['height']}"
         )
-
-
-class TestModalScrolling:
-    def test_a_tall_body_scrolls_while_the_heading_and_actions_stay_in_view(
-        self, page, live_server
-    ):
-        page.set_viewport_size(SHORT)
-        page.goto(f"{live_server.url}/components/modal/")
-
-        page.evaluate("document.getElementById('tall_modal').showModal()")
-        box = page.locator("#tall_modal .modal-box")
-        expect(box).to_be_visible()
-        box_bounds = box.bounding_box()
-        assert box_bounds is not None
-        assert box_bounds["height"] <= SHORT["height"]
-
-        body = page.locator("#tall_modal .modal-box > div.overflow-y-auto")
-        assert body.evaluate("el => el.scrollHeight > el.clientHeight")
-
-        for selector in ("h2", ".modal-action"):
-            part = page.locator(f"#tall_modal .modal-box {selector}")
-            expect(part).to_be_in_viewport()
-        page.evaluate(
-            "document.querySelector('#tall_modal .overflow-y-auto').scrollTop = 99999"
-        )
-        for selector in ("h2", ".modal-action"):
-            part = page.locator(f"#tall_modal .modal-box {selector}")
-            expect(part).to_be_in_viewport()

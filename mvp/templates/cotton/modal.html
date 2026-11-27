@@ -1,0 +1,49 @@
+{# @description A dialog on daisyUI's modal box, built from parts: c-modal.header (title, icon, actions), c-modal.body and c-modal.footer, each written only when wanted. A tall body scrolls inside the box while the header and the footer stay in view. It holds no form of its own, so it works inside one. The header's title names the dialog. Set view and the box is laid out by that layout code: place c-layout.sidebar and c-layout.page between the header and the footer, which become the layout's header and footer. Sidebars open, close and become drawers inside the dialog when it is narrow, and Escape closes a drawer before the dialog. This replaces daisy-cotton's modal and keeps its placement, closable and open. #}
+{# @prop id:text | required | description:"Dialog id, used by a trigger to open it (showModal()) and close it (close())." #}
+{# @prop size:select['sm','md','lg','xl','full'] | default:"md" | description:"Dialog width; a dialog pinned to the top or the bottom spans the screen. Empty leaves the width to daisyUI and to content_class." #}
+{# @prop placement:select['top','middle','bottom','start','end'] | description:"Where the dialog sits on screen. Leave empty to centre it." #}
+{# @prop closable:boolean | description:"Show a close button in the top corner that closes the dialog, inside a form or out of one." #}
+{# @prop open:boolean | description:"Render the dialog already shown (<dialog open>). This is not modal: Escape does not close it and focus is not trapped." #}
+{# @prop view:text | description:"A layout code, such as hHh LpR fFf. Setting it lays the dialog out: the content is a c-modal.header, c-layout.sidebar and c-layout.page elements and a c-modal.footer." #}
+{# @prop content_class:text | description:"Extra classes added to the modal box." #}
+{# @prop class:text | description:"Extra classes added to the dialog." #}
+{# @slot <c-modal.header title="Delete this item?" /><c-modal.body>This can't be undone.</c-modal.body> — The parts. #}
+{# @trigger <c-button onclick="demo_modal.showModal()">Open</c-button> — a modal starts closed; any element opens it by calling showModal() on the dialog whose id matches the modal's id prop, and close() closes it. Close from a type="button" button, not from a form with method="dialog": inside another form that inner form is dropped and its button submits the outer form instead. #}
+{% load i18n daisy_cotton %}
+<c-vars id="" size="md" placement="" closable="" open="" view="" content_class="" class="" />
+{% comment %}
+  A dialog built from parts stacks them with django-mvp-layout's hbf: the
+  header on top, the footer at the bottom and the body between, which
+  scrolls inside the box's height cap, so the header and the footer stay in
+  view. The sheet and the search dialog bring their own markup and are not
+  stacked. A dialog with a view loses the box's padding and holds one contained
+  layout, which grows with its content up to the box's height cap and then
+  scrolls inside it. The close button sits in the box's top corner in both
+  cases, and the header leaves room for it.
+{% endcomment %}
+<dialog{% if id %} id="{{ id }}"{% endif %}
+        class="modal {% variation placement "modal" "top,middle,bottom,start,end" %} {{ class }}"
+        {% if open %}open{% endif %}
+        {{ attrs }}>
+  <div class="modal-box{% if view %} mvp-box-layout{% elif "mvp-modal-header" in slot or "mvp-modal-body" in slot or "mvp-modal-footer" in slot %} hbf{% endif %}{% if size %}{% if placement == "top" or placement == "bottom" %} w-full max-w-none{% else %} w-11/12 {% if size == "sm" %}max-w-md{% elif size == "lg" %}max-w-4xl{% elif size == "xl" %}max-w-6xl{% elif size == "full" %}max-w-none{% else %}max-w-2xl{% endif %}{% endif %}{% endif %} {{ content_class }}">
+    {% if closable %}
+      <button type="button" class="mvp-modal-close btn btn-sm btn-circle btn-ghost" aria-label="{% trans "Close" %}" onclick="this.closest('dialog').close()"><span aria-hidden="true">✕</span></button>
+    {% endif %}
+    {% if view %}
+      <c-layout :view="view" container id="{{ id }}-layout">{{ slot }}</c-layout>
+    {% else %}
+      {{ slot }}
+    {% endif %}
+  </div>
+  <div class="modal-backdrop">
+    <button type="button" onclick="this.closest('dialog').close()">{% trans "Close" %}</button>
+  </div>
+</dialog>
+{# The header's title names the dialog, unless the caller named it already. #}
+<script>(function (d) {
+  if (!d || d.hasAttribute("aria-label") || d.hasAttribute("aria-labelledby")) return;
+  var h = d.querySelector(".mvp-modal-title");
+  if (!h) return;
+  if (!h.id) h.id = (d.id || "mvp-modal") + "-title";
+  d.setAttribute("aria-labelledby", h.id);
+})(document.currentScript && document.currentScript.previousElementSibling);</script>

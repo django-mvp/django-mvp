@@ -181,7 +181,10 @@ main region, footer and mobile dock are assembled for you.
   <c-mvp.container>
     <c-mvp.section title="Dashboard" icon="dashboard">
       <c-mvp.grid md="2" xl="4">
-        <c-mvp.card title="Orders">150 new</c-mvp.card>
+        <c-card>
+          <c-card.header title="Orders" />
+          <c-card.body>150 new</c-card.body>
+        </c-card>
       </c-mvp.grid>
     </c-mvp.section>
   </c-mvp.container>

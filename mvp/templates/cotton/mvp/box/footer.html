@@ -1,0 +1,10 @@
+{# @description The row of actions a card or a dialog ends with, shared by c-card.footer and c-modal.footer. In a card or dialog with a view it is the layout's footer. #}
+{# @prop kind:select['card','modal'] | default:"card" | description:"Which box the row ends." #}
+{# @prop class:text | description:"Extra classes on the row." #}
+{# @slot Metadata, a secondary action — Start-aligned. #}
+{# @slot:end Buttons — End-aligned. #}
+<c-vars kind="card" class="" end="" />
+<footer class="mvpl-footer mvp-box-footer mvp-{{ kind }}-footer {{ class }}" {{ attrs }}>
+  {% if slot.strip %}<div class="flex min-w-0 max-w-full items-center gap-2">{{ slot }}</div>{% endif %}
+  {% if end %}<div class="ms-auto flex min-w-0 max-w-full items-center gap-2">{{ end }}</div>{% endif %}
+</footer>

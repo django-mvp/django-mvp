@@ -1,6 +1,6 @@
 # ADR 0030 — The package's components carry a prefix, and the icon and the app shell do not
 
-**Status:** accepted
+**Status:** accepted; partly superseded by [ADR 0047](0047-the-card-and-the-modal-override-daisy-cottons.md), for the card and the modal
 
 ## Decision
 

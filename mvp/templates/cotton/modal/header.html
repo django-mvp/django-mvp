@@ -1,0 +1,11 @@
+{# @description A dialog's heading row: the title and its icon, and actions at the end. The title names the dialog. In a dialog with a view it is the layout's header, with a toggle for each sidebar. #}
+{# @prop title:text | description:"Heading text, and the dialog's accessible name." #}
+{# @prop icon:text | description:"Leading icon name for the heading." #}
+{# @prop class:text | description:"Extra classes on the row." #}
+{# @slot Heading markup — Drawn inside the heading after the title. #}
+{# @slot:actions <c-button size="sm" ghost text="Help" /> — End-aligned. #}
+<c-vars title="" icon="" class="" actions="" />
+<c-mvp.box.header kind="modal" :title="title" :icon="icon" :class="class" :attrs="attrs" only>
+  {{ slot }}
+  {% if actions %}<c-slot name="actions">{{ actions }}</c-slot>{% endif %}
+</c-mvp.box.header>

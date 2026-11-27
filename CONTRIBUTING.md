@@ -39,7 +39,7 @@ All Cotton components MUST be tested using the following pattern:
 def test_my_component(cotton_render_soup):
     """Test component rendering."""
     # The component name is its tag without the `c-`, in dotted notation
-    soup = cotton_render_soup("mvp.card", title="Quarterly report")
+    soup = cotton_render_soup("card.header", title="Quarterly report")
 
     assert soup.select_one("[class~='card']") is not None
 ```
@@ -50,8 +50,8 @@ def test_my_component(cotton_render_soup):
   `cotton_render_string_soup` fixtures this package ships - NOT `Template()` or
   `render_to_string()`. The `_soup` variants need `beautifulsoup4` in your test
   dependencies.
-- Use **dotted notation** for component names: `"mvp.card"` for `<c-mvp.card>`, not
-  `"mvp/card"`
+- Use **dotted notation** for component names: `"card.header"` for `<c-card.header>`, not
+  `"card/header"`
 - Test with c-vars, slots, and edge cases (missing optional vars, etc.)
 
 ### Running Tests

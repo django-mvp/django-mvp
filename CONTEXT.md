@@ -6,7 +6,7 @@
 
 A reusable, override-able UI building block implemented as a Cotton template. Components define the **public API** of django-mvp. They are named after their domain role, not their implementation or any external design system. Those the package owns are reached under the `mvp.` prefix.
 
-**Examples:** `c-app`, `c-mvp.page`, `c-mvp.card`, `c-mvp.grid`
+**Examples:** `c-app`, `c-mvp.page`, `c-card`, `c-mvp.grid`
 
 ### Component Attribute
 
@@ -370,17 +370,16 @@ c-mvp.actions.login     — navbar log-in button, renders only when anonymous
 ### Data Display
 
 ```
-c-mvp.card              — container for grouped content
-  c-mvp.card.wrapper    — the bare card surface, for a custom interior
+c-card                  — container for grouped content, built from c-card.header, c-card.body and c-card.footer
 c-mvp.avatar            — a user's avatar, with initials when there is no image
 c-icon                  — icon glyph (iconify)
 c-mvp.text              — styled text element
 c-mvp.data-field        — key-value display field
 c-mvp.messages          — Django messages flash list
-c-mvp.modal             — modal dialog overlay
-c-mvp.sheet             — a dialog that rises from the foot of a phone's screen and is centred on a wider one
-  c-mvp.sheet.view      — one step of a sheet, shown while the sheet's view is its name
-  c-mvp.sheet.trigger   — the button or link that opens a sheet
+c-modal                 — modal dialog overlay, built from c-modal.header, c-modal.body and c-modal.footer
+c-mvp.bottom_sheet             — a dialog that rises from the foot of a phone's screen and is centred on a wider one
+  c-mvp.bottom_sheet.view      — one step of a sheet, shown while the sheet's view is its name
+  c-mvp.bottom_sheet.trigger   — the button or link that opens a sheet
 c-mvp.dropdown          — dropdown menu trigger
 c-mvp.brand.logo        — brand logo image
 c-mvp.brand.icon        — brand icon glyph
@@ -464,11 +463,11 @@ c-mvp.documentation     — tabbed preview, source and output surface rendered b
 
 ### Component Naming Rules
 
-1. **Root components** use the `c-mvp.` prefix followed by a single descriptive word: `c-mvp.grid`, `c-mvp.card`, `c-mvp.text`.
+1. **Root components** use the `c-mvp.` prefix followed by a single descriptive word: `c-mvp.grid`, `c-mvp.text`, `c-mvp.toolbar`.
 2. **Nested components** use dot notation after the prefix: `c-mvp.page.title`, `c-mvp.page.list.empty`.
-3. **Directory = namespace**: A component's directory under `mvp/templates/cotton/mvp/` determines its namespace. `mvp/templates/cotton/mvp/card/index.html` → `c-mvp.card`. `mvp/templates/cotton/mvp/card/wrapper.html` → `c-mvp.card.wrapper`.
+3. **Directory = namespace**: A component's directory under `mvp/templates/cotton/mvp/` determines its namespace. `mvp/templates/cotton/mvp/page/title.html` → `c-mvp.page.title`. `mvp/templates/cotton/mvp/page/list/empty.html` → `c-mvp.page.list.empty`.
 4. **No implementation leakage**: Component names must not reference DaisyUI, Tailwind, or any external design system. They describe *what they are*, not *how they look*.
-5. **The `mvp.` prefix marks this package's components**, so none of them can share a name with a daisy-cotton component. The icon is the one exception: `c-icon` stays at `mvp/templates/cotton/icon.html` for good, because daisy-cotton ships a plain icon and expects a project to replace it, and this package's icon replaces it by sitting at the same name. The app shell is the other exception: its components are `c-app`, `c-app.sidebar`, `c-app.header`, `c-app.navbar`, `c-app.main`, `c-app.footer` and `c-app.dock`, under `mvp/templates/cotton/app/`, so that each one carries the name of the `app.*` block that draws it.
+5. **The `mvp.` prefix marks this package's components**, so none of them can share a name with a daisy-cotton component. The icon is the one exception: `c-icon` stays at `mvp/templates/cotton/icon.html` for good, because daisy-cotton ships a plain icon and expects a project to replace it, and this package's icon replaces it by sitting at the same name. The card and the dialog are exceptions too: `c-card` and `c-modal` override daisy-cotton's own components of those names, at `mvp/templates/cotton/card/` and `mvp/templates/cotton/modal.html` (ADR 0047). The app shell is another exception: its components are `c-app`, `c-app.sidebar`, `c-app.header`, `c-app.navbar`, `c-app.main`, `c-app.footer` and `c-app.dock`, under `mvp/templates/cotton/app/`, so that each one carries the name of the `app.*` block that draws it.
 6. **The basic components are daisy-cotton's.** `c-alert`, `c-avatar.group`, `c-badge`, `c-breadcrumbs`, `c-breadcrumbs.item`, `c-button`, `c-divider`, `c-dock`, `c-dock.item`, `c-link`, `c-menu` and `c-mockup.*` come from daisy-cotton under its bare names, and this package ships no template for them (#435). A call to one of them from a template in this package carries `only`.
 
 ## Terminology

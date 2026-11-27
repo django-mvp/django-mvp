@@ -3,30 +3,30 @@
   <c-components.section title="Menu with a confirmation"
                         description="A trigger opens the sheet and its menu lists the actions. A row switches to another view with show(name), here a question before something is deleted. The trigger's href is where a browser goes when scripts do not run.">
     {% cotton:verbatim %}
-    <c-mvp.sheet.trigger for="item_sheet" href="/components/sheet/" label="Project plan" />
-    <c-mvp.sheet id="item_sheet" title="Project plan" lead="Edited yesterday" icon="document">
-      <c-mvp.sheet.view name="menu">
+    <c-mvp.bottom_sheet.trigger for="item_sheet" href="/components/sheet/" label="Project plan" />
+    <c-mvp.bottom_sheet id="item_sheet" title="Project plan" lead="Edited yesterday" icon="document">
+      <c-mvp.bottom_sheet.view name="menu">
         <c-menu class="menu-xl w-full p-0">
           <c-menu.item text="Rename" icon="edit" href="#" />
           <c-menu.item text="Share" icon="share" href="#" />
           <c-menu.item text="Delete" icon="trash" class="text-error" @click="show('confirm')" />
         </c-menu>
-      </c-mvp.sheet.view>
-      <c-mvp.sheet.view name="confirm">
+      </c-mvp.bottom_sheet.view>
+      <c-mvp.bottom_sheet.view name="confirm">
         <c-mvp.text tight>Delete this plan? This cannot be undone.</c-mvp.text>
         <c-mvp.group row>
           <c-button text="Keep it" ghost @click="show('menu')" />
           <c-button text="Delete" variant="error" @click="$el.closest('dialog').close()" />
         </c-mvp.group>
-      </c-mvp.sheet.view>
-    </c-mvp.sheet>
+      </c-mvp.bottom_sheet.view>
+    </c-mvp.bottom_sheet>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Short form"
                         description="A short form fits in the body. The sheet sits inside nothing special: its closing controls are type=button, so closing never submits. Save closes the sheet here; a real form would post.">
     {% cotton:verbatim %}
-    <c-mvp.sheet.trigger for="note_sheet" href="/components/sheet/" label="a note">Add a note</c-mvp.sheet.trigger>
-    <c-mvp.sheet id="note_sheet" title="Add a note" lead="Visible to everyone on the plan">
+    <c-mvp.bottom_sheet.trigger for="note_sheet" href="/components/sheet/" label="a note">Add a note</c-mvp.bottom_sheet.trigger>
+    <c-mvp.bottom_sheet id="note_sheet" title="Add a note" lead="Visible to everyone on the plan">
       <form @submit.prevent="$el.closest('dialog').close()">
         <c-mvp.group>
           <c-form.fieldset legend="Note">
@@ -35,14 +35,14 @@
           <c-button type="submit" text="Save" variant="primary" />
         </c-mvp.group>
       </form>
-    </c-mvp.sheet>
+    </c-mvp.bottom_sheet>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Form with actions"
                         description="Full-width fields in the body, Cancel and Save in the actions slot. The body keeps a little room around its content, so a focused field's outline is not cut off on any side. The Save button belongs to the form through its form attribute.">
     {% cotton:verbatim %}
-    <c-mvp.sheet.trigger for="contact_sheet" href="/components/sheet/" label="a contact">Add a contact</c-mvp.sheet.trigger>
-    <c-mvp.sheet id="contact_sheet" title="Add a contact" lead="Saved to your address book" full>
+    <c-mvp.bottom_sheet.trigger for="contact_sheet" href="/components/sheet/" label="a contact">Add a contact</c-mvp.bottom_sheet.trigger>
+    <c-mvp.bottom_sheet id="contact_sheet" title="Add a contact" lead="Saved to your address book" full>
       <form id="contact_form" class="flex flex-col gap-3" @submit.prevent="$el.closest('dialog').close()">
         <label class="flex flex-col gap-1 text-sm">Name
           <input type="text" name="name" class="input w-full" autocomplete="off">
@@ -67,50 +67,50 @@
           <c-button type="submit" form="contact_form" text="Save" variant="primary" />
         </c-mvp.group>
       </c-slot>
-    </c-mvp.sheet>
+    </c-mvp.bottom_sheet>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="A sheet opened from another sheet"
                         description="A trigger inside a sheet opens a second one and closes the first. Focus returns to the element that opened the first sheet, or to the element named in returns.">
     {% cotton:verbatim %}
-    <c-mvp.sheet.trigger for="first_sheet" href="/components/sheet/" label="the first sheet">First sheet</c-mvp.sheet.trigger>
-    <c-mvp.sheet id="first_sheet" title="First sheet">
+    <c-mvp.bottom_sheet.trigger for="first_sheet" href="/components/sheet/" label="the first sheet">First sheet</c-mvp.bottom_sheet.trigger>
+    <c-mvp.bottom_sheet id="first_sheet" title="First sheet">
       <c-mvp.text tight>Open the second sheet from here, then close it.</c-mvp.text>
-      <c-mvp.sheet.trigger for="second_sheet" href="/components/sheet/" label="the second sheet">Second sheet</c-mvp.sheet.trigger>
-    </c-mvp.sheet>
-    <c-mvp.sheet id="second_sheet" title="Second sheet">
+      <c-mvp.bottom_sheet.trigger for="second_sheet" href="/components/sheet/" label="the second sheet">Second sheet</c-mvp.bottom_sheet.trigger>
+    </c-mvp.bottom_sheet>
+    <c-mvp.bottom_sheet id="second_sheet" title="Second sheet">
       <c-mvp.text tight>Closing this sheet puts focus back on the button that opened the first.</c-mvp.text>
-    </c-mvp.sheet>
+    </c-mvp.bottom_sheet>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="A step that changes the head"
                         description="The title and the line under it have ids built from the sheet's id, so an answer can replace both together. The button asks the demo view for the next step, whose answer swaps the title and the line out of band.">
     {% cotton:verbatim %}
-    <c-mvp.sheet.trigger for="step_sheet" href="/components/sheet/" label="the step sheet">Find a person</c-mvp.sheet.trigger>
-    <c-mvp.sheet id="step_sheet" title="Find a person" lead="Search by name">
+    <c-mvp.bottom_sheet.trigger for="step_sheet" href="/components/sheet/" label="the step sheet">Find a person</c-mvp.bottom_sheet.trigger>
+    <c-mvp.bottom_sheet id="step_sheet" title="Find a person" lead="Search by name">
       <button type="button" class="btn btn-primary"
               hx-get="{% url 'sheet-demo-step' %}" hx-swap="none">Search</button>
-    </c-mvp.sheet>
+    </c-mvp.bottom_sheet>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Full height"
                         description="full opens the sheet at the height of the screen. On a phone, drag the grab bar down to rest height, or tap it. On a wider screen the dialog is centred and keeps its own height.">
     {% cotton:verbatim %}
-    <c-mvp.sheet.trigger for="full_sheet" href="/components/sheet/" label="the long list">Long list</c-mvp.sheet.trigger>
-    <c-mvp.sheet id="full_sheet" title="Long list" full>
+    <c-mvp.bottom_sheet.trigger for="full_sheet" href="/components/sheet/" label="the long list">Long list</c-mvp.bottom_sheet.trigger>
+    <c-mvp.bottom_sheet id="full_sheet" title="Long list" full>
       {% for number in "123456789012" %}
         <c-mvp.text tight>Entry {{ forloop.counter }} of a list too long to see at once.</c-mvp.text>
       {% endfor %}
-    </c-mvp.sheet>
+    </c-mvp.bottom_sheet>
   {% endcotton:verbatim %}
   </c-components.section>
   <c-components.section title="Fixed height"
                         description="fixed keeps the sheet at its resting height: the grab bar offers no taller height, and dragging down still closes it.">
     {% cotton:verbatim %}
-    <c-mvp.sheet.trigger for="fixed_sheet" href="/components/sheet/" label="the reminder">Reminder</c-mvp.sheet.trigger>
-    <c-mvp.sheet id="fixed_sheet" title="Reminder" fixed>
+    <c-mvp.bottom_sheet.trigger for="fixed_sheet" href="/components/sheet/" label="the reminder">Reminder</c-mvp.bottom_sheet.trigger>
+    <c-mvp.bottom_sheet id="fixed_sheet" title="Reminder" fixed>
       <c-mvp.text tight>This sheet stays at its resting height.</c-mvp.text>
-    </c-mvp.sheet>
+    </c-mvp.bottom_sheet>
   {% endcotton:verbatim %}
   </c-components.section>
 {% endblock component.docs %}

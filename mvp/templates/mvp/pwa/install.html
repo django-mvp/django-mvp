@@ -22,7 +22,8 @@
         <span>{% blocktrans %}{{ app_name }} is installed. Open it from your home screen, dock or app list.{% endblocktrans %}</span>
       </c-alert>
       <section aria-labelledby="install-this-device" hidden x-bind:hidden="!device || justInstalled">
-        <c-mvp.card only>
+        <c-card only>
+          <c-card.body only>
           <h2 id="install-this-device" class="card-title">{% trans "On this device" %}</h2>
           <div data-mvp-install-prompt hidden x-bind:hidden="!installable" class="flex flex-wrap items-center gap-4">
             <c-mvp.brand.icon max-height="48" class="size-12 rounded-box" aria-hidden="true" only />
@@ -37,7 +38,8 @@
           <div data-mvp-install-device="chromium" hidden x-bind:hidden="installable || device !== 'chromium'">{% include "mvp/pwa/install/chromium.html" %}</div>
           <div data-mvp-install-device="safari" hidden x-bind:hidden="installable || device !== 'safari'">{% include "mvp/pwa/install/safari.html" %}</div>
           <div data-mvp-install-device="firefox" hidden x-bind:hidden="installable || device !== 'firefox'">{% include "mvp/pwa/install/firefox.html" %}</div>
-        </c-mvp.card>
+          </c-card.body>
+        </c-card>
       </section>
       <section aria-labelledby="install-other-devices" class="space-y-3">
         <h2 id="install-other-devices" class="text-lg font-semibold">{% trans "Other devices" %}</h2>

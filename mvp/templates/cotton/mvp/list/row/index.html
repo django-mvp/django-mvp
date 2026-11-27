@@ -20,13 +20,13 @@
         </c-slot>
         <c-menu class="menu-lg w-full p-0" data-mvp-row-menu only>{{ actions|single_main_action:id }}</c-menu>
       </c-mvp.dropdown>
-      <c-mvp.sheet.trigger for="{{ id }}-sheet" label="{{ label }}" icon="ellipsis" class="mvp-row-sheet-trigger" only />
+      <c-mvp.bottom_sheet.trigger for="{{ id }}-sheet" label="{{ label }}" icon="ellipsis" class="mvp-row-sheet-trigger" only />
     </div>
   </div>
-  <c-mvp.sheet id="{{ id }}-sheet" title="{{ label }}" lead="{{ lead }}" only>
+  <c-mvp.bottom_sheet id="{{ id }}-sheet" title="{{ label }}" lead="{{ lead }}" only>
     {% if art.strip %}<c-slot name="art">{{ art }}</c-slot>{% endif %}
     <div data-mvp-row-sheet-body></div>
-  </c-mvp.sheet>
+  </c-mvp.bottom_sheet>
 </c-list.row>
 {% else %}
 {% if id %}

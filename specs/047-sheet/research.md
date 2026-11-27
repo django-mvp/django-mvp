@@ -58,8 +58,8 @@ Read on 2026-11-22, against `origin/main` after the modal was redrawn on its own
 4. **Desktop.** Adopted. `sm:modal-middle` plus a rule hiding the grab bar from `sm` up, and the
    script reads the same width as a media query, so on a wide screen there is no drag to start.
 5. **The agreed design.** Adopted. See "What is ported" below.
-6. **Names.** `c-mvp.sheet`, `c-mvp.sheet.view`, `c-mvp.sheet.trigger`, `c-mvp.sheet.menu` and
-   `c-mvp.sheet.menu.item`. The menu is the package's own thin wrapper over daisy-cotton's
+6. **Names.** `c-mvp.bottom_sheet`, `c-mvp.bottom_sheet.view`, `c-mvp.bottom_sheet.trigger`, `c-mvp.bottom_sheet.menu` and
+   `c-mvp.bottom_sheet.menu.item`. The menu is the package's own thin wrapper over daisy-cotton's
    `c-menu` and `c-menu.item`, which already render an icon with words as a link or a button
    (checked in daisy-cotton 0.2.0). The wrapper adds what they lack: the sheet's row sizing and a
    `danger` mark on an item (D15).
@@ -97,13 +97,13 @@ daisyUI theme variables.
 
 | Agreed piece | Becomes |
 |---|---|
-| The sheet's dialog, box, grab bar, title, closing button and backdrop | `mvp/templates/cotton/mvp/sheet/index.html`; the rules in `mvp/tailwind/base.css` |
+| The sheet's dialog, box, grab bar, title, closing button and backdrop | `mvp/templates/cotton/mvp/bottom_sheet/index.html`; the rules in `mvp/tailwind/base.css` |
 | A head with art, a title and a line under it, and a rule | the same template's head, `mvp-sheet-head` |
 | The tall box with a pinned head and a scrolling body | the full height, which every sheet now has: the box is a column whose body scrolls |
-| One panel of the body shown by name | `c-mvp.sheet.view` |
-| The ⋮ button, a link where scripts do not run | `c-mvp.sheet.trigger`, icon button form |
-| The worded link that opens a sheet from a sheet and returns focus | `c-mvp.sheet.trigger`, worded form, with `returns` |
-| The menu of icon-and-words rows, a destructive row last | `c-mvp.sheet.menu` and `c-mvp.sheet.menu.item` |
+| One panel of the body shown by name | `c-mvp.bottom_sheet.view` |
+| The ⋮ button, a link where scripts do not run | `c-mvp.bottom_sheet.trigger`, icon button form |
+| The worded link that opens a sheet from a sheet and returns focus | `c-mvp.bottom_sheet.trigger`, worded form, with `returns` |
+| The menu of icon-and-words rows, a destructive row last | `c-mvp.bottom_sheet.menu` and `c-mvp.bottom_sheet.menu.item` |
 | The open-at-a-view window event | the `mvp-sheet-open` window event, documented |
 | The grab bar swipe | replaced by the drag to either height (new, specified) |
 
@@ -126,4 +126,4 @@ search stopped.
 | An Alpine component registered once and configured by markup | this repo | `assets/js/page_side.js` and `index.js` |
 | Showing the window events other components use | this repo | `mvp-page-side-open`, the same shape |
 | The sheet's script and rules | new code | `assets/js/sheet.js`, `mvp/tailwind/base.css`. No package does the two heights and the drag on a native `<dialog>`; a pointer-events gesture is the smallest thing that does |
-| Sheet, view, trigger, menu and menu item templates | new code | `mvp/templates/cotton/mvp/sheet/` |
+| Sheet, view, trigger, menu and menu item templates | new code | `mvp/templates/cotton/mvp/bottom_sheet/` |

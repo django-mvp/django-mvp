@@ -1,7 +1,8 @@
 {% extends "mvp/account/overview.html" %}
 {% block account.cards %}
   {{ block.super }}
-  <c-mvp.card title="Project card">
-    <c-mvp.text data-testid="project-account-card">Project card</c-mvp.text>
-  </c-mvp.card>
+  <c-card>
+    <c-card.header title="Project card" />
+    <c-card.body><c-mvp.text data-testid="project-account-card">Project card</c-mvp.text></c-card.body>
+  </c-card>
 {% endblock account.cards %}

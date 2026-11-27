@@ -4,7 +4,7 @@
 
 ## Summary
 
-Five Cotton templates under `mvp/templates/cotton/mvp/sheet/` (the sheet, a view, a trigger, a
+Five Cotton templates under `mvp/templates/cotton/mvp/bottom_sheet/` (the sheet, a view, a trigger, a
 menu and a menu item), one registered Alpine component, `mvpSheet`, in `assets/js/sheet.js`, and a
 block of rules in `mvp/tailwind/base.css`. The sheet sits in daisy-cotton's `c-modal` with
 `modal-bottom sm:modal-middle`, so the browser's `<dialog>` supplies Escape, the focus trap and the
@@ -26,7 +26,7 @@ design, class names renamed under `mvp-sheet-` and colours replaced by theme var
 
 ## The markup contract (what tests and FS-048 rely on)
 
-`<c-mvp.sheet id title lead icon full fixed wide class>`
+`<c-mvp.bottom_sheet id title lead icon full fixed wide class>`
 
 - `id` and `title` required. `lead` is the line under the title. `icon` is an icon name drawn before
   the title. `full` opens at the full height, `fixed` keeps the sheet at its resting height, `wide`
@@ -39,15 +39,15 @@ design, class names renamed under `mvp-sheet-` and colours replaced by theme var
   `x-data="mvpSheet"` (the component reads its id from `$el.id`; no template value goes inside an Alpine expression). Inside the box: the grab bar (`<button type="button"
   data-mvp-sheet-grab>` with `aria-label`), the head (`data-mvp-sheet-head`), the body
   (`data-mvp-sheet-body`) and the foot. Every closing control is `type="button"`.
-- Views: `<c-mvp.sheet.view name="confirm">` renders `<div data-mvp-sheet-view="confirm"
+- Views: `<c-mvp.bottom_sheet.view name="confirm">` renders `<div data-mvp-sheet-view="confirm"
   x-show="view === 'confirm'">`. The sheet's Alpine scope has `view` and `show(name)`, so any element
   inside switches with `@click="show('confirm')"`.
-- Trigger: `<c-mvp.sheet.trigger for="id" href label view returns id>` renders `<a href>` when an
+- Trigger: `<c-mvp.bottom_sheet.trigger for="id" href label view returns id>` renders `<a href>` when an
   address is given and a `<button type="button">` when not, with `aria-haspopup="dialog"`, an
   accessible name made from `label`, and behaviour in `mvpSheetTrigger` (registered in `sheet.js`, configured from `data-` attributes): its
   click prevents the default and dispatches `mvp-sheet-open` on `window` with `{ id, view, returns,
   opener }` only when the named element is a sheet on the page, and otherwise lets the link follow. An empty slot draws the icon-only button, a slot its words.
-- Menu: `<c-mvp.sheet.menu>` is the list, `<c-mvp.sheet.menu.item text icon href danger>` a row,
+- Menu: `<c-mvp.bottom_sheet.menu>` is the list, `<c-mvp.bottom_sheet.menu.item text icon href danger>` a row,
   rendered with `c-menu` and `c-menu.item`.
 - Any element opens a sheet with `$dispatch('mvp-sheet-open', { id, view })`.
 

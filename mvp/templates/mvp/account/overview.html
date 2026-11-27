@@ -26,16 +26,19 @@
     <div id="account-center-cards"
          class="grid gap-4 sm:grid-cols-2">
       {% block account.cards %}
-        <c-mvp.card title="{% trans "Preferences" %}" icon="settings">
-          <c-mvp.text>
-            {% trans "Choose your timezone and language." %}
-          </c-mvp.text>
-          <c-slot name="footer">
+        <c-card>
+          <c-card.header title="{% trans "Preferences" %}" icon="settings" />
+          <c-card.body>
+            <c-mvp.text>
+              {% trans "Choose your timezone and language." %}
+            </c-mvp.text>
+          </c-card.body>
+          <c-card.footer>
             <c-button href="{% url 'account-preferences' %}" text="{% trans "Open preferences" %}">
               <c-icon name="arrow-right" aria-hidden="true" />
             </c-button>
-          </c-slot>
-        </c-mvp.card>
+          </c-card.footer>
+        </c-card>
       {% endblock account.cards %}
     </div>
   </c-mvp.page>

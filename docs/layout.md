@@ -276,9 +276,10 @@ because beside them a phone leaves it too little room to name the current page.
 The same `items` list works in a card, a sidebar or any other box:
 
 ```html
-<c-mvp.card title="Where you are">
-  <c-mvp.breadcrumbs :items="page.breadcrumbs" />
-</c-mvp.card>
+<c-card>
+  <c-card.header title="Where you are" />
+  <c-card.body><c-mvp.breadcrumbs :items="page.breadcrumbs" /></c-card.body>
+</c-card>
 ```
 
 The site icon beside it stands down wherever the sidebar's own header is on screen

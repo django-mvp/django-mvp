@@ -1,4 +1,4 @@
-{# @description A dialog that rises from the foot of a phone's screen and sits in the middle of a wider one: a grab bar, a head (art, icon, title and the line under it, with a close button at its right on a wide screen), a body that scrolls, and a foot. Pressing Escape, tapping outside it, dragging it down or, on a wide screen, its close button in the head closes it and changes nothing. Open it with an mvp.sheet.trigger or by dispatching mvp-sheet-open on the window with the sheet's id. #}
+{# @description A dialog that rises from the foot of a phone's screen and sits in the middle of a wider one: a grab bar, a head (art, icon, title and the line under it, with a close button at its right on a wide screen), a body that scrolls, and a foot. Pressing Escape, tapping outside it, dragging it down or, on a wide screen, its close button in the head closes it and changes nothing. Open it with an mvp.bottom_sheet.trigger or by dispatching mvp-sheet-open on the window with the sheet's id. #}
 {# @prop id:text | required | description:"The sheet's id, unique on the page. A trigger names it in its for prop." #}
 {# @prop title:text | required | description:"What the sheet is about, shown in its head. It is the dialog's accessible name." #}
 {# @prop lead:text | description:"The line under the title. The line is always in the head, in an element with the id of the sheet followed by -lead, hidden while it is empty, so a step can swap it together with the title (the id of the sheet followed by -title)." #}
@@ -7,7 +7,7 @@
 {# @prop fixed:boolean | description:"Keep the sheet at its resting height. It still closes when dragged down." #}
 {# @prop wide:boolean | description:"Give the centred dialog the wide size. A phone is unaffected." #}
 {# @prop class:text | description:"Extra classes added to the dialog." #}
-{# @slot <p>What the sheet holds.</p> — The body: a c-menu of c-menu.item rows (class="menu-lg w-full p-0"), mvp.sheet.view panels, a short form. It scrolls when it is taller than the box. #}
+{# @slot <p>What the sheet holds.</p> — The body: a c-menu of c-menu.item rows (class="menu-lg w-full p-0"), mvp.bottom_sheet.view panels, a short form. It scrolls when it is taller than the box. #}
 {# @slot:art <img src="cover.jpg" alt=""> — Optional. Small art drawn before the title and hidden from assistive technology. #}
 {# @slot:description Text that describes the sheet. — Optional. Becomes the dialog's accessible description. #}
 {# @slot:actions <button type="button">Save</button> — Optional. The buttons in the foot. The foot is empty without them: a phone closes by the grab bar, dragging down, tapping outside or Escape, and a wide screen by the close button in the head. A button that only closes the sheet is type="button". #}
@@ -15,8 +15,9 @@
 <c-vars id title lead icon full fixed wide class art="" description="" actions="" />
 {% if description.strip %}{% firstof id|add:"-description" as described_by %}{% endif %}
 <c-modal id="{{ id }}"
+         size=""
          class="modal-bottom sm:modal-middle mvp-sheet {{ class }}"
-         content_class="mvp-sheet-box flex flex-col overflow-hidden px-4 pt-0 pb-0 mb-(--mvp-sheet-keyboard) sm:w-11/12 sm:max-w-lg sm:pt-5{% if wide %} sm:max-w-2xl{% endif %}"
+         content_class="mvp-sheet-box hbf gap-y-2 overflow-hidden px-4 pt-0 pb-0 mb-(--mvp-sheet-keyboard) sm:w-11/12 sm:max-w-lg sm:pt-5{% if wide %} sm:max-w-2xl{% endif %}"
          aria-labelledby="{{ id }}-title"
          :aria-describedby="described_by"
          data-mvp-sheet
@@ -24,15 +25,17 @@
          :data-mvp-sheet-fixed="fixed"
          x-data="mvpSheet"
          only>
-  {% if fixed %}
-    <div class="flex-none grid h-6 place-items-center self-stretch cursor-grab touch-none before:h-1 before:w-10 before:rounded-full before:bg-base-content/25 sm:hidden" data-mvp-sheet-grab aria-hidden="true"></div>
-  {% else %}
-    <button type="button"
-            class="flex-none grid h-6 place-items-center self-stretch cursor-grab touch-none border-0 bg-transparent p-0 before:h-1 before:w-10 before:rounded-full before:bg-base-content/25 sm:hidden"
-            data-mvp-sheet-grab
-            aria-label="{% translate "Change the height of this sheet" %}"></button>
-  {% endif %}
-  <div class="flex min-h-0 flex-1 flex-col gap-2">
+  {# Stacked by django-mvp-layout's hbf, like the card and the dialog: the #}
+  {# grab bar, head and description are the header, then the body and foot. #}
+  <div class="mvpl-header flex flex-col gap-2">
+    {% if fixed %}
+      <div class="flex-none grid h-6 place-items-center self-stretch cursor-grab touch-none before:h-1 before:w-10 before:rounded-full before:bg-base-content/25 sm:hidden" data-mvp-sheet-grab aria-hidden="true"></div>
+    {% else %}
+      <button type="button"
+              class="flex-none grid h-6 place-items-center self-stretch cursor-grab touch-none border-0 bg-transparent p-0 before:h-1 before:w-10 before:rounded-full before:bg-base-content/25 sm:hidden"
+              data-mvp-sheet-grab
+              aria-label="{% translate "Change the height of this sheet" %}"></button>
+    {% endif %}
     <div class="flex flex-none items-center gap-3.5 border-b border-base-content/12 pb-3.5 touch-none" data-mvp-sheet-head>
       {% if art.strip %}<span class="grid size-12 flex-none overflow-hidden rounded-field bg-base-content/8 *:size-full *:min-w-0 *:object-cover *:pointer-events-none" aria-hidden="true">{{ art }}</span>{% endif %}
       <div class="flex min-w-0 flex-col gap-0.5">
@@ -46,9 +49,9 @@
               onclick="this.closest('dialog').close()"><c-icon name="x" aria-hidden="true" /></button>
     </div>
     {% if description.strip %}<div class="flex-none text-sm" id="{{ id }}-description">{{ description }}</div>{% endif %}
-    <div class="-mx-4 -my-1 min-h-0 flex-auto overflow-y-auto overscroll-contain scroll-py-1 px-4 py-1" data-mvp-sheet-body>{{ slot }}</div>
-    <div class="flex-none pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]" data-mvp-sheet-foot>
-      {{ actions }}
-    </div>
+  </div>
+  <div class="mvpl-body -mx-4 -my-1 min-h-0 flex-auto overflow-y-auto overscroll-contain scroll-py-1 px-4 py-1" data-mvp-sheet-body>{{ slot }}</div>
+  <div class="mvpl-footer flex-none pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]" data-mvp-sheet-foot>
+    {{ actions }}
   </div>
 </c-modal>

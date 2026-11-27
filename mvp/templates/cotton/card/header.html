@@ -1,0 +1,14 @@
+{# @description A card's heading row: the title and its icon, badges after it and actions at the end. With href the title is the one link, stretched over the whole card: a click or tap anywhere on it opens the address, and buttons, menus and links inside the card sit above it and keep working. In a card with a view it is the layout's header, with a toggle for each sidebar. #}
+{# @prop title:text | description:"Heading text." #}
+{# @prop icon:text | description:"Leading icon name for the heading." #}
+{# @prop href:text | description:"Make the whole card a link. Needs a title, which becomes the link and its name." #}
+{# @prop class:text | description:"Extra classes on the row." #}
+{# @slot Heading markup — Drawn inside the heading after the title, for an icon or text styled your own way. #}
+{# @slot:badges <c-badge size="sm">Stable</c-badge> — Just after the title. #}
+{# @slot:actions <c-button size="sm" ghost text="Edit" /> — End-aligned. #}
+<c-vars title="" icon="" href="" class="" badges="" actions="" />
+<c-mvp.box.header kind="card" :title="title" :icon="icon" :href="href" :class="class" :attrs="attrs" only>
+  {{ slot }}
+  {% if badges %}<c-slot name="badges">{{ badges }}</c-slot>{% endif %}
+  {% if actions %}<c-slot name="actions">{{ actions }}</c-slot>{% endif %}
+</c-mvp.box.header>

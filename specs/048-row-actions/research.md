@@ -11,9 +11,9 @@ Checked against `origin/main` on 2026-11-22, with the sheet (FS-047) and the reo
 | htmx is part of the shipped front end | `assets/js/index.js` imports `htmx.org` into the bundle built to `mvp/static/js/django-mvp.js` | Holds |
 | Scripts ship with the package, not from a CDN | Same bundle, built by esbuild from `assets/js/` | Holds: a new module joins that bundle |
 | The default icon names include one for the ⋯ trigger | `mvp/utils.py` | Fails for the name `ellipsis`. `more, options, kebab` is the vertical three dots. FR-029 adds `ellipsis` as the horizontal three dots, resolved through the configured provider, with no icon file shipped (ADR 0038) |
-| The sheet exists | `mvp/templates/cotton/mvp/sheet/` | Holds (FS-047): `c-mvp.sheet`, `.trigger`, `.view`, `.menu`, `.menu.item`. A trigger opens a sheet by dispatching `mvp-sheet-open` on `window` with the sheet's id |
+| The sheet exists | `mvp/templates/cotton/mvp/bottom_sheet/` | Holds (FS-047): `c-mvp.bottom_sheet`, `.trigger`, `.view`, `.menu`, `.menu.item`. A trigger opens a sheet by dispatching `mvp-sheet-open` on `window` with the sheet's id |
 | Reordering announces its start and end | `assets/js/reorder.js`, ADR 0045 | Holds: `mvp:reorder-start` and `mvp:reorder-end` are dispatched on the list's root element (`[data-mvp-reorder]`), bubble, and carry `detail.source` of `drag`, `button` or `mode`. A drag and a button move each fire a pair and a reorder mode fires one pair around the whole mode, so the pairs nest |
-| Alpine sets up markup that htmx swaps in | Alpine's mutation observer, which `c-mvp.sheet` and `c-mvp.reorder` already rely on | Holds: a row carrying `x-data` is set up when it arrives, so rows that arrive by htmx need no extra call |
+| Alpine sets up markup that htmx swaps in | Alpine's mutation observer, which `c-mvp.bottom_sheet` and `c-mvp.reorder` already rely on | Holds: a row carrying `x-data` is set up when it arrives, so rows that arrive by htmx need no extra call |
 | The sheet menu item takes arbitrary attributes | `sheet/menu/item.html` passes `:attrs` to `c-menu.item` | Holds: `id`, `form`, `hx-*` and `aria-label` land on the link or button |
 
 ## What the agreed look is made of
@@ -24,7 +24,7 @@ what it becomes in the package:
 | Reference piece | What it is | What it becomes |
 |---|---|---|
 | Row template | A list item holding a face (the content that narrows) and an under layer of buttons | `c-mvp.list.row` over `c-list.row`: the face and the ⋯ control are rendered by the template, the under layer by the script (below) |
-| Button template | An icon over a word, a tone, "full", "leaves", an accessible label | `c-mvp.list.row.action`, a thin wrapper of `c-mvp.sheet.menu.item` carrying the same marks as data attributes |
+| Button template | An icon over a word, a tone, "full", "leaves", an accessible label | `c-mvp.list.row.action`, a thin wrapper of `c-mvp.bottom_sheet.menu.item` carrying the same marks as data attributes |
 | Assets template | Links the stylesheet and script | Dropped: both ship in the package's own bundle and stylesheet |
 | Gesture script | Pointer drag, wheel, 60% commit, flick, edges, one open row, hint, fold and restore | `assets/js/row_actions.js`: ported, then cleaned. It becomes one Alpine component registered in `index.js`, with named constants, no global written by the script other than the documented interface, mouse dragging removed (D1), direction taken from the page's direction (D2), the inert and focus rules of D3, and the reorder announcements (FR-025) |
 | Stylesheet | The face narrows (`width: calc(100% + x)`), the under layer widens, the full button grows past 60%, reduced motion | A block in `mvp/tailwind/base.css` under the prefix `mvp-row-`, with daisyUI theme variables and logical properties kept as they are |
@@ -51,7 +51,7 @@ what it becomes in the package:
 ## Planning notes, answered
 
 1. **Sheet and dropdown (adopted).** The ⋯ control holds a `c-mvp.dropdown` and a
-   `c-mvp.sheet.trigger` for a `c-mvp.sheet`. The one menu is drawn into the dropdown's panel, so a
+   `c-mvp.bottom_sheet.trigger` for a `c-mvp.bottom_sheet`. The one menu is drawn into the dropdown's panel, so a
    page without script opens it as a dropdown on every device. When the sheet opens, the script
    moves that one `<ul>` into the sheet's body, and moves it back when the sheet closes. One
    menu, so each id once (D10), and no script means a working dropdown.
@@ -76,12 +76,12 @@ what it becomes in the package:
 
 | New piece | Where the search stopped |
 |---|---|
-| The menu's items | This repo: `c-mvp.sheet.menu` and `.menu.item` (FS-047). The row's action wraps the item |
+| The menu's items | This repo: `c-mvp.bottom_sheet.menu` and `.menu.item` (FS-047). The row's action wraps the item |
 | The dropdown | This repo: `c-mvp.dropdown` with its upgrade script `dropdown.js` |
-| The sheet, its trigger and focus return | This repo: `c-mvp.sheet`, `c-mvp.sheet.trigger`, `mvpSheet` |
+| The sheet, its trigger and focus return | This repo: `c-mvp.bottom_sheet`, `c-mvp.bottom_sheet.trigger`, `mvpSheet` |
 | The list row | An installed package: daisy-cotton's `c-list.row` |
 | The ⋯ icon | This repo: `mvp/utils.py` default names gain `ellipsis`, resolved by the configured provider |
 | Swipe to reveal, fold, flick velocity | New code. No maintained package was adopted: the gesture is a few hundred lines already agreed, and a dependency would add more than it removes |
-| A unique id for the row's sheet | The developer gives the row an `id`, as `c-mvp.sheet` already requires |
+| A unique id for the row's sheet | The developer gives the row an `id`, as `c-mvp.bottom_sheet` already requires |
 | Counting main actions | New code: one template filter, because a template cannot raise |
 | `window.mvpRows` | New code: a three-method object, the documented interface FR-024 asks for |

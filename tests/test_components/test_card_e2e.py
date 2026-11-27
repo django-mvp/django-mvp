@@ -1,4 +1,4 @@
-"""Real-browser test for the link a ``<c-mvp.card>`` can take (issue #685).
+"""Real-browser test for the link a ``<c-card>`` can take (issue #685).
 
 The title's link is stretched over the card by a stylesheet rule, and the
 controls inside are lifted above it by another. Only a browser shows that a
