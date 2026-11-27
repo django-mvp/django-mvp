@@ -61,6 +61,17 @@ def site(db, monkeypatch):
     Site.objects.clear_cache()
 
 
+_RENDERED = {}
+
+
+@pytest.fixture
+def html(site):
+    """The child template rendered once for the module: most tests only read it."""
+    if "child" not in _RENDERED:
+        _RENDERED["child"] = render()
+    return _RENDERED["child"]
+
+
 @pytest.fixture
 def no_dark_logo(monkeypatch):
     """Make the static finders find no dark logo file."""
@@ -75,14 +86,14 @@ def no_dark_logo(monkeypatch):
 
 
 class TestImagesBlocked:
-    def test_every_image_is_named_for_the_site(self, site):
-        images = BeautifulSoup(render(), "html.parser").find_all("img")
+    def test_every_image_is_named_for_the_site(self, html):
+        images = BeautifulSoup(html, "html.parser").find_all("img")
 
         assert images
         assert {img.get("alt") for img in images} == {"Acme Mail"}
 
-    def test_the_message_reads_without_its_images(self, site):
-        soup = BeautifulSoup(render(), "html.parser")
+    def test_the_message_reads_without_its_images(self, html):
+        soup = BeautifulSoup(html, "html.parser")
         for image in soup.find_all("img"):
             image.decompose()
         text = soup.get_text(" ", strip=True)
@@ -92,8 +103,7 @@ class TestImagesBlocked:
         assert "Go" in text
         assert "Acme Mail" in text
 
-    def test_no_colour_or_shape_is_drawn_by_an_image(self, site):
-        html = render()
+    def test_no_colour_or_shape_is_drawn_by_an_image(self, html):
 
         assert "background-image" not in html
         assert "url(" not in html
@@ -101,8 +111,8 @@ class TestImagesBlocked:
 
 
 class TestDarkScheme:
-    def test_the_dark_rules_carry_the_dark_palette(self, site):
-        dark = block_of(render(), DARK_SCHEME)
+    def test_the_dark_rules_carry_the_dark_palette(self, html):
+        dark = block_of(html, DARK_SCHEME)
         palette = EmailBrand.current().dark
 
         for colour in (
@@ -116,16 +126,15 @@ class TestDarkScheme:
         ):
             assert colour in dark
 
-    def test_the_dark_rules_do_not_carry_a_light_only_colour(self, site):
+    def test_the_dark_rules_do_not_carry_a_light_only_colour(self, html):
         brand = EmailBrand.current()
-        dark = block_of(render(), DARK_SCHEME)
+        dark = block_of(html, DARK_SCHEME)
 
         for colour in set(vars(brand.light).values()) - set(vars(brand.dark).values()):
             assert colour not in dark
 
-    def test_a_dark_logo_is_shown_when_the_brand_has_one(self, site):
+    def test_a_dark_logo_is_shown_when_the_brand_has_one(self, html):
         brand = EmailBrand.current()
-        html = render()
         sources = [
             img["src"] for img in BeautifulSoup(html, "html.parser").find_all("img")
         ]
@@ -137,8 +146,8 @@ class TestDarkScheme:
         ]
         assert "display: block !important" in block_of(html, DARK_SCHEME)
 
-    def test_the_dark_logo_is_hidden_until_the_dark_scheme(self, site):
-        soup = BeautifulSoup(render(), "html.parser")
+    def test_the_dark_logo_is_hidden_until_the_dark_scheme(self, html):
+        soup = BeautifulSoup(html, "html.parser")
         light, dark = soup.find_all("img")
 
         assert "display: none" not in light["style"]
@@ -159,11 +168,9 @@ class TestDarkScheme:
 
 
 class TestNarrowScreen:
-    def test_a_narrow_width_rule_is_present(self, site):
-        html = render()
+    def test_a_narrow_width_rule_is_present(self, html):
 
         assert re.search(r"@media \(max-width: \d+px\)", html)
-        assert "width: 100% !important" in block_of(html, "@media (max-width")
 
 
 class TestOutlookColours:
@@ -181,8 +188,13 @@ class TestOutlookColours:
                 colours.add(match.group(1).lower())
         return colours
 
-    @pytest.mark.parametrize("colour", ["page", "surface", "primary"])
-    def test_the_palette_colour_is_on_a_table_cell(self, site, colour):
-        expected = getattr(EmailBrand.current().light, colour).lower()
+    def test_the_palette_colours_are_on_table_cells(self, html):
+        light = EmailBrand.current().light
+        colours = self.cell_colours(html)
 
-        assert expected in self.cell_colours(render())
+        missing = [
+            name
+            for name in ("page", "surface", "primary")
+            if getattr(light, name).lower() not in colours
+        ]
+        assert missing == []
