@@ -228,7 +228,9 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
 - 2026-11-27: The actions sit to the right of the search, before Log in. They are small squares,
   2rem in the header, with no gap between them, so five fit beside the search. (Sam)
 - 2026-11-27: A phone's header is kept short, since a fixed header takes its height from every
-  page: the brand row, the breadcrumbs and the tabs sit close, 104px with local navigation. (Sam)
+  page, but the breadcrumbs keep clear of the brand row and of the header's bottom line: 8px
+  above them and 10px below, 84px in all. Local navigation sits close under the breadcrumbs, 112px
+  with it. Judged on a page with breadcrumbs and no local navigation, scrolled. (Sam)
 - 2026-11-27: The site's name shows beside the icon in the header and the sidebar. A project shows a
   full logo instead by overriding `cotton/mvp/brand/mark.html`. (Sam)
 - 2026-11-27: Local navigation sits under the breadcrumbs in the header, with room above and below
@@ -329,6 +331,7 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   move to the `local` renderer.
 - **Search staying in the header is the demo's `end` list**, not a setting of its own.
 - **The package docs don't describe the toolbar, the brand mark or local navigation.**
+- **The demo's order lines page names itself Update Product** in its breadcrumbs.
 - **No tests.** Features 1 to 3.
 - **No docs.** `layout.md`, `configuration.md` and `components.md` are rewritten, and the naming
   rule in the constitution and the glossary follow ADR 0047. Features 1 to 3.

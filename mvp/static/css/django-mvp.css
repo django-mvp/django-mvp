@@ -23770,9 +23770,12 @@ html {
 @container mvp-header (width < 36rem) {
   .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) {
     flex-wrap: wrap;
-    row-gap: 0;
+    row-gap: 0.5rem;
     min-height: 0;
-    padding-block: 0.25rem;
+    padding-block: 0.375rem 0.625rem;
+  }
+  .mvp-header:has(.mvp-header-tray) .navbar:has(> .navbar-start > .mvp-crumbs) {
+    padding-bottom: 0.125rem;
   }
   .mvp-header .mvp-local-nav .tab {
     --tab-height: 2rem;

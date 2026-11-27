@@ -2342,12 +2342,17 @@ html {
 
 @container mvp-header (width < 36rem) {
   /* A phone keeps the header short, since a fixed header takes its height
-     from every page: the brand row, the breadcrumbs and the tabs sit close. */
+     from every page, but the breadcrumbs keep clear of the brand row and of
+     the header's bottom line. Local navigation sits close under them. */
   .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) {
     flex-wrap: wrap;
-    row-gap: 0;
+    row-gap: 0.5rem;
     min-height: 0;
-    padding-block: 0.25rem;
+    padding-block: 0.375rem 0.625rem;
+  }
+
+  .mvp-header:has(.mvp-header-tray) .navbar:has(> .navbar-start > .mvp-crumbs) {
+    padding-bottom: 0.125rem;
   }
 
   .mvp-header .mvp-local-nav .tab {
