@@ -189,8 +189,6 @@ class TestSearchCheck:
         assert ids == ["mvp.E006"]
 
     def test_a_setting_naming_an_unregistered_kind_is_reported(self, monkeypatch):
-        from mvp.config import MVP_CONFIG
-
         monkeypatch.setitem(MVP_CONFIG["search"], "kinds", ["ghost"])
 
         assert [message.id for message in check_search(None)] == ["mvp.E004"]
