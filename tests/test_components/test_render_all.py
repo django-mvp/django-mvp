@@ -42,13 +42,12 @@ class TestComponentRenderSmoke:
 
     @pytest.mark.django_db
     def test_every_component_template_renders_without_leaking_template_tags(self):
-        request = RequestFactory().get("/")
-        request.user = AnonymousUser()
-
         failures = []
         for relpath in TEMPLATES:
             if relpath in SKIP:
                 continue
+            request = RequestFactory().get("/")
+            request.user = AnonymousUser()
             try:
                 # `name` satisfies c-icon, the one component whose only attribute
                 # is genuinely required. Everything else must survive an empty
