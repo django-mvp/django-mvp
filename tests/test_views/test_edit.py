@@ -1379,14 +1379,14 @@ class TestMVPDeleteViewTypeToConfirm:
 
 @pytest.mark.django_db
 class TestMVPUpdateViewDeleteUrl:
-    def test_get_delete_url_contains_back_and_next_params(self, client, product):
+    def test_get_delete_url_points_back_to_update_and_next_to_list(self, client, product):
         url = reverse("product-update", kwargs={"pk": product.pk})
         response = client.get(url)
         delete_url = response.context["delete_url"]
         parsed = urlparse(delete_url)
         qs = parse_qs(parsed.query)
-        assert "back" in qs, "delete_url must contain ?back"
-        assert "next" in qs, "delete_url must contain ?next"
+        assert qs["back"][0] == url
+        assert qs["next"][0] == reverse("product-list")
 
     def test_get_delete_url_returns_empty_on_reverse_failure(self):
         from django.test import RequestFactory
