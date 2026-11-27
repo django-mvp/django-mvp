@@ -885,7 +885,7 @@ timezone = [
 [[package]]
 name = "django-mvp-layout"
 version = "0.2.0"
-source = { git = "https://github.com/django-mvp/django-mvp-layout.git?branch=fix-sidebar-slide-timing#cd412f41a8165c3bb5f1a024dc775a77b914338f" }
+source = { git = "https://github.com/django-mvp/django-mvp-layout.git?branch=fix-sidebar-slide-timing#01533eb0ca0c12bd1abfcb96fbe82194d9f68d58" }
 dependencies = [
     { name = "django" },
     { name = "django-cotton" },

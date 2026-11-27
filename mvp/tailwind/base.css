@@ -645,19 +645,19 @@
 }
 
 /* Touch sizing for the sidebar while it is an overlay drawer, which is how a
-   phone or tablet meets it. Below the sidebar breakpoint the panel widens,
-   its text grows to body size and every row and button reaches a 44px target.
-   At and above the breakpoint none of the three properties is set, so each
-   rule below falls back to the value the sidebar already had.
+   phone or tablet meets it. Below the sidebar breakpoint its text grows to
+   body size and every row and button reaches a 44px target. At and above the
+   breakpoint neither property is set, so each rule below falls back to the
+   value the sidebar already had. The drawer's width is django-mvp-layout's
+   --mvpl-drawer-w.
 
    The values are custom properties so a project can restate them on the
    drawer. `never` has no breakpoint to key off, so it takes the phone sizing
-   below 640px. The strip left beside the panel keeps the overlay tappable. */
+   below 640px. */
 
 @media not all and (min-width: 640px) {
   [data-mvp-breakpoint="sm"],
   [data-mvp-breakpoint="never"] {
-    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
     --mvp-sidebar-text: 1rem;
     --mvp-sidebar-target: 2.75rem;
   }
@@ -665,7 +665,6 @@
 
 @media not all and (min-width: 768px) {
   [data-mvp-breakpoint="md"] {
-    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
     --mvp-sidebar-text: 1rem;
     --mvp-sidebar-target: 2.75rem;
   }
@@ -673,7 +672,6 @@
 
 @media not all and (min-width: 1024px) {
   [data-mvp-breakpoint="lg"] {
-    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
     --mvp-sidebar-text: 1rem;
     --mvp-sidebar-target: 2.75rem;
   }
@@ -681,7 +679,6 @@
 
 @media not all and (min-width: 1280px) {
   [data-mvp-breakpoint="xl"] {
-    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
     --mvp-sidebar-text: 1rem;
     --mvp-sidebar-target: 2.75rem;
   }
@@ -689,7 +686,6 @@
 
 @media not all and (min-width: 1536px) {
   [data-mvp-breakpoint="2xl"] {
-    --mvp-sidebar-width: min(20rem, 100vw - 3.5rem);
     --mvp-sidebar-text: 1rem;
     --mvp-sidebar-target: 2.75rem;
   }

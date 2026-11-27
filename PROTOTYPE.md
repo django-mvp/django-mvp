@@ -209,6 +209,11 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   page. (Sam)
 - 2026-11-27: The theme menu on the Theme page changes that page only. Leaving the page, by a link
   or a new load, shows the site's own theme again. (Sam)
+- 2026-11-27: The main sidebar is 20rem wide as a drawer on a phone or tablet, and 16.25rem beside
+  the page. django-mvp-layout gives a drawer a width of its own, `--mvpl-drawer-w`, 20rem by
+  default, settable for every sidebar or on one with `drawer-width`:
+  https://github.com/django-mvp/django-mvp-layout/issues/25, in
+  https://github.com/django-mvp/django-mvp-layout/pull/24. (Sam)
 
 ## Decided on my own
 
