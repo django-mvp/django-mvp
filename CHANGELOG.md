@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** the card, the dialog and the sheet are built from header, body and footer parts, stacked by django-mvp-layout. Add `django-mvp-layout` 0.3 (`"mvp_layout"` in `INSTALLED_APPS`, below `daisy_cotton`) and the stacking classes come with it.
+- **Breaking:** `<c-card>` replaces `<c-mvp.card>` and `<c-mvp.card.wrapper>`, and overrides daisy-cotton's card. The caller writes the parts it wants: `<c-card.header>` (`title`, `icon`, `href`, slots `badges` and `actions`), `<c-card.body>` (`tight`) and `<c-card.footer>` (a start group and an `end` slot). With no parts the content sits straight on the card's surface. `body_class` is the body part's own `class`, and the `footer` and `footer_end` slots are the footer part's start group and `end` slot. A card takes a `view`, a layout code, and django-mvp-layout's `<c-layout.sidebar>` and `<c-layout.page>` between its header and footer, with an optional `height`.
+- **Breaking:** `<c-modal>` replaces `<c-mvp.modal>`, overrides daisy-cotton's modal and is built from `<c-modal.header>` (`title`, `icon`, slot `actions`), `<c-modal.body>` and `<c-modal.footer>`. It keeps `size`, `closable`, `open`, `content_class` and `class`, and `position` is daisy-cotton's `placement`. The header's title names the dialog. A dialog takes a `view` like a card, and Escape closes an open drawer before the dialog.
+- **Breaking:** `<c-mvp.sheet>` is renamed `<c-mvp.bottom_sheet>`, and so are `<c-mvp.sheet.view>` and `<c-mvp.sheet.trigger>`. Its grab bar, head and description are the header of a stack, then the body and the foot.
+- The card and the dialog override daisy-cotton's components of the same name. See ADR 0047.
+
 ## [v0.40.0] - 2026-11-26
 
 ### Changed

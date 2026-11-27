@@ -223,8 +223,14 @@ CRISPY_TEMPLATE_PACK = "daisyui"
   <c-mvp.container>
     <c-mvp.section title="Dashboard" icon="home">
       <c-mvp.grid md="2" xl="4">
-        <c-mvp.card title="Orders">150 new</c-mvp.card>
-        <c-mvp.card title="Revenue">$12,400</c-mvp.card>
+        <c-card>
+          <c-card.header title="Orders" />
+          <c-card.body>150 new</c-card.body>
+        </c-card>
+        <c-card>
+          <c-card.header title="Revenue" />
+          <c-card.body>$12,400</c-card.body>
+        </c-card>
       </c-mvp.grid>
     </c-mvp.section>
   </c-mvp.container>

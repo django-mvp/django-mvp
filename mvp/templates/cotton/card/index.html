@@ -1,0 +1,40 @@
+{# @description daisyUI's card, built from parts: c-card.header (title, icon, badges, actions), c-card.body and c-card.footer, each written only when wanted. With no parts the content sits straight on the card's surface. Set view and the card is laid out by that layout code: place c-layout.sidebar and c-layout.page between the header and the footer, and they become the layout's header and footer, with a toggle for each sidebar in the header. This replaces daisy-cotton's card and keeps its styling options. #}
+{# @prop size:select['xs','sm','md','lg','xl'] | description:"Card size: the padding and type size of every part." #}
+{# @prop border:boolean | description:"Draw the card with a border instead of a shadow." #}
+{# @prop dash:boolean | description:"Draw the card with a dashed border." #}
+{# @prop side:select['sm','md','lg','xl','2xl'] | description:"Lay the figure beside the parts instead of above them. The bare attribute applies it at every width." #}
+{# @prop image-full:boolean | description:"Let the figure fill the card and place the parts over it." #}
+{# @prop view:text | description:"A layout code, such as hHh LpR fFf. Setting it lays the card out: the content is a c-card.header, c-layout.sidebar and c-layout.page elements and a c-card.footer." #}
+{# @prop height:text | description:"The card's height when it has a view. Unset, the card is as tall as its content; set, the body scrolls inside it." #}
+{# @prop class:text | description:"Extra classes on the card surface." #}
+{# @slot <c-card.header title="Statistics" icon="folder" /><c-card.body>1,248 visitors this week</c-card.body> — The parts. #}
+{# @slot:figure <img src="cover.jpg" alt="…"> — Content in a <figure> before the parts, usually an image. #}
+{% load daisy_cotton mvp_layout %}
+<c-vars size="" border="" dash="" side="" image-full="" figure="" view="" height="" class="" />
+{% comment %}
+  Without a border the card keeps the raised look this package has always
+  given it; a bordered card is flat, as daisyUI draws it.
+{% endcomment %}
+{% if view %}
+  {% comment %}
+    A card with a view holds one contained layout. The caller's header and
+    footer parts are its header and footer; the toggles in the header show
+    because it sits in the layout's grid. Without a height the card grows
+    with its content.
+  {% endcomment %}
+  {% layout_uid "card" as layout_id %}
+  <div class="card {% variation size "card" "xs,sm,md,lg,xl" %}{% if border %} card-border{% endif %}{% if dash %} card-dash{% endif %} {% responsive side "card-side" %}{% if image_full %} image-full{% endif %}{% if not border and not dash %} bg-base-100 shadow-sm{% endif %} mvp-box-layout overflow-hidden {{ class }}" {{ attrs }}>
+    <c-layout :view="view" container :id="layout_id" style="{% if height %}height: {{ height }}{% endif %}">{{ slot }}</c-layout>
+  </div>
+{% else %}
+  {% comment %}
+    Without a figure the parts are stacked by django-mvp-layout's hbf: the
+    header on top, the footer at the bottom and the body taking the height
+    between them. A figure is laid out by daisyUI's card, above the parts or
+    beside them.
+  {% endcomment %}
+  <div class="card {% variation size "card" "xs,sm,md,lg,xl" %}{% if border %} card-border{% endif %}{% if dash %} card-dash{% endif %} {% responsive side "card-side" %}{% if image_full %} image-full{% endif %}{% if not border and not dash %} bg-base-100 shadow-sm{% endif %}{% if not figure and not image_full %} hbf{% endif %} {{ class }}" {{ attrs }}>
+    {% if figure %}<figure>{{ figure }}</figure>{% endif %}
+    {{ slot }}
+  </div>
+{% endif %}

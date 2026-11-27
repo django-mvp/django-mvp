@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "object_preferences",  # Stores each person's preferences, installed with django-mvp
     "mvp",             # django-mvp
     "daisy_cotton",    # basic components, installed with django-mvp, listed below "mvp"
+    "mvp_layout",      # the layout the card, dialog and sheet are stacked with, installed with django-mvp
     "crispy_forms",    # Form rendering
     "mvp_forms",       # daisyUI template pack for crispy forms
     ...

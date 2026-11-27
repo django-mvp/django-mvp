@@ -1,4 +1,4 @@
-"""Real-browser test for the link a ``<c-mvp.card>`` can take (issue #685).
+"""Real-browser test for the link a ``<c-card>`` can take (issue #685).
 
 The title's link is stretched over the card by a stylesheet rule, and the
 controls inside are lifted above it by another. Only a browser shows that a
@@ -19,7 +19,10 @@ class TestCardLinkInTheBrowser:
     def test_a_click_on_the_body_opens_the_link(self, page, live_server):
         page.goto(f"{live_server.url}{PAGE}")
 
-        page.locator("#linked_card .card-body").click(position={"x": 40, "y": 100})
+        body = page.locator("#linked_card .card-body")
+        body.scroll_into_view_if_needed()
+        body = body.bounding_box()
+        page.mouse.click(body["x"] + 40, body["y"] + 10)
 
         assert page.url.endswith("#opened")
 

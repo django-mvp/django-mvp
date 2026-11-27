@@ -1,0 +1,5 @@
+{# @description A dialog's body. It takes the height the box has left and scrolls when its content is taller. #}
+{# @prop class:text | description:"Extra classes on the body." #}
+{# @slot The dialog's content. — #}
+<c-vars class:merge="mvpl-body mvp-modal-body" />
+<div class="{{ class }}" {{ attrs }}>{{ slot }}</div>

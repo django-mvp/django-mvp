@@ -20,19 +20,19 @@ from mvp.fixtures import _beautiful_soup
 
 class TestCottonRender:
     def test_renders_a_packaged_component(self, cotton_render):
-        html = cotton_render("mvp.card", title="Quarterly report")
+        html = cotton_render("card.header", title="Quarterly report")
         assert "Quarterly report" in html
 
     def test_context_dict_and_kwargs_both_reach_the_component(self, cotton_render):
-        from_kwargs = cotton_render("mvp.card", title="From kwargs")
-        from_context = cotton_render("mvp.card", {"title": "From context"})
+        from_kwargs = cotton_render("card.header", title="From kwargs")
+        from_context = cotton_render("card.header", {"title": "From context"})
         assert "From kwargs" in from_kwargs
         assert "From context" in from_context
 
 
 class TestCottonRenderSoup:
     def test_returns_a_traversable_document(self, cotton_render_soup):
-        soup = cotton_render_soup("mvp.card", title="Parsed card")
+        soup = cotton_render_soup("card.header", title="Parsed card")
         assert soup.find(string=lambda s: "Parsed card" in s) is not None
 
     def test_find_all_sees_rendered_elements(self, cotton_render_soup):
@@ -42,12 +42,12 @@ class TestCottonRenderSoup:
 
 class TestCottonRenderString:
     def test_renders_inline_component_markup(self, cotton_render_string):
-        html = cotton_render_string("<c-mvp.card title='Inline'></c-mvp.card>")
+        html = cotton_render_string("<c-card.header title='Inline' />")
         assert "Inline" in html
 
     def test_context_variables_are_interpolated(self, cotton_render_string):
         html = cotton_render_string(
-            "<c-mvp.card title='{{ heading }}'></c-mvp.card>",
+            "<c-card.header title='{{ heading }}' />",
             context={"heading": "From the context"},
         )
         assert "From the context" in html
@@ -60,8 +60,8 @@ class TestCottonRenderString:
 class TestCottonRenderStringSoup:
     def test_nested_components_produce_nested_elements(self, cotton_render_string_soup):
         soup = cotton_render_string_soup(
-            "<c-mvp.grid md='2'><c-mvp.card title='One'></c-mvp.card><c-mvp.card "
-            "title='Two'></c-mvp.card></c-mvp.grid>"
+            "<c-mvp.grid md='2'><c-card.header title='One' /><c-card.header "
+            "title='Two' /></c-mvp.grid>"
         )
         text = soup.get_text()
         assert "One" in text
@@ -69,7 +69,7 @@ class TestCottonRenderStringSoup:
 
     def test_context_reaches_the_parsed_output(self, cotton_render_string_soup):
         soup = cotton_render_string_soup(
-            "<c-mvp.card title='{{ title }}'></c-mvp.card>",
+            "<c-card.header title='{{ title }}' />",
             context={"title": "Contextual"},
         )
         assert "Contextual" in soup.get_text()

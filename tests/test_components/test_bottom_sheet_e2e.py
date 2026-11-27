@@ -5,7 +5,7 @@ browser settles them. Wording, widths and spacing are ruled by eye and not
 tested. Each case loads a test-only page, ``/sheet-test/``, that carries no
 inline script or style.
 
-Source: assets/js/sheet.js, mvp/templates/cotton/mvp/sheet/
+Source: assets/js/sheet.js, mvp/templates/cotton/mvp/bottom_sheet/
 """
 
 import time
@@ -39,43 +39,45 @@ PAGE = """
 <a id="before" href="/before-page/">Before</a>
 <form id="form" method="post" action="/posted/">
   <button type="submit" id="submit">Send</button>
-  <c-mvp.sheet.trigger for="orders" id="open-orders" href="/orders-page/"
+  <c-mvp.bottom_sheet.trigger for="orders" id="open-orders" href="/orders-page/"
                      label="Orders" />
-  <c-mvp.sheet id="orders" title="Orders" lead="Three open">
-    <c-mvp.sheet.view name="menu">
+  <c-mvp.bottom_sheet id="orders" title="Orders" lead="Three open">
+    <c-mvp.bottom_sheet.view name="menu">
       <c-menu class="menu-lg w-full p-0">
         <c-menu.item text="Rename" icon="edit" @click="show('rename')" />
         <c-menu.item text="Delete" icon="trash" class="text-error"
                                @click="show('confirm')" />
       </c-menu>
-    </c-mvp.sheet.view>
-    <c-mvp.sheet.view name="rename">
+    </c-mvp.bottom_sheet.view>
+    <c-mvp.bottom_sheet.view name="rename">
       <input id="rename-field" type="text" name="name" aria-label="Name">
       <button type="button" id="rename-back" @click="show('menu')">Back</button>
-    </c-mvp.sheet.view>
-    <c-mvp.sheet.view name="confirm">
+    </c-mvp.bottom_sheet.view>
+    <c-mvp.bottom_sheet.view name="confirm">
       <button type="button" id="confirm-back" @click="show('menu')">Back</button>
-      <c-mvp.sheet.trigger for="other" id="open-other" returns="before">
+      <c-mvp.bottom_sheet.trigger for="other" id="open-other" returns="before">
         Other
-      </c-mvp.sheet.trigger>
-      <c-mvp.sheet.trigger for="other" id="open-other-plain">Plain</c-mvp.sheet.trigger>
-    </c-mvp.sheet.view>
-  </c-mvp.sheet>
+      </c-mvp.bottom_sheet.trigger>
+      <c-mvp.bottom_sheet.trigger for="other" id="open-other-plain">
+  Plain
+</c-mvp.bottom_sheet.trigger>
+    </c-mvp.bottom_sheet.view>
+  </c-mvp.bottom_sheet>
 </form>
-<c-mvp.sheet id="other" title="Other"><p>Elsewhere</p></c-mvp.sheet>
-<c-mvp.sheet id="typing" title="Typing" fixed>
-  <c-mvp.sheet.view name="fill">
+<c-mvp.bottom_sheet id="other" title="Other"><p>Elsewhere</p></c-mvp.bottom_sheet>
+<c-mvp.bottom_sheet id="typing" title="Typing" fixed>
+  <c-mvp.bottom_sheet.view name="fill">
     {% for row in rows %}<p>Line {{ row }}</p>{% endfor %}
     <input id="typing-field" type="text" aria-label="Note">
-  </c-mvp.sheet.view>
-</c-mvp.sheet>
-<c-mvp.sheet id="quoted" title="Quoted">
-  <c-mvp.sheet.view name="it's"><p>Quoted</p></c-mvp.sheet.view>
-</c-mvp.sheet>
-<c-mvp.sheet id="tall" title="Tall">
+  </c-mvp.bottom_sheet.view>
+</c-mvp.bottom_sheet>
+<c-mvp.bottom_sheet id="quoted" title="Quoted">
+  <c-mvp.bottom_sheet.view name="it's"><p>Quoted</p></c-mvp.bottom_sheet.view>
+</c-mvp.bottom_sheet>
+<c-mvp.bottom_sheet id="tall" title="Tall">
   {% for row in rows %}<p>Row {{ row }}</p>{% endfor %}
-</c-mvp.sheet>
-<c-mvp.sheet id="fields" title="Fields">
+</c-mvp.bottom_sheet>
+<c-mvp.bottom_sheet id="fields" title="Fields">
   <div><input id="fields-text" class="input w-full" type="text" aria-label="Text"></div>
   <div><select id="fields-select" class="select w-full" aria-label="Choice">
     <option>One</option>
@@ -84,12 +86,15 @@ PAGE = """
   <div><input id="fields-radio" class="radio" type="radio" aria-label="Pick"></div>
   <div><button type="button" id="fields-button" class="btn">Go</button></div>
   <div><button type="button" id="fields-wide-button" class="btn w-full">Wide</button></div>
-</c-mvp.sheet>
-<c-mvp.sheet id="starts-full" title="Starts full" full><p>Short</p></c-mvp.sheet>
+</c-mvp.bottom_sheet>
+<c-mvp.bottom_sheet id="starts-full" title="Starts full" full>
+  <p>Short</p>
+</c-mvp.bottom_sheet>
 <button type="button" id="open-starts-full" x-data
         @click="$dispatch('mvp-sheet-open', { id: 'starts-full' })">Full</button>
-<c-mvp.sheet.trigger for="missing" id="orphan" href="/missing-page/" label="Gone" />
-<c-mvp.sheet.trigger for="before" id="not-a-sheet" href="/not-a-sheet-page/"
+<c-mvp.bottom_sheet.trigger for="missing" id="orphan"
+    href="/missing-page/" label="Gone" />
+<c-mvp.bottom_sheet.trigger for="before" id="not-a-sheet" href="/not-a-sheet-page/"
                      label="Link" />
 <button type="button" id="open-orders-event" x-data
         @click="$dispatch('mvp-sheet-open', { id: 'orders', view: 'confirm' })">

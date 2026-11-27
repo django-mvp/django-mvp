@@ -149,7 +149,7 @@ something that attaches to a native `<dialog>`.
 ## D15: The menu wraps `c-menu`
 
 daisy-cotton's `c-menu` and `c-menu.item` render a link or a button with an icon and words. The
-sheet's menu is `c-mvp.sheet.menu` (the list) and `c-mvp.sheet.menu.item` (a row), thin wrappers
+sheet's menu is `c-mvp.bottom_sheet.menu` (the list) and `c-mvp.bottom_sheet.menu.item` (a row), thin wrappers
 that add the sheet's row height and a `danger` mark, so nothing a row renders is written twice.
 
 **ADR:** none — local to this feature, nothing downstream inherits it.

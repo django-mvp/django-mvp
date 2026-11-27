@@ -83,7 +83,7 @@ class TestShippedStylesheetShipsCompleteDaisyUI:
     def test_control_class_mvp_templates_already_use_is_present(self):
         content = self.STYLESHEET.read_text(encoding="utf-8")
         assert self._class_present(content, "modal-top"), (
-            ".modal-top is a component class mvp's own cotton/mvp/modal template "
+            ".modal-top is a component class mvp's own cotton/modal.html template "
             "renders — if this control fails, the assertion technique itself is "
             "broken, not the stylesheet."
         )

@@ -17,8 +17,8 @@ STEPS = [
 ]
 
 IN_A_CARD = (
-    "<c-mvp.card title='Box'>"
-    "<c-mvp.breadcrumbs :items='steps' /></c-mvp.card>"
+    "<c-card><c-card.header title='Box' />"
+    "<c-card.body><c-mvp.breadcrumbs :items='steps' /></c-card.body></c-card>"
 )
 
 FROM_A_TEMPLATE = """

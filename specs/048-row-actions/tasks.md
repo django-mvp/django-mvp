@@ -66,7 +66,7 @@ diff at every group's exit: this task creates `docs/developer/list-rows.md` (lin
 `docs/components.md`) with the action's properties and the filter. Later tasks add their sections.
 
 Add `"ellipsis": "bi bi-three-dots"` to the default icon names and the icons page. The row
-action is a wrapper of `c-mvp.sheet.menu.item`: `text`, `icon`, `href`, `danger`, `type`, `class`
+action is a wrapper of `c-mvp.bottom_sheet.menu.item`: `text`, `icon`, `href`, `danger`, `type`, `class`
 pass through, plus `main` and `leaves` (data attributes `data-mvp-row-main`, `data-mvp-row-leaves`),
 `label` (becomes `aria-label`), always `data-mvp-row-action`, and `:attrs` on the link or button.
 The filter `single_main_action` takes a rendered string and returns it unchanged when it carries at
@@ -84,7 +84,7 @@ The row's properties and slots go into `docs/developer/list-rows.md` and `docs/c
 
 The contract in `plan.md`, "The markup contract". Build on `c-list.row` (FR-004). An empty `actions`
 slot renders the plain row (no `x-data`, no ⋯, no sheet). With actions: the face, the content, the
-⋯ control (dropdown holding `<c-mvp.sheet.menu data-mvp-row-menu>` once, the sheet trigger, the
+⋯ control (dropdown holding `<c-mvp.bottom_sheet.menu data-mvp-row-menu>` once, the sheet trigger, the
 sheet with an empty `[data-mvp-row-sheet-body]`), `x-data="mvpRowActions"`, and the actions passed
 through `single_main_action`. Tests: US1 1 (every action present once in the row), 2 (no actions:
 no menu, no trigger, no `x-data`), 3 (an `id` and a `form` given to an action each appear once in

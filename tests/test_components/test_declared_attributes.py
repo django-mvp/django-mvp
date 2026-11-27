@@ -30,8 +30,9 @@ CVARS = re.compile(r"<c-vars\b(?P<body>.*?)/?>", re.DOTALL)
 # An attribute value is a quoted string, which may itself contain a quoted
 # `{% trans "..." %}` default, or a bare token such as `False`.
 VALUE = r"""(?:"(?:\{%.*?%\}|[^"])*"|'(?:\{%.*?%\}|[^'])*'|[^\s"'<>=]+)"""
+# `class:merge="..."` declares `class` with Cotton's merge modifier.
 DECLARATION = re.compile(
-    r"(?P<name>:?[A-Za-z_][\w-]*)(?:\s*=\s*(?:%s))?" % VALUE, re.DOTALL
+    r"(?P<name>:?[A-Za-z_][\w-]*)(?::merge)?(?:\s*=\s*(?:" + VALUE + r"))?", re.DOTALL
 )
 
 EXPRESSION = re.compile(r"\{\{.*?\}\}|\{%.*?%\}", re.DOTALL)

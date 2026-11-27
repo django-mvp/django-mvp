@@ -1,0 +1,9 @@
+{# @description A dialog's row of actions: one group at the start and one at the end. In a dialog with a view it is the layout's footer. #}
+{# @prop class:text | description:"Extra classes on the row." #}
+{# @slot <span>1 file selected</span> — Start-aligned. #}
+{# @slot:end <c-button type="button" onclick="this.closest('dialog').close()">Cancel</c-button> — End-aligned. A button that only closes the dialog is type="button" and calls close(), so it cannot submit a form around the modal. #}
+<c-vars class="" end="" />
+<c-mvp.box.footer kind="modal" :class="class" :attrs="attrs" only>
+  {{ slot }}
+  {% if end %}<c-slot name="end">{{ end }}</c-slot>{% endif %}
+</c-mvp.box.footer>

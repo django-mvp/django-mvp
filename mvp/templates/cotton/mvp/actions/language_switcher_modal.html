@@ -15,10 +15,9 @@
               class="btn-square"
               aria-label="{% trans "Select a language" %}"
               @click="{{ id }}.showModal()" only />
-    <c-mvp.modal id="{{ id }}"
-             title="{% trans "Select a language" %}"
-             icon="globe"
-             closable only>
+    <c-modal id="{{ id }}" closable only>
+      <c-modal.header title="{% trans "Select a language" %}" icon="globe" only />
+      <c-modal.body only>
       <form action="{{ saving_url|default:set_language_url }}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}" />
@@ -53,6 +52,7 @@
           {% endfor %}
         </div>
       </form>
-    </c-mvp.modal>
+      </c-modal.body>
+    </c-modal>
   {% endif %}
 {% endif %}

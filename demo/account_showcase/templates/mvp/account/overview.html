@@ -1,16 +1,18 @@
 {% extends "mvp/account/overview.html" %}
 {% block account.cards %}
   {{ block.super }}
-  <c-mvp.card title="Component Library"
-          icon="overview">
-    <c-mvp.text>
-      The components the shell is built from, with the markup that renders each one.
-    </c-mvp.text>
-    <c-slot name="footer">
+  <c-card>
+    <c-card.header title="Component Library" icon="overview" />
+    <c-card.body>
+      <c-mvp.text>
+        The components the shell is built from, with the markup that renders each one.
+      </c-mvp.text>
+    </c-card.body>
+    <c-card.footer>
       <c-button href="{% url 'layout' %}"
                 text="Browse components">
         <c-icon name="arrow-right" aria-hidden="true" />
       </c-button>
-    </c-slot>
-  </c-mvp.card>
+    </c-card.footer>
+  </c-card>
 {% endblock account.cards %}

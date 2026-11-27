@@ -10,9 +10,9 @@ A sheet is four components:
 
 | Component | What it is |
 | --- | --- |
-| `c-mvp.sheet` | The dialog: grab bar, head, body and foot |
-| `c-mvp.sheet.view` | One panel of a sheet that has several steps |
-| `c-mvp.sheet.trigger` | The button or link that opens a sheet |
+| `c-mvp.bottom_sheet` | The dialog: grab bar, head, body and foot |
+| `c-mvp.bottom_sheet.view` | One panel of a sheet that has several steps |
+| `c-mvp.bottom_sheet.trigger` | The button or link that opens a sheet |
 
 ## Open a sheet from a button
 
@@ -20,16 +20,16 @@ A sheet is four components:
 2. Draw a trigger whose `for` is that id.
 
     ```django
-    <c-mvp.sheet.trigger for="item_sheet" href="{% url 'item-detail' item.pk %}"
+    <c-mvp.bottom_sheet.trigger for="item_sheet" href="{% url 'item-detail' item.pk %}"
                          label="{{ item.name }}" />
-    <c-mvp.sheet id="item_sheet" title="{{ item.name }}" lead="Edited yesterday">
+    <c-mvp.bottom_sheet id="item_sheet" title="{{ item.name }}" lead="Edited yesterday">
       <c-menu class="menu-lg w-full p-0">
         <c-menu.item text="Rename" icon="edit"
                    href="{% url 'item-update' item.pk %}" />
         <c-menu.item text="Delete" icon="trash" class="text-error"
                    href="{% url 'item-delete' item.pk %}" />
       </c-menu>
-    </c-mvp.sheet>
+    </c-mvp.bottom_sheet>
     ```
 
 3. Give the trigger an `href`. It is the page that offers the same actions, and the
@@ -67,23 +67,23 @@ Opening a sheet closes any other sheet that is open, so only one is ever showing
 
 ## Move between steps
 
-1. Put each step in a `c-mvp.sheet.view` with a `name`. Only the view whose name is
+1. Put each step in a `c-mvp.bottom_sheet.view` with a `name`. Only the view whose name is
    current shows; the first shows when the sheet opens, and every opening starts
    there again.
 2. Switch from any element inside the sheet with `show(name)`.
 
     ```django
-    <c-mvp.sheet id="item_sheet" title="Project plan">
-      <c-mvp.sheet.view name="menu">
+    <c-mvp.bottom_sheet id="item_sheet" title="Project plan">
+      <c-mvp.bottom_sheet.view name="menu">
         <c-menu class="menu-lg w-full p-0">
           <c-menu.item text="Delete" icon="trash" class="text-error"
                                  @click="show('confirm')" />
         </c-menu>
-      </c-mvp.sheet.view>
-      <c-mvp.sheet.view name="confirm">
+      </c-mvp.bottom_sheet.view>
+      <c-mvp.bottom_sheet.view name="confirm">
         <button type="button" @click="show('menu')">Keep it</button>
-      </c-mvp.sheet.view>
-    </c-mvp.sheet>
+      </c-mvp.bottom_sheet.view>
+    </c-mvp.bottom_sheet>
     ```
 
 3. Open a sheet at a step other than the first by giving the trigger a `view`.
@@ -144,7 +144,7 @@ prefer reduced motion get no slide.
 
 ## Properties
 
-### `c-mvp.sheet`
+### `c-mvp.bottom_sheet`
 
 | Property | Meaning |
 | --- | --- |
@@ -164,13 +164,13 @@ the buttons in the foot. The foot is empty without them. A phone closes the shee
 `actions` that only closes the sheet has `type="button"`, so a sheet can sit inside a
 form without submitting it.
 
-### `c-mvp.sheet.view`
+### `c-mvp.bottom_sheet.view`
 
 | Property | Meaning |
 | --- | --- |
 | `name` | The view's name. Required. |
 
-### `c-mvp.sheet.trigger`
+### `c-mvp.bottom_sheet.trigger`
 
 | Property | Meaning |
 | --- | --- |

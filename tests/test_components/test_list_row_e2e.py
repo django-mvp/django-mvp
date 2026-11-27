@@ -179,8 +179,10 @@ SWIPE_PAGES = {
     "scroller": '<div id="scroller">' + swipe_rows(20) + "</div>",
     "hidden": '<div hidden><ul class="list">' + swipe_rows(1) + "</ul></div>",
     "sheet": (
-        '<c-mvp.sheet.trigger for="holder" id="holder-open" label="Holder" />'
-        '<c-mvp.sheet id="holder" title="Holder">' + swipe_rows(1) + "</c-mvp.sheet>"
+        '<c-mvp.bottom_sheet.trigger for="holder" id="holder-open" label="Holder" />'
+        '<c-mvp.bottom_sheet id="holder" title="Holder">'
+        + swipe_rows(1)
+        + "</c-mvp.bottom_sheet>"
     ),
 }
 

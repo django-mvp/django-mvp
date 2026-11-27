@@ -325,12 +325,13 @@ page's template, extending the same name, and adding to its card block — no me
 {% load i18n %}
 {% block account.cards %}
   {{ block.super }}
-  <c-mvp.card title="{% trans "Your Things" %}" icon="overview">
-    <c-mvp.text>{% trans "Keep track of what you own." %}</c-mvp.text>
-    <c-slot name="footer">
+  <c-card>
+    <c-card.header title="{% trans "Your Things" %}" icon="overview" />
+    <c-card.body><c-mvp.text>{% trans "Keep track of what you own." %}</c-mvp.text></c-card.body>
+    <c-card.footer>
       <c-button href="{% url 'yourapp:things' %}" text="{% trans "Manage" %}" />
-    </c-slot>
-  </c-mvp.card>
+    </c-card.footer>
+  </c-card>
 {% endblock account.cards %}
 ```
 
@@ -366,8 +367,9 @@ question `mvp.utils.app_is_installed` answers from Python:
 ```django
 {% load i18n mvp %}
 {% if "allauth.mfa"|app_is_installed %}
-  <c-mvp.card title="{% trans "Two-Factor Authentication" %}" icon="lock">
-    ...
-  </c-mvp.card>
+  <c-card>
+    <c-card.header title="{% trans "Two-Factor Authentication" %}" icon="lock" />
+    <c-card.body>...</c-card.body>
+  </c-card>
 {% endif %}
 ```

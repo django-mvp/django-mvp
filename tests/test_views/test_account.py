@@ -551,7 +551,7 @@ class TestAccountCenterCards:
         client.force_login(user)
 
     def _cards(self, content):
-        """The ``<c-mvp.card>`` surfaces actually rendered inside the card
+        """The ``<c-card>`` surfaces actually rendered inside the card
         region — counted from the real markup, not a context list the view
         no longer builds."""
         soup = BeautifulSoup(content, "html.parser")

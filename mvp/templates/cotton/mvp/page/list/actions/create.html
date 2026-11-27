@@ -22,17 +22,18 @@
             @click="createModal.showModal()" only>
     <span class="{% if compact %}max-sm:sr-only{% endif %}">{{ label }}</span>
   </c-button>
-  <c-mvp.modal id="createModal"
-           title="{{ create_modal_title|default:label }}"
-           icon="{{ icon }}"
-           only>
+  <c-modal id="createModal" only>
+    <c-modal.header title="{{ create_modal_title|default:label }}" icon="{{ icon }}" only />
+    <c-modal.body only>
     <c-mvp.form id="createForm"
             icon="{{ icon }}"
             method="post"
             action="{{ directory.create_url }}?next={{ request.path }}"
             :form-obj="create_form">
     </c-mvp.form>
-    <c-slot name="footer_end">
+    </c-modal.body>
+    <c-modal.footer only>
+      <c-slot name="end">
       <c-button text="{% trans "Submit" %}"
                 form="createForm"
                 variant="primary"
@@ -40,8 +41,9 @@
                 type="submit" only>
         <c-icon name="arrow-right" />
       </c-button>
-    </c-slot>
-  </c-mvp.modal>
+      </c-slot>
+    </c-modal.footer>
+  </c-modal>
 {% elif directory.create_url %}
   <c-button icon="{{ icon }}"
             variant="primary"

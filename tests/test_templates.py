@@ -195,14 +195,21 @@ class TestIconStylesheet:
 
         monkeypatch.setitem(MVP_CONFIG, "icon_stylesheet", value)
 
-        assert self.stylesheets() == [href, "/static/css/django-mvp.css"]
+        assert self.stylesheets() == [
+            href,
+            "/static/mvp_layout/layout.css",
+            "/static/css/django-mvp.css",
+        ]
 
     def test_none_links_no_icon_stylesheet(self, monkeypatch):
         from mvp.config import MVP_CONFIG
 
         monkeypatch.setitem(MVP_CONFIG, "icon_stylesheet", None)
 
-        assert self.stylesheets() == ["/static/css/django-mvp.css"]
+        assert self.stylesheets() == [
+            "/static/mvp_layout/layout.css",
+            "/static/css/django-mvp.css",
+        ]
 
 
 @pytest.mark.django_db

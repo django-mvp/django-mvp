@@ -1,18 +1,18 @@
-"""Tests for the sheet components: ``<c-mvp.sheet>``, its view, trigger and menu.
+"""Tests for the sheet components: ``<c-mvp.bottom_sheet>``, its view, trigger and menu.
 
 Rendered-markup tests: roles, names, relationships and the hooks the sheet's
 script reads. Placement, height and focus are proved in a real browser.
 
-Source: mvp/templates/cotton/mvp/sheet/index.html
+Source: mvp/templates/cotton/mvp/bottom_sheet/index.html
 """
 
 import pytest
 
 SHEET = """
-<c-mvp.sheet id="more" title="Orders" {attrs}>
+<c-mvp.bottom_sheet id="more" title="Orders" {attrs}>
   <p id="body">The body</p>
   {slots}
-</c-mvp.sheet>
+</c-mvp.bottom_sheet>
 """
 
 
@@ -24,6 +24,19 @@ def render_sheet(cotton_render_string_soup):
         return cotton_render_string_soup(SHEET.format(attrs=attrs, slots=slots))
 
     return render
+
+
+class TestSheetStack:
+    def test_the_box_is_stacked_with_the_head_body_and_foot_as_its_parts(
+        self, render_sheet
+    ):
+        soup = render_sheet()
+
+        box = soup.select_one(".modal-box")
+        assert "hbf" in box["class"]
+        assert box.select_one(":scope > .mvpl-header [data-mvp-sheet-head]") is not None
+        assert box.select_one(":scope > .mvpl-body #body") is not None
+        assert box.select_one(":scope > .mvpl-footer[data-mvp-sheet-foot]") is not None
 
 
 class TestSheetDialog:
@@ -182,8 +195,8 @@ class TestSheetFoot:
         self, cotton_render_string_soup
     ):
         soup = cotton_render_string_soup(
-            '<form id="outer" method="post"><c-mvp.sheet id="s" title="T">'
-            "x</c-mvp.sheet></form>"
+            '<form id="outer" method="post"><c-mvp.bottom_sheet id="s" title="T">'
+            "x</c-mvp.bottom_sheet></form>"
         )
 
         dialog = soup.select_one("#outer dialog")
@@ -223,8 +236,8 @@ class TestSheetOptions:
 class TestSheetView:
     def test_a_view_is_shown_while_the_sheet_is_on_it(self, render_sheet):
         soup = render_sheet(
-            slots='<c-mvp.sheet.view name="confirm"><p id="ask">Sure?</p>'
-            "</c-mvp.sheet.view>"
+            slots='<c-mvp.bottom_sheet.view name="confirm"><p id="ask">Sure?</p>'
+            "</c-mvp.bottom_sheet.view>"
         )
 
         view = soup.select_one("[data-mvp-sheet-view=confirm]")
@@ -234,8 +247,8 @@ class TestSheetView:
 
 
 TRIGGER = (
-    '<c-mvp.sheet.trigger for="more" label="Orders" {attrs}>'
-    "{slot}</c-mvp.sheet.trigger>"
+    '<c-mvp.bottom_sheet.trigger for="more" label="Orders" {attrs}>'
+    "{slot}</c-mvp.bottom_sheet.trigger>"
 )
 
 

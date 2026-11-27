@@ -7,13 +7,21 @@ components, such as the button and the alert, come from
 [Basic components from daisy-cotton](#basic-components-from-daisy-cotton)). Components
 expose a deliberately small attribute API; when the attributes aren't enough,
 **override the component's template** by placing a file at the same path in your project
-(e.g. `templates/cotton/mvp/card/index.html` replaces `<c-mvp.card>`).
+(e.g. `templates/cotton/mvp/page/title.html` replaces `<c-mvp.page.title>`).
 
 ## Names and the `mvp.` prefix
 
 The components this package owns live under `mvp/templates/cotton/mvp/`, so their tags
-start with `mvp.`: `<c-mvp.card>`, `<c-mvp.page.list.empty>`. The icon and the app shell
-are two exceptions. No component this package keeps shares a name with one from [daisy-cotton](https://github.com/django-mvp/daisy-cotton).
+start with `mvp.`: `<c-mvp.page.list>`, `<c-mvp.page.list.empty>`. The icon, the app shell,
+the card and the dialog are the exceptions. No other component this package keeps shares a name with one from [daisy-cotton](https://github.com/django-mvp/daisy-cotton).
+
+- **The card and the dialog override daisy-cotton's.** `<c-card>` and `<c-modal>` are
+  this package's, built from header, body and footer parts (`<c-card.header>`,
+  `<c-card.body>`, `<c-card.footer>`, `<c-modal.header>`, `<c-modal.body>`,
+  `<c-modal.footer>`). They sit at `cotton/card/` and `cotton/modal.html` in this
+  package, ahead of daisy-cotton's in `INSTALLED_APPS`, so every caller, daisy-cotton's own
+  templates included, gets them. See
+  [ADR 0047](adr/0047-the-card-and-the-modal-override-daisy-cottons.md).
 
 - **The app shell's components are `<c-app.…>`.** `<c-app>`, `<c-app.sidebar>`,
   `<c-app.header>`, `<c-app.navbar>`, `<c-app.main>`, `<c-app.footer>` and `<c-app.dock>`
@@ -31,7 +39,7 @@ are two exceptions. No component this package keeps shares a name with one from 
   and the rest of [the sixteen](#basic-components-from-daisy-cotton) are daisy-cotton's.
   This package ships no template for any of them.
 - **A project overrides a component at the same path** under its own
-  templates: `templates/cotton/mvp/card/index.html` for `<c-mvp.card>`.
+  templates: `templates/cotton/mvp/page/title.html` for `<c-mvp.page.title>`.
 
 Conventions:
 
@@ -39,8 +47,8 @@ Conventions:
 - Hyphens in a tag become underscores in the filename: `<c-mvp.data-field>` resolves to
   `cotton/mvp/data_field.html`, `<c-mvp.actions.theme-controller>` to
   `cotton/mvp/actions/theme_controller.html`. A tag can never contain an underscore.
-- `index.html` is the namespace root: `cotton/mvp/card/index.html` is `<c-mvp.card>`,
-  and the file beside it (`wrapper.html`) is `<c-mvp.card.wrapper>`. Cotton tries
+- `index.html` is the namespace root: `cotton/card/index.html` is `<c-card>`,
+  and the files beside it (`header.html`) are `<c-card.header>`. Cotton tries
   `<name>.html` first and falls back to `<name>/index.html`.
 - `class` adds CSS classes to the root element; other unrecognized attributes pass
   through to the root element (`href`, `id`, Alpine directives, ...) on components whose
@@ -98,22 +106,23 @@ pass it. Content between the tags still sees the page's context.
 This package's own templates pass `only` on every call to a daisy-cotton component, and on
 every call to one of its own components that reads nothing beyond its attributes and slots:
 `c-mvp.text`, `c-mvp.rule`, `c-mvp.group`, `c-mvp.grid`, `c-mvp.toolbar`,
-`c-mvp.container`, `c-mvp.card`, `c-mvp.modal`, `c-mvp.dropdown`, `c-mvp.page`,
+`c-mvp.container`, `c-mvp.dropdown`, `c-mvp.page`,
 `c-mvp.page.content`, `c-mvp.page.title`, `c-mvp.page.info`, `c-mvp.page.table.toolbar`,
 `c-mvp.pagination.wrapper`, `c-mvp.entrance` and the list page's search box, summary,
 refinements and empty state. A project override of one of those templates therefore sees
 only what the call passes it. The pages and examples in this documentation do not, because a page rarely holds a variable
 with one of those names. You need `only` when a template's context may hold one, most
 often inside a component of your own that declares `text` or `class` and draws a tag from
-the sixteen, or one of this package's components such as `<c-mvp.modal>`, which has an
+the sixteen, or one of this package's components such as `<c-card.header>`, which has an
 `actions` slot:
 
 ```html
 <c-vars text actions />
 <c-button icon="info" aria-label="{% trans "About this page" %}" only />
-<c-mvp.modal id="helpModal" title="{{ title }}" only>
-  <div>{{ text }}</div>
-</c-mvp.modal>
+<c-modal id="helpModal" only>
+  <c-modal.header title="{{ title }}" />
+  <c-modal.body><div>{{ text }}</div></c-modal.body>
+</c-modal>
 ```
 
 ### Switching on Cotton's context isolation
@@ -295,16 +304,21 @@ root element.
 
 | Component | Attributes |
 | --- | --- |
-| `c-mvp.card` | `title`, `icon`, `href` (make the whole card a link, see [A card that is a link](#a-card-that-is-a-link)), `tight` (remove body padding), `class`, `body_class`; slots: default, `badges`, `actions`, `footer`, `footer_end` |
-| `c-mvp.card.wrapper` | `class` — the bare card surface (background, rounded corners, shadow), for a fully custom interior |
+| `c-card` | `size`, `border`, `dash`, `side`, `image-full`, `figure`, `view`, `height`, `class` — daisyUI's card, built from the parts the caller writes. See [Cards](#cards) |
+| `c-card.header` | `title`, `icon`, `href` (make the whole card a link, see [A card that is a link](#a-card-that-is-a-link)), `class`; slots: default (heading markup), `badges`, `actions` |
+| `c-card.body` | `tight` (remove the body's padding), `class` |
+| `c-card.footer` | `class`; slots: default (the start group), `end` |
 | `c-icon` | `name` (required); every other attribute reaches the rendered icon element, so `class`, `height` and the rest are set on the tag |
 | `c-mvp.text` | `text`, `size` (default `base`), `align` (`left`/`center`/`right`), `muted`, `tight`, `bold`, `upper`, `class` |
 | `c-mvp.data-field` | `label`, `value`, `help_text` (a tooltip on the label), `missing` (default `–`) — key–value display; links the value when it has a URL |
 | `c-mvp.messages` | Django messages list; `dismissible`, `delay` (auto-dismiss milliseconds, default 2000), `oob` (pass `oob="true"` on the copy an htmx response carries). A message can carry one action, see [A message with an action](#a-message-with-an-action) |
-| `c-mvp.modal` | `id` (for `showModal()`/`close()`), `title` (the heading, and the dialog's accessible name), `icon` (leading the heading), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `position` (`top`/`bottom`/`start`/`end`), `closable` (show a close button), `class` (added to the modal box) — a dialog drawn on daisyUI's own modal box, inside daisy-cotton's `c-modal`; the default slot is the body, `actions` sits at the end of the heading row, and `footer` and `footer_end` fill the actions row at its start and end. A body taller than the screen scrolls inside the box while the heading and the actions row stay in view. It holds no form of its own and its close controls are `type="button"`, so it can sit inside a form |
-| `c-mvp.sheet` | `id` and `title` (required; the title is the dialog's accessible name), `lead` (the line under the title; always drawn, in an element with the id `{id}-lead`, hidden while empty), `icon` (before the title), `full` (open at the full height), `fixed` (keep the resting height), `wide` (the wide size for the centred dialog), `class`; slots `art`, `description` and `actions` — a dialog that rises from the foot of a phone's screen and is centred from the `sm` breakpoint up. See [Sheets](developer/sheets.md) |
-| `c-mvp.sheet.view` | `name` (required) — a panel of a sheet that shows while the sheet's view is its name; an element inside the sheet switches to it with `@click="show('name')"` |
-| `c-mvp.sheet.trigger` | `for` (the sheet's id, required), `href` (the page that offers the same actions), `label` (what the item is called), `view`, `returns` (the id of the element focus returns to), `icon` (default `more`), `id`, `class` — opens a sheet; see [Sheets](developer/sheets.md) |
+| `c-modal` | `id` (for `showModal()`/`close()`), `size` (`sm`/`md`/`lg`/`xl`/`full`, default `md`), `placement` (`top`/`middle`/`bottom`/`start`/`end`), `closable` (show a close button in the top corner), `open`, `view`, `content_class` (added to the modal box), `class` (added to the dialog) — a dialog on daisyUI's own modal box, built from parts. See [Dialogs](#dialogs) |
+| `c-modal.header` | `title` (the heading, and the dialog's accessible name), `icon`, `class`; slots: default (heading markup), `actions` |
+| `c-modal.body` | `class` |
+| `c-modal.footer` | `class`; slots: default (the start group), `end` |
+| `c-mvp.bottom_sheet` | `id` and `title` (required; the title is the dialog's accessible name), `lead` (the line under the title; always drawn, in an element with the id `{id}-lead`, hidden while empty), `icon` (before the title), `full` (open at the full height), `fixed` (keep the resting height), `wide` (the wide size for the centred dialog), `class`; slots `art`, `description` and `actions` — a dialog that rises from the foot of a phone's screen and is centred from the `sm` breakpoint up. See [Sheets](developer/sheets.md) |
+| `c-mvp.bottom_sheet.view` | `name` (required) — a panel of a sheet that shows while the sheet's view is its name; an element inside the sheet switches to it with `@click="show('name')"` |
+| `c-mvp.bottom_sheet.trigger` | `for` (the sheet's id, required), `href` (the page that offers the same actions), `label` (what the item is called), `view`, `returns` (the id of the element focus returns to), `icon` (default `more`), `id`, `class` — opens a sheet; see [Sheets](developer/sheets.md) |
 | `c-mvp.list.row` | `id` (required with actions; names the sheet `{id}-sheet`), `label` (the sheet's title and the control's name), `lead`, `face_class`, `class`; slots: default (the content), `art` (drawn in the head of the row's sheet) and `actions` — a list row that offers its actions once, as a dropdown menu and as a sheet. With no actions it is a plain `c-list.row`. See [List rows with actions](developer/list-rows.md) |
 | `c-mvp.list.row.action` | `text` (required), `icon`, `href` (a link; without it a button), `danger` (draws it in the error colour), `main` (the action a long swipe runs; at most one per row), `leaves` (the row leaves the list), `label` (the accessible name), `type`, `class`; other attributes land on the link or button — one action of a list row, built on daisy-cotton's `c-menu.item`. See [List rows with actions](developer/list-rows.md) |
 | `c-mvp.dropdown` | `valign` (`top/bottom/left/right`), `halign` (`start/center/end`), `full` (panel matches the trigger's width), `hover` (open on hover), `class`, `content_class`; slot `button` = trigger — see the placement note below |
@@ -348,20 +362,67 @@ fragments spread across the alert's width:
 Anything richer than a sentence — a heading, a paragraph and a list — goes in a `<div>`
 for the same reason.
 
+### Cards
+
+A card is the parts the caller writes. Each is optional, and a card with none holds its
+content straight on the card's surface.
+
+```html
+<c-card>
+  <c-card.header title="Orders" icon="cart">
+    <c-slot name="badges"><c-badge size="sm">New</c-badge></c-slot>
+  </c-card.header>
+  <c-card.body>150 new this week.</c-card.body>
+  <c-card.footer>
+    <span>Updated today</span>
+    <c-slot name="end"><c-button size="sm" text="Open" /></c-slot>
+  </c-card.footer>
+</c-card>
+```
+
+The parts are stacked by [django-mvp-layout](https://github.com/django-mvp/django-mvp-layout)'s
+`hbf` classes: the header on top, the footer at the bottom and the body between them.
+Set `view` to a layout code and the card holds a layout. Place django-mvp-layout's
+`<c-layout.sidebar>` and `<c-layout.page>` between the header and the footer, as the
+application shell does. Without `height` the card is as tall as its content, and with it
+the body scrolls inside the card.
+
+### Dialogs
+
+`<c-modal>` is built the same way, from `<c-modal.header>`, `<c-modal.body>` and
+`<c-modal.footer>`. The header's title names the dialog. The box stays daisyUI's
+`.modal-box`, capped at the height of the screen, and the body scrolls inside the cap while the
+header, the footer and the close button stay in view.
+
+```html
+<c-modal id="delete-order" closable>
+  <c-modal.header title="Delete this order?" />
+  <c-modal.body>This can't be undone.</c-modal.body>
+  <c-modal.footer>
+    <c-slot name="end">
+      <c-button type="button" text="Cancel" onclick="this.closest('dialog').close()" />
+    </c-slot>
+  </c-modal.footer>
+</c-modal>
+```
+
+With `view` the dialog takes sidebars like a card does, and Escape closes an open drawer
+before it closes the dialog.
+
 ### A card that is a link
 
-Give `c-mvp.card` an `href` and its title becomes the card's one link, stretched over
+Give `c-card.header` an `href` and its title becomes the card's one link, stretched over
 the whole card: a click or tap anywhere on the card opens the address, and a keyboard or
 screen-reader user reaches one link, named by the title. Buttons, menus, form controls
 and other links inside the card sit above the stretched link and do their own thing.
 
 ```html
-<c-mvp.card title="Project Atlas" icon="folder" href="{% url 'project-detail' project.pk %}">
-  <c-slot name="actions">
-    <c-button text="Archive" size="sm" ghost />
-  </c-slot>
-  <c-mvp.text muted tight>Last changed yesterday.</c-mvp.text>
-</c-mvp.card>
+<c-card>
+  <c-card.header title="Project Atlas" icon="folder" href="{% url 'project-detail' project.pk %}">
+    <c-slot name="actions"><c-button text="Archive" size="sm" ghost /></c-slot>
+  </c-card.header>
+  <c-card.body><c-mvp.text muted tight>Last changed yesterday.</c-mvp.text></c-card.body>
+</c-card>
 ```
 
 The title is the link's name, so a card with an `href` and no `title` draws no link.

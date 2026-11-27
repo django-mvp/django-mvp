@@ -1,0 +1,9 @@
+{# @description A card's footer row: one group at the start and one at the end. In a card with a view it is the layout's footer. #}
+{# @prop class:text | description:"Extra classes on the row." #}
+{# @slot <c-badge>Pro</c-badge> — Start-aligned. #}
+{# @slot:end <c-button size="sm" text="Upgrade" /> — End-aligned. #}
+<c-vars class="" end="" />
+<c-mvp.box.footer kind="card" :class="class" :attrs="attrs" only>
+  {{ slot }}
+  {% if end %}<c-slot name="end">{{ end }}</c-slot>{% endif %}
+</c-mvp.box.footer>

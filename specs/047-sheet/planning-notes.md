@@ -34,8 +34,8 @@ Notes for research and planning to answer by name. None of them is settled.
    | the sheet's styles: grab bar, head, menu rows, pinned head, safe-area padding at the foot | the package's stylesheet |
 
    Every screen of a merged build is checked side by side against the agreed design.
-6. Names to consider, in the package's own pattern: `c-mvp.sheet`, `c-mvp.sheet.view`,
-   `c-mvp.sheet.trigger` and `c-mvp.sheet.menu`. Research settles them, and whether the menu is
+6. Names to consider, in the package's own pattern: `c-mvp.bottom_sheet`, `c-mvp.bottom_sheet.view`,
+   `c-mvp.bottom_sheet.trigger` and `c-mvp.bottom_sheet.menu`. Research settles them, and whether the menu is
    the package's own or daisy-cotton's `c-menu`.
 
 ## For research

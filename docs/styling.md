@@ -33,7 +33,7 @@ drawn with it needs no build step either.
 
 The contract that makes this work: **customize through component attributes and
 template overrides that reuse packaged components — not raw utility classes**.
-A template override that only composes existing components (`<c-mvp.card>`,
+A template override that only composes existing components (`<c-card>`,
 `<c-button variant="primary">`, a raw `<div class="chat chat-start">`, ...)
 needs no CSS rebuild. The stylesheet also carries a curated set of common
 Tailwind utility classes — layout, spacing, sizing, typography, colour and
