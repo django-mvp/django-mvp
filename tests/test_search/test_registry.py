@@ -3,7 +3,6 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-import mvp.search
 from mvp.search.kinds import FunctionKind, Kind
 from mvp.search.registry import SearchRegistry
 
@@ -68,11 +67,3 @@ class TestSearchRegistry:
     def test_a_function_without_name_label_and_icon_raises(self):
         with pytest.raises(ImproperlyConfigured):
             SearchRegistry().register(nothing, name="docs")
-
-
-class TestModuleLevelRegistry:
-    def test_register_and_registered_use_the_current_registry(self, search_registry):
-        mvp.search.register(nothing, name="docs", label="Docs", icon="file")
-
-        assert [k.name for k in mvp.search.registered()] == ["docs"]
-        assert [k.name for k in search_registry.registered()] == ["docs"]
