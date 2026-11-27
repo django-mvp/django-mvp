@@ -19,7 +19,9 @@ class TestCardLinkInTheBrowser:
     def test_a_click_on_the_body_opens_the_link(self, page, live_server):
         page.goto(f"{live_server.url}{PAGE}")
 
-        body = page.locator("#linked_card .card-body").bounding_box()
+        body = page.locator("#linked_card .card-body")
+        body.scroll_into_view_if_needed()
+        body = body.bounding_box()
         page.mouse.click(body["x"] + 40, body["y"] + 10)
 
         assert page.url.endswith("#opened")
