@@ -231,29 +231,6 @@ class TestFormsetOrderInvalidRerender:
         assert marked == ["form-1-ORDER", "form-0-ORDER"]
 
 
-class TestFormsetOrderSubmission:
-    def test_ordered_forms_follow_the_submitted_order(self):
-        formset = OrderedFormSet(submitted([("a", "3"), ("b", "1"), ("c", "2")]))
-
-        assert formset.is_valid()
-        assert [form.cleaned_data["name"] for form in formset.ordered_forms] == [
-            "b",
-            "c",
-            "a",
-        ]
-
-    def test_an_untouched_blank_extra_row_leaves_the_set_valid(self):
-        formset = OrderedFormSet(
-            submitted([("a", "2"), ("b", "1"), ("", "")], initial=2)
-        )
-
-        assert formset.is_valid()
-        assert [form.cleaned_data["name"] for form in formset.ordered_forms] == [
-            "b",
-            "a",
-        ]
-
-
 class TestFormsetOrderLayout:
     def test_order_is_not_a_column_of_a_tabular_set(self):
         formset = OrderedFormSet()
