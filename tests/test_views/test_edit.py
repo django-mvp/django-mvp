@@ -1246,6 +1246,29 @@ class TestMVPDeleteViewRelatedObjectsPresentation:
         warning_related = client.get(warning_url).context["related_objects"]
         assert default_related == warning_related != []
 
+    def test_an_icon_named_in_the_attrs_replaces_the_variants(
+        self, monkeypatch, client, category
+    ):
+        from demo.views import CategoryDeleteWithRelatedView
+
+        self._stub_related_objects(monkeypatch, category)
+        url = reverse("category-delete-related", kwargs={"pk": category.pk})
+        monkeypatch.setattr(
+            CategoryDeleteWithRelatedView,
+            "related_objects_attrs",
+            {"variant": "warning", "icon": "error"},
+        )
+        named = self._related_objects_alert(client.get(url).content.decode())
+        monkeypatch.setattr(
+            CategoryDeleteWithRelatedView,
+            "related_objects_attrs",
+            {"variant": "error"},
+        )
+        by_variant = self._related_objects_alert(client.get(url).content.decode())
+
+        assert len(named.find_all("i")) == 1
+        assert named.find("i")["class"] == by_variant.find("i")["class"]
+
 
 @pytest.mark.django_db
 class TestMVPDeleteViewFastDeletedRelatedObjects:
