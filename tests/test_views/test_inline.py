@@ -1273,7 +1273,7 @@ class TestRowsOnlySavesRowsLeavesParentFieldValuesUnchanged:
 class TestConcurrentWriteToParentFieldSurvivesTheSubmission:
     def test_concurrent_change_to_parent_field_survives(self, monkeypatch):
         project = ProjectFactory(name="Original")
-        view_cls = _inline_update_view_class(success_url="/done/", fields=[])
+        view_cls = _inline_update_view_class(success_url="/done/", fields=())
         original_get_object = view_cls.get_object
 
         def get_object_then_concurrent_write(self, queryset=None):
