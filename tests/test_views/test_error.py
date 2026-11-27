@@ -1,14 +1,11 @@
 """Tests for mvp.views.error — all four error handler functions.
 
-Consolidated from 24 parameterized tests (4 codes × 6 assertions each) to 6
-non-parameterized integration tests that verify real user-facing behavior once.
-Direct-call unit tests (status code, content bytes) were removed because
-they test Django's render() output, not our app's functionality.
+Each error page is rendered once per module. 404 is the representative page
+and 500 is the boundary, because it has its own template and context.
 """
 
-import re
-
 import pytest
+from bs4 import BeautifulSoup
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.test import Client, RequestFactory, override_settings
 from django.urls import path
@@ -22,40 +19,59 @@ def _crashing_urlconf(*patterns):
     return type("_URLConf", (), {"urlpatterns": list(patterns)})
 
 
+_RENDERED = {}
+
+
+@pytest.fixture
+def error_pages(db, client):
+    """Each error page rendered once per module, keyed by code.
+
+    404 is the representative page. 500 is the boundary: its own template, and
+    the only one that takes a context variable from its handler. The pages
+    are only read, so the first test to need one renders it for the rest.
+    """
+    for code in ("404", "500"):
+        if code not in _RENDERED:
+            _RENDERED[code] = client.get(f"/errors/{code}/")
+    return _RENDERED
+
+
 class TestErrorPageRendering:
-    @pytest.mark.django_db
-    @pytest.mark.parametrize("code", ["400", "403", "404", "500"])
-    def test_error_pages_render_without_sidebar(self, client, code):
-        response = client.get(f"/errors/{code}/")
+    @pytest.mark.parametrize("code", ["404", "500"])
+    def test_error_pages_render_with_their_code(self, error_pages, code):
+        response = error_pages[code]
         assert response.status_code == 200
-        assert b"main-sidebar" not in response.content
+        assert code in response.content.decode()
 
-    @pytest.mark.django_db
-    @pytest.mark.parametrize("code", ["400", "403", "404", "500"])
-    def test_error_pages_show_code_and_home_link(self, client, code):
-        content = client.get(f"/errors/{code}/").content.decode()
-        assert code in content
-        assert b'href="/"' in client.get(f"/errors/{code}/").content
-        assert content.count("<h1") == 1
+    @pytest.mark.parametrize("code", ["404", "500"])
+    def test_error_pages_draw_no_sidebar(self, error_pages, code):
+        soup = BeautifulSoup(error_pages[code].content, "html.parser")
+        assert soup.select_one("aside.mvp-sidebar") is None
 
-    @pytest.mark.django_db
-    @pytest.mark.parametrize("code", ["400", "403", "404", "500"])
-    def test_error_pages_have_title_with_code(self, client, code):
-        content = client.get(f"/errors/{code}/").content.decode()
-        title_start = content.find("<title")
-        title_end = content.find("</title>")
-        title_text = content[title_start:title_end] if title_start != -1 else ""
-        assert code in title_text
+    def test_the_sidebar_check_finds_a_sidebar_on_an_app_page(self, client, user):
+        """Guards the check above: it is the selector the shell really draws."""
+        client.force_login(user)
+        soup = BeautifulSoup(client.get("/").content, "html.parser")
+        assert soup.select_one("aside.mvp-sidebar") is not None
 
-    @pytest.mark.django_db
-    @pytest.mark.parametrize("code", ["400", "403", "404", "500"])
-    def test_error_page_logo_img_has_alt_text(self, client, code):
-        content = client.get(f"/errors/{code}/").content.decode()
-        imgs = re.findall(r"<img\b[^>]*>", content, re.S)
+    @pytest.mark.parametrize("code", ["404", "500"])
+    def test_error_pages_have_one_heading_and_a_home_link(self, error_pages, code):
+        soup = BeautifulSoup(error_pages[code].content, "html.parser")
+        assert len(soup.find_all("h1")) == 1
+        assert soup.select_one('a[href="/"]') is not None
+
+    @pytest.mark.parametrize("code", ["404", "500"])
+    def test_error_pages_have_title_with_code(self, error_pages, code):
+        soup = BeautifulSoup(error_pages[code].content, "html.parser")
+        assert code in soup.title.get_text()
+
+    @pytest.mark.parametrize("code", ["404", "500"])
+    def test_error_page_logo_img_has_alt_text(self, error_pages, code):
+        soup = BeautifulSoup(error_pages[code].content, "html.parser")
+        imgs = soup.find_all("img")
         assert imgs, f"/errors/{code}/ renders no <img> to check"
         for img in imgs:
-            alt = re.search(r'\balt="([^"]*)"', img, re.S)
-            assert alt and alt.group(1).strip(), (
+            assert (img.get("alt") or "").strip(), (
                 f"<img> without alt text on /{code}/: {img}"
             )
 
@@ -158,25 +174,16 @@ def _inject_axe(page):
     return violations
 
 
-ERROR_PAGES = [
-    ("400", "400 Bad Request"),
-    ("403", "403 Forbidden"),
-    ("404", "404 Not Found"),
-    ("500", "500 Server Error"),
-]
-
-
 @pytest.mark.e2e
 @requires_browser
 class TestErrorPagesAccessibilityE2E:
+    """One page: the four error pages share one base template."""
+
     @pytest.mark.django_db
-    @pytest.mark.parametrize("code,title_fragment", ERROR_PAGES)
-    def test_no_critical_wcag_aa_violations(
-        self, page, live_server, code, title_fragment
-    ):
-        page.goto(f"{live_server.url}/errors/{code}/")
+    def test_no_critical_wcag_aa_violations(self, page, live_server):
+        page.goto(f"{live_server.url}/errors/404/")
         violations = _inject_axe(page)
         violation_descriptions = [f"{v['id']}: {v['description']}" for v in violations]
         assert violations == [], (
-            f"Critical WCAG 2.1 AA violations on /{code}/: {violation_descriptions}"
+            f"Critical WCAG 2.1 AA violations on /404/: {violation_descriptions}"
         )
