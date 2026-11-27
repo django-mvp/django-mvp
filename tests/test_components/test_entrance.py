@@ -15,7 +15,6 @@ default instead.
 
 import re
 
-import pytest
 from django import template
 from django.template.context import Context
 from django_cotton.compiler_regex import CottonCompiler
