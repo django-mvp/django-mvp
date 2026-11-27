@@ -97,7 +97,9 @@ class TestModalParts:
         assert soup.select_one(".mvpl-footer #body") is None
 
     def test_a_dialog_with_no_parts_is_not_stacked(self, cotton_render_string_soup):
-        soup = cotton_render_string_soup("<c-modal id='bare'><p id='x'>Bare</p></c-modal>")
+        soup = cotton_render_string_soup(
+            "<c-modal id='bare'><p id='x'>Bare</p></c-modal>"
+        )
 
         assert "hbf" not in soup.select_one(".modal-box")["class"]
         assert soup.select_one(".modal-box #x") is not None

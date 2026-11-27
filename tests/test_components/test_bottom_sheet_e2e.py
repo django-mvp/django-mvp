@@ -58,7 +58,9 @@ PAGE = """
       <c-mvp.bottom_sheet.trigger for="other" id="open-other" returns="before">
         Other
       </c-mvp.bottom_sheet.trigger>
-      <c-mvp.bottom_sheet.trigger for="other" id="open-other-plain">Plain</c-mvp.bottom_sheet.trigger>
+      <c-mvp.bottom_sheet.trigger for="other" id="open-other-plain">
+  Plain
+</c-mvp.bottom_sheet.trigger>
     </c-mvp.bottom_sheet.view>
   </c-mvp.bottom_sheet>
 </form>
@@ -85,10 +87,13 @@ PAGE = """
   <div><button type="button" id="fields-button" class="btn">Go</button></div>
   <div><button type="button" id="fields-wide-button" class="btn w-full">Wide</button></div>
 </c-mvp.bottom_sheet>
-<c-mvp.bottom_sheet id="starts-full" title="Starts full" full><p>Short</p></c-mvp.bottom_sheet>
+<c-mvp.bottom_sheet id="starts-full" title="Starts full" full>
+  <p>Short</p>
+</c-mvp.bottom_sheet>
 <button type="button" id="open-starts-full" x-data
         @click="$dispatch('mvp-sheet-open', { id: 'starts-full' })">Full</button>
-<c-mvp.bottom_sheet.trigger for="missing" id="orphan" href="/missing-page/" label="Gone" />
+<c-mvp.bottom_sheet.trigger for="missing" id="orphan"
+    href="/missing-page/" label="Gone" />
 <c-mvp.bottom_sheet.trigger for="before" id="not-a-sheet" href="/not-a-sheet-page/"
                      label="Link" />
 <button type="button" id="open-orders-event" x-data

@@ -180,7 +180,9 @@ SWIPE_PAGES = {
     "hidden": '<div hidden><ul class="list">' + swipe_rows(1) + "</ul></div>",
     "sheet": (
         '<c-mvp.bottom_sheet.trigger for="holder" id="holder-open" label="Holder" />'
-        '<c-mvp.bottom_sheet id="holder" title="Holder">' + swipe_rows(1) + "</c-mvp.bottom_sheet>"
+        '<c-mvp.bottom_sheet id="holder" title="Holder">'
+        + swipe_rows(1)
+        + "</c-mvp.bottom_sheet>"
     ),
 }
 
