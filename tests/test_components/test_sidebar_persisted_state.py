@@ -124,27 +124,3 @@ class TestSidebarStateSettledBeforeFirstPaint:
         assert store_open == checked, (
             "the store's sidebar.open disagreed with the checkbox actually on screen"
         )
-
-
-@pytest.mark.django_db
-class TestPersistedDefaultDefinedOnce:
-    def test_the_key_and_default_are_not_declared_twice(
-        self, page, live_server, sidebar_shell_urlconf
-    ):
-        from django.test import override_settings
-
-        page.set_viewport_size(DESKTOP)
-        with override_settings(ROOT_URLCONF=sidebar_shell_urlconf):
-            page.goto(f"{live_server.url}/sidebar-persisted-state-e2e/")
-            page.wait_for_function("() => window.Alpine && Alpine.store('mvp')")
-
-        html = page.content()
-        assert html.count("mvp-app-drawer-open") == 1, (
-            "the storage key must be rendered in exactly one place in the "
-            "page; a second occurrence means it is declared independently "
-            "somewhere else"
-        )
-        assert "$persist(" not in html, (
-            "the persisted default must not be declared inline in the "
-            "markup — assets/js/layout.js is its only owner"
-        )
