@@ -336,6 +336,17 @@ class TestEmailBrandFallbacks:
         assert (light.surface, light.page) == (hex_of(LIGHT["base-100"]), hex_of(LIGHT["base-200"]))
         assert EmailBrand.problems() == []
 
+    def test_a_dark_theme_setting_only_some_colours_takes_the_rest_from_the_packaged_dark(
+        self, project_css, monkeypatch
+    ):
+        monkeypatch.setitem(MVP_CONFIG["theme"], "dark", "brandx")
+        project_css("[data-theme=brandx]{--color-primary:#ff8800}")
+
+        dark = EmailBrand.current().dark
+
+        assert dark.primary == "#ff8800"
+        assert dark.surface == hex_of(DARK["base-100"])
+
     def test_the_packaged_fallback_does_not_depend_on_the_static_finders(self, tmp_path, settings, monkeypatch):
         settings.STATICFILES_DIRS = [tmp_path]
         settings.STATICFILES_FINDERS = ["django.contrib.staticfiles.finders.FileSystemFinder"]
