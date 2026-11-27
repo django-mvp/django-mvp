@@ -67,31 +67,6 @@ class TestEmailText:
 
         assert margin_of(paragraph)
 
-    def test_a_named_space_below_differs_from_the_default(self, body):
-        soup = body(
-            '<c-mvp.email.text>plain</c-mvp.email.text><c-mvp.email.text mb="lg">larger</c-mvp.email.text>'
-        )
-
-        default, larger = (
-            soup.find("p", string="plain"),
-            soup.find("p", string="larger"),
-        )
-
-        assert margin_of(default) != margin_of(larger)
-
-    def test_every_named_space_below_differs_from_the_others(self, body):
-        names = ["none", "xs", "sm", "md", "lg", "xl"]
-        soup = body(
-            "".join(
-                f'<c-mvp.email.text mb="{name}">{name}</c-mvp.email.text>'
-                for name in names
-            )
-        )
-
-        margins = {margin_of(soup.find("p", string=name)) for name in names}
-
-        assert len(margins) == len(names)
-
     def test_the_space_below_grows_from_none_to_xl_and_lg_is_more_than_the_default(
         self, body
     ):
