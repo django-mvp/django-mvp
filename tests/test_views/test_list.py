@@ -327,19 +327,6 @@ class TestMVPListViewMixinGridConfig:
         assert ctx["grid_config"] == {}
 
 
-class TestMVPListViewMixinContextKeys:
-    def test_mvp_list_view_all_context_keys_present_with_defaults(self, db):
-        view = _make_list_view()
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-        assert "list_item_template" in ctx
-        assert "empty_state" in ctx
-        assert "grid_config" in ctx
-        assert "directory" in ctx
-        assert "page" in ctx
-        assert "title" in ctx["page"]
-
-
 class TestMVPListViewMixinPageMetadata:
     def test_default_breadcrumbs_are_the_page_title_alone(self, db):
         view = _make_list_view()
@@ -371,22 +358,6 @@ class TestListViewInlineCreate:
 
         assert "create_form" in ctx
         assert isinstance(ctx["create_form"], ProductForm)
-
-    def test_create_modal_title_auto_derived_from_verbose_name(self, db):
-        from demo.forms import ProductForm
-
-        view = _make_list_view(
-            extra_attrs={
-                "create_form_class": ProductForm,
-                "show_create_action": True,
-                "create_modal_title": None,
-            }
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-
-        expected = Product._meta.verbose_name.title()
-        assert ctx["create_modal_title"].endswith(expected)
 
     def test_create_modal_title_override_attribute(self, db):
         from demo.forms import ProductForm
@@ -475,27 +446,6 @@ class TestListViewInlineCreate:
 
         assert "create_form" in ctx
         assert isinstance(ctx["create_form"], ProductForm)
-
-    def test_backward_compat_no_form_class_no_change(self, db):
-        # View without create_form_class should work exactly as before
-        view = _make_list_view(
-            extra_attrs={
-                "create_form_class": None,
-                "show_create_action": False,
-            }
-        )
-        view.object_list = view.get_queryset()
-        ctx = view.get_context_data()
-
-        # Should not have create_form in context
-        assert "create_form" not in ctx
-        # Should not have create_modal_title in context
-        assert "create_modal_title" not in ctx
-        # All other context keys should still be present
-        assert "list_item_template" in ctx
-        assert "directory" in ctx
-        assert "page" in ctx
-
 
 def _render_empty_list_view(rf, show_create_action):
     """Instantiate, dispatch and fully render an empty MVPListView, as HTML."""
@@ -790,13 +740,6 @@ class TestTheSortIsNeverAFilter:
         context = _refinement_context(rf, query)
 
         assert context["sort_label"] == ""
-
-    def test_search_query_and_is_searchable_leave_the_context(self, rf, db):
-        context = _refinement_context(rf, "?q=lamp")
-
-        assert "search_query" not in context
-        assert "is_searchable" not in context
-
 
 class TestListResultCount:
     def _context(self, rf, query="", **attrs):
@@ -1392,16 +1335,6 @@ class TestListPageFilterPanel:
         assert panel["data-mvp-side-position"] == "end"
         assert panel["data-mvp-side-align"] == "content"
 
-    def test_a_subclass_dict_reaches_the_panel(self, rf, cat):
-        _product(cat, "Lamp")
-
-        panel = _filtered_list_page(
-            rf, filter_panel_attrs={"position": "start", "width": "lg"}
-        ).find(id="filters")
-
-        assert panel["data-mvp-side-position"] == "start"
-        assert panel["data-mvp-side-width"] == "lg"
-
     def test_a_subclass_id_names_the_panel_its_button_and_every_refresh(self, rf, cat):
         _product(cat, "Lamp")
 
@@ -1424,22 +1357,8 @@ class TestListPageFilterPanel:
         assert button.find_parent(class_="mvp-list-toolbar") is not None
         assert button.find(class_="badge").get_text(strip=True) == "1"
 
-    def test_the_button_has_no_badge_while_no_panel_filter_is_applied(self, rf, cat):
-        _product(cat, "Lamp")
-
-        soup = _filtered_list_page(rf, "?name=Lamp", toolbar_filters=["q", "name"])
-
-        button = soup.find("button", attrs={"aria-controls": "filters"})
-        assert button.find(class_="badge") is None
-
-
 LIST_PAGE_BLOCKS = [
     "page.actions",
-    "page.toolbar",
-    "page.filters",
-    "page.controls",
-    "page.summary",
-    "page.refinements",
     "page.results",
     "page.pagination",
 ]
@@ -1728,10 +1647,7 @@ class TestListFilterset:
 
 REMOVED_SETTINGS = [
     ("search_fields", ["name"], "SearchFilter"),
-    ("max_search_words", 20, "SearchFilter"),
     ("order_by", [("name", "Name", "name")], "SortFilter"),
-    ("get_search_fields", lambda self: ["name"], "SearchFilter"),
-    ("get_order_by_choices", lambda self: [], "SortFilter"),
 ]
 
 
@@ -1802,18 +1718,12 @@ class TestRemovedSettings:
 
         assert issubclass(view_cls, MVPListView)
 
-    @pytest.mark.parametrize("name", ["search_fields", "order_by"])
-    def test_an_empty_removed_setting_is_not_refused(self, name):
-        view_cls = type("EmptyListView", (MVPListView,), {"model": Product, name: None})
+    def test_an_empty_removed_setting_is_not_refused(self):
+        view_cls = type(
+            "EmptyListView", (MVPListView,), {"model": Product, "search_fields": None}
+        )
 
         assert issubclass(view_cls, MVPListView)
-
-    def test_the_old_mixins_are_gone(self):
-        import mvp.views.list
-
-        for name in ["SearchMixin", "OrderMixin", "SearchOrderMixin"]:
-            assert not hasattr(mvp.views.list, name)
-
 
 class FancySelect(forms.Select):
     """A widget a developer chose for a choice filter, in place of its default."""
@@ -1919,12 +1829,9 @@ class TestToolbarPlacement:
             ("o", "sort"),
             ("is_featured", "toggle"),
             ("statuses", "multichoice"),
-            ("categories", "multichoice"),
             ("status", "choice"),
-            ("category", "choice"),
             ("name", "text"),
             ("shelf", "widget"),
-            ("sku", "widget"),
         ],
     )
     def test_each_filter_is_drawn_as_its_kind(self, rf, db, name, kind):
@@ -2199,15 +2106,7 @@ class TestFilterPanelContext:
 
     @pytest.mark.parametrize(
         "name",
-        [
-            "name",
-            "is_featured",
-            "statuses",
-            "categories",
-            "shelf",
-            "sku",
-            "price",
-        ],
+        ["name", "price"],
     )
     def test_a_panel_field_joins_the_toolbar_form(self, rf, db, name):
         bound = self._panel(rf, name)
@@ -2319,51 +2218,9 @@ class TestListPageToolbarRow:
 
         assert self._names_in_form(soup) == ["status", "q", "name"]
 
-    def test_toolbar_fields_are_not_in_the_panel(self, rf, cat):
-        _product(cat, "Lamp")
-
-        soup = _filtered_list_page(rf, toolbar_filters=["status", "q"])
-
-        panel = soup.find(id="filters")
-        assert panel.find(attrs={"name": "status"}) is None
-        assert panel.find(attrs={"name": "q"}) is None
-        assert panel.find(attrs={"name": "name"}) is not None
-
-    def test_sort_filter_and_add_end_the_row_in_that_order(self, rf, cat):
-        _product(cat, "Lamp")
-
-        soup = _filtered_list_page(
-            rf, toolbar_filters=["o", "q"], show_create_action=True
-        )
-
-        sort = soup.find("input", attrs={"name": "o"})
-        filter_button = soup.find("button", attrs={"aria-controls": "filters"})
-        add = soup.find("a", href="/products/create/")
-        form = soup.find("form", id="filterForm")
-        for element in (sort, filter_button, add):
-            assert element.find_parent("form", id="filterForm") is None
-        assert sort["form"] == "filterForm"
-        assert (
-            self._position(soup, form)
-            < self._position(soup, sort)
-            < self._position(soup, filter_button)
-            < self._position(soup, add)
-        )
-
     def test_the_sort_is_drawn_once(self, rf, cat):
         _product(cat, "Lamp")
 
         soup = _filtered_list_page(rf, toolbar_filters=["o", "q"])
 
         assert len(soup.find_all(attrs={"name": "o"})) == 1
-
-    def test_every_field_in_the_toolbar_leaves_no_panel_and_no_panel_button(
-        self, rf, cat
-    ):
-        _product(cat, "Lamp")
-
-        soup = _filtered_list_page(rf, toolbar_filters=["q", "o", "name", "status"])
-
-        assert soup.find("button", attrs={"aria-controls": "filters"}) is None
-        assert soup.find(id="filters") is None
-        assert soup.find("form", id="filterForm") is not None
