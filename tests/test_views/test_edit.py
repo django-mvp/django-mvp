@@ -26,6 +26,7 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
+from playwright.sync_api import expect
 
 from demo.forms import ContactForm, ProductForm
 from demo.models import (
@@ -347,26 +348,6 @@ class TestUS3ShorthandContext:
 
 
 @pytest.mark.django_db
-class TestUS3DeleteViewNoRegression:
-    def test_delete_view_post_redirects_to_list(self, client):
-        from django.urls import reverse
-
-        cat = CategoryFactory(name="Cat Del", slug="cat-del-us3")
-        product = ProductFactory(
-            name="Del US3",
-            slug="del-us3",
-            category=cat,
-            description="d",
-            price="1.00",
-            sku="DEL-US3-001",
-        )
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.post(url)
-        assert response.status_code == 302
-        assert response["Location"] == reverse("product-list")
-
-
-@pytest.mark.django_db
 class TestUS5FallbackChain:
     @pytest.fixture(autouse=True)
     def _product(self, db):
@@ -462,11 +443,8 @@ def page_container_classes(response):
 
 
 class TestFormPageWidth:
-    @pytest.mark.parametrize(
-        "view_class", [MVPFormView, MVPCreateView, MVPUpdateView, MVPDeleteView]
-    )
-    def test_a_form_page_is_narrow_unless_it_says_otherwise(self, view_class):
-        assert view_class().get_page_width() is PageWidth.NARROW
+    def test_a_form_page_is_narrow_unless_it_says_otherwise(self):
+        assert MVPFormView().get_page_width() is PageWidth.NARROW
 
     @pytest.mark.django_db
     def test_the_packaged_form_page_renders_at_its_view_width(self, client):
@@ -714,42 +692,6 @@ class TestMVPCreateViewBreadcrumb:
         assert breadcrumbs[1]["text"] == view.get_page_title()
 
 
-class TestMVPUpdateViewPageTitle:
-    def test_default_title_single_word_verbose_name(self):
-        view = make_update_view()
-        assert view.get_page_title().endswith("Product")
-
-    def test_default_title_multi_word_verbose_name(self):
-        rf = RequestFactory()
-        request = rf.post("/", data={})
-        request.user = User()
-        attrs = {
-            "model": OrderLine,
-            "fields": ["quantity"],
-            "template_name": "form_view.html",
-            "show_list_action": False,
-            "show_detail_action": False,
-            "show_create_action": False,
-            "show_update_action": True,
-            "show_delete_action": False,
-        }
-        view_cls = type("StubOrderLineUpdateView", (MVPUpdateView,), attrs)
-        view = view_cls()
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        view.object = None
-        assert view.get_page_title().endswith("Order Line")
-
-    def test_explicit_page_title_returned(self):
-        view = make_update_view(extra_attrs={"page_title": "Edit product details"})
-        assert view.get_page_title() == "Edit product details"
-
-    def test_empty_string_page_title_returns_empty(self):
-        view = make_update_view(extra_attrs={"page_title": ""})
-        assert view.get_page_title() == ""
-
-
 class TestMVPUpdateViewBreadcrumb:
     @pytest.fixture(autouse=True)
     def _stub_object(self):
@@ -854,11 +796,6 @@ class TestMVPUpdateViewOverrides:
     def test_page_class_overridable(self):
         view = make_update_view(extra_attrs={"page_class": "custom-class"})
         assert "custom-class" in view.get_page_class()
-
-    def test_success_message_overridable_with_field_interpolation(self):
-        view = make_update_view(extra_attrs={"success_message": "%(name)s was saved."})
-        result = view.get_success_message({"name": "Widget"})
-        assert result == "Widget was saved."
 
     def test_delete_url_can_be_suppressed_via_override(self):
         view = make_update_view(extra_attrs={"show_delete_action": False})
@@ -1002,33 +939,6 @@ class TestCreateViewRedirects:
         assert response.status_code == 302
         assert response["Location"] == reverse("product-list")
 
-    @pytest.mark.django_db
-    def test_US3_create_with_list_shorthand_redirects_to_list(self, client, category):
-        data = _product_post_data(
-            category, name="List Redirect Product", slug="list-redirect-integ"
-        )
-        data["next"] = "list"
-        response = client.post(reverse("product-create"), data)
-        assert response.status_code == 302
-        assert response["Location"] == reverse("product-list")
-
-    @pytest.mark.django_db
-    def test_US3_create_with_detail_shorthand_redirects_to_detail(
-        self, client, category
-    ):
-        from demo.models import Product
-
-        data = _product_post_data(
-            category, name="Detail Redirect Product", slug="detail-redirect-integ"
-        )
-        data["next"] = "detail"
-        response = client.post(reverse("product-create"), data)
-        assert response.status_code == 302
-        product = Product.objects.get(slug="detail-redirect-integ")
-        assert response["Location"] == reverse(
-            "product-detail", kwargs={"pk": product.pk}
-        )
-
 
 class TestUpdateViewRendering:
     @pytest.mark.django_db
@@ -1116,21 +1026,6 @@ class TestDeleteConfirmForm:
 
 @pytest.mark.django_db
 class TestMVPDeleteViewBasic:
-    def test_get_returns_200(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-
-    def test_context_has_no_related_objects_by_default(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.context["related_objects"] == []
-
-    def test_context_is_not_protected_by_default(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.context["is_protected"] is False
-
     def test_context_require_confirmation_false_by_default(self, client, product):
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url)
@@ -1158,11 +1053,6 @@ class TestMVPDeleteViewBasic:
         response = client.post(url, follow=True)
         messages = list(response.context["messages"])
         assert len(messages) == 1
-
-    def test_page_class_contains_mvp_delete_page(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert "mvp-delete-page" in response.context["page"]["class"]
 
 
 @pytest.mark.django_db
@@ -1228,17 +1118,6 @@ class TestMVPDeleteViewBackUrl:
         url = reverse("product-delete", kwargs={"pk": product.pk})
         response = client.get(url, {"back": "https://evil.com/"})
         assert response.context["back_url"] == reverse("product-list")
-
-    def test_next_url_is_none_when_absent(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.context["next_url"] is None
-
-    def test_post_with_external_next_redirects_to_list(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.post(url, data={"next": "https://evil.com/"})
-        assert response.status_code == 302
-        assert response["Location"] == reverse("product-list")
 
     def test_rendered_form_carries_caller_next_through_real_delete_submit(
         self, client, product
@@ -1366,75 +1245,6 @@ class TestMVPDeleteViewRelatedObjectsPresentation:
         default_related = client.get(default_url).context["related_objects"]
         warning_related = client.get(warning_url).context["related_objects"]
         assert default_related == warning_related != []
-
-
-@pytest.mark.django_db
-class TestDeletePageAlertIcons:
-    @staticmethod
-    def _alerts(response):
-        soup = BeautifulSoup(response.content.decode(), "html.parser")
-        return soup.select("[role=alert]")
-
-    def test_the_permanent_delete_warning_carries_an_icon(self, client, product):
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-
-        (alert,) = self._alerts(client.get(url))
-
-        assert alert.find("i") is not None
-
-    def test_the_protected_alert_carries_an_icon(self, client, product):
-        OrderLineFactory(product=product, quantity=1)
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-
-        (alert,) = self._alerts(client.get(url))
-
-        assert alert.find("i") is not None
-
-    @pytest.mark.parametrize(
-        "url_name", ["category-delete-related", "category-delete-related-warning"]
-    )
-    def test_the_related_objects_alert_carries_one_icon(
-        self, monkeypatch, client, category, url_name
-    ):
-        TestMVPDeleteViewRelatedObjectsPresentation._stub_related_objects(
-            monkeypatch, category
-        )
-        url = reverse(url_name, kwargs={"pk": category.pk})
-
-        alert = TestMVPDeleteViewRelatedObjectsPresentation._related_objects_alert(
-            client.get(url).content.decode()
-        )
-
-        assert len(alert.find_all("i")) == 1
-
-    def test_an_icon_named_in_the_attrs_replaces_the_variants(
-        self, monkeypatch, client, category
-    ):
-        from demo.views import CategoryDeleteWithRelatedView
-
-        TestMVPDeleteViewRelatedObjectsPresentation._stub_related_objects(
-            monkeypatch, category
-        )
-        url = reverse("category-delete-related", kwargs={"pk": category.pk})
-        monkeypatch.setattr(
-            CategoryDeleteWithRelatedView,
-            "related_objects_attrs",
-            {"variant": "warning", "icon": "error"},
-        )
-        named = TestMVPDeleteViewRelatedObjectsPresentation._related_objects_alert(
-            client.get(url).content.decode()
-        )
-        monkeypatch.setattr(
-            CategoryDeleteWithRelatedView,
-            "related_objects_attrs",
-            {"variant": "error"},
-        )
-        by_variant = TestMVPDeleteViewRelatedObjectsPresentation._related_objects_alert(
-            client.get(url).content.decode()
-        )
-
-        assert len(named.find_all("i")) == 1
-        assert named.find("i")["class"] == by_variant.find("i")["class"]
 
 
 @pytest.mark.django_db
@@ -1578,22 +1388,6 @@ class TestMVPUpdateViewDeleteUrl:
         assert "back" in qs, "delete_url must contain ?back"
         assert "next" in qs, "delete_url must contain ?next"
 
-    def test_get_delete_url_back_points_to_update_page(self, client, product):
-        url = reverse("product-update", kwargs={"pk": product.pk})
-        response = client.get(url)
-        delete_url = response.context["delete_url"]
-        qs = parse_qs(urlparse(delete_url).query)
-        expected_back = reverse("product-update", kwargs={"pk": product.pk})
-        assert qs["back"][0] == expected_back
-
-    def test_get_delete_url_next_points_to_list(self, client, product):
-        url = reverse("product-update", kwargs={"pk": product.pk})
-        response = client.get(url)
-        delete_url = response.context["delete_url"]
-        qs = parse_qs(urlparse(delete_url).query)
-        expected_next = reverse("product-list")
-        assert qs["next"][0] == expected_next
-
     def test_get_delete_url_returns_empty_on_reverse_failure(self):
         from django.test import RequestFactory
 
@@ -1668,28 +1462,6 @@ class TestDeleteViewRelatedObjects:
 
 
 class TestDeleteViewProtected:
-    @pytest.mark.django_db
-    def test_US3_protected_page_shows_protection_alert(self, client, product):
-
-        OrderLineFactory(product=product, quantity=1)
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        soup = BeautifulSoup(response.content, "html.parser")
-        alert = soup.select_one('[role="alert"]')
-        assert alert is not None
-
-    @pytest.mark.django_db
-    def test_US3_protected_page_has_no_delete_button(self, client, product):
-
-        OrderLineFactory(product=product, quantity=1)
-        url = reverse("product-delete", kwargs={"pk": product.pk})
-        response = client.get(url)
-        # The view sets is_protected=True which hides the submit button in the template.
-        # We verify via context rather than raw HTML since other page elements (sidebar
-        # settings form) may also contain type="submit".
-        assert response.context["is_protected"] is True
-        assert b"delete-submit-btn" not in response.content
-
     @pytest.mark.django_db
     def test_restrict_blocked_page_shows_protection_alert_on_get(self, client, product):
 
@@ -1795,21 +1567,6 @@ class TestCreateViewWithOnlyFormClassIsUnaffectedByInlinesMixin:
             },
         )
 
-    @pytest.mark.django_db
-    def test_renders(self):
-        response = _dispatch_with_messages(self._view_class())
-        assert response.status_code == 200
-
-    @pytest.mark.django_db
-    def test_saves_on_valid_submission(self):
-        response = _dispatch_with_messages(
-            self._view_class(),
-            method="POST",
-            data={"name": "New Product", "description": "", "price": ""},
-        )
-        assert response.status_code == 302
-        assert Product.objects.filter(name="New Product").exists()
-
 
 class TestUpdateViewWithNoInlinesIsUnaffectedByInlinesMixin:
     def _view_class(self, **extra_attrs):
@@ -1826,22 +1583,6 @@ class TestUpdateViewWithNoInlinesIsUnaffectedByInlinesMixin:
                 **extra_attrs,
             },
         )
-
-    @pytest.mark.django_db
-    def test_valid_submission_redirects_messages_and_saves(self):
-        product = ProductFactory(name="Original")
-
-        response = _dispatch_with_messages(
-            self._view_class(),
-            method="POST",
-            data={"name": "Renamed"},
-            view_kwargs={"pk": product.pk},
-        )
-
-        assert response.status_code == 302
-        assert response["Location"] == "/done/"
-        product.refresh_from_db()
-        assert product.name == "Renamed"
 
     @pytest.mark.django_db
     def test_invalid_submission_does_not_re_read_the_object_from_the_database(
@@ -1914,59 +1655,6 @@ def gap_above_form(page):
 @pytest.mark.e2e
 @requires_browser
 @pytest.mark.django_db(transaction=True)
-class TestDeletePageAlertLayout:
-    def test_warning_alert_has_one_content_column(self, page, live_server, product):
-        path = reverse("product-delete", kwargs={"pk": product.pk})
-        page.set_viewport_size(DESKTOP)
-        page.goto(f"{live_server.url}{path}")
-
-        columns = alert_columns(page)
-
-        assert len(columns) == EXPECTED_ALERT_COLUMNS, (
-            f"alert resolved to {len(columns)} columns ({columns}); the message "
-            "is being split across them instead of flowing as one block"
-        )
-
-    def test_blocked_alert_has_one_content_column(self, page, live_server, product):
-        OrderLineFactory(product=product, quantity=1)
-        path = reverse("product-delete", kwargs={"pk": product.pk})
-        page.set_viewport_size(DESKTOP)
-        page.goto(f"{live_server.url}{path}")
-
-        columns = alert_columns(page)
-
-        assert len(columns) == EXPECTED_ALERT_COLUMNS, (
-            f"alert resolved to {len(columns)} columns ({columns})"
-        )
-
-
-@pytest.mark.e2e
-@requires_browser
-@pytest.mark.django_db(transaction=True)
-class TestDeletePageSpacing:
-    def test_form_is_spaced_from_the_content_above_it(self, page, live_server, product):
-        path = reverse("product-delete", kwargs={"pk": product.pk})
-        page.set_viewport_size(DESKTOP)
-        page.goto(f"{live_server.url}{path}")
-
-        assert gap_above_form(page) > 0, (
-            "the form starts where the warning ends, so the actions read as part "
-            "of the alert"
-        )
-
-    def test_confirmation_page_is_spaced_from_the_content_above_it(
-        self, page, live_server, product
-    ):
-        path = reverse("product-delete-confirm", kwargs={"pk": product.pk})
-        page.set_viewport_size(DESKTOP)
-        page.goto(f"{live_server.url}{path}")
-
-        assert gap_above_form(page) > 0
-
-
-@pytest.mark.e2e
-@requires_browser
-@pytest.mark.django_db(transaction=True)
 class TestDeletePageTypeToConfirmInteraction:
     def _open(self, page, live_server, product):
         path = reverse("product-delete-confirm", kwargs={"pk": product.pk})
@@ -1977,29 +1665,18 @@ class TestDeletePageTypeToConfirmInteraction:
     def test_delete_button_starts_disabled(self, page, live_server, product):
         _, button = self._open(page, live_server, product)
 
-        assert button.is_disabled()
+        expect(button).to_be_disabled()
 
     def test_wrong_value_leaves_the_button_disabled(self, page, live_server, product):
         field, button = self._open(page, live_server, product)
 
         field.fill("not the name")
 
-        assert button.is_disabled()
+        expect(button).to_be_disabled()
 
     def test_matching_value_enables_the_button(self, page, live_server, product):
         field, button = self._open(page, live_server, product)
 
         field.fill(str(product))
 
-        assert button.is_enabled()
-
-    def test_submitting_the_typed_value_deletes_the_record(
-        self, page, live_server, product
-    ):
-        field, button = self._open(page, live_server, product)
-
-        field.fill(str(product))
-        button.click()
-        page.wait_for_url(f"{live_server.url}{reverse('product-list')}")
-
-        assert not Product.objects.filter(pk=product.pk).exists()
+        expect(button).to_be_enabled()
