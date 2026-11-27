@@ -1359,6 +1359,11 @@ class TestListPageFilterPanel:
 
 LIST_PAGE_BLOCKS = [
     "page.actions",
+    "page.toolbar",
+    "page.filters",
+    "page.controls",
+    "page.summary",
+    "page.refinements",
     "page.results",
     "page.pagination",
 ]
@@ -1379,20 +1384,24 @@ class TestListPageScript:
 
 
 class TestListPageBlocks:
-    @pytest.mark.parametrize("block", LIST_PAGE_BLOCKS)
-    def test_a_project_can_replace_one_part_of_the_page(self, rf, cat, block):
+    def test_a_project_can_replace_each_part_of_the_page(self, rf, cat):
         for number in range(3):
             _product(cat, f"Lamp {number}")
 
-        soup = _list_page(
-            rf,
-            "?q=lamp",
-            template_name="tests/list_view_block_override.html",
-            paginate_by=2,
-            extra_context={"override": block},
-        )
+        not_replaced = [
+            block
+            for block in LIST_PAGE_BLOCKS
+            if _list_page(
+                rf,
+                "?q=lamp",
+                template_name="tests/list_view_block_override.html",
+                paginate_by=2,
+                extra_context={"override": block},
+            ).find(id="override")
+            is None
+        ]
 
-        assert soup.find(id="override") is not None
+        assert not_replaced == []
 
     def test_a_project_can_replace_the_empty_state(self, rf, db):
         soup = _list_page(
