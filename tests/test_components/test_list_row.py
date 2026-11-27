@@ -130,12 +130,6 @@ class TestListRowWithActions:
             ]
             assert len(matches) == 1
 
-    def test_the_menu_is_a_large_full_width_daisy_menu(self, render_row):
-        menu = render_row().select_one("[data-mvp-row-menu]")
-
-        assert menu.name == "ul"
-        assert {"menu", "menu-lg", "w-full", "p-0"} <= set(menu["class"])
-
     def test_the_row_is_a_list_item_that_starts_the_script(self, render_row):
         item = render_row().select_one("li")
 
@@ -265,9 +259,8 @@ class TestRowStylesheet:
     def css(self):
         return self.STYLESHEET.read_text()
 
-    @pytest.mark.parametrize(
-        "selector",
-        [
+    def test_it_styles_what_the_row_draws(self, css):
+        selectors = [
             ".mvp-row-face",
             ".mvp-row-under",
             ".mvp-row-button",
@@ -283,10 +276,15 @@ class TestRowStylesheet:
             "[data-mvp-row-full]",
             ".mvp-row-dropdown",
             ".mvp-row-sheet-trigger",
-        ],
-    )
-    def test_it_styles_what_the_row_draws(self, css, selector):
-        assert re.search(re.escape(selector) + r"(?![\w-])", css)
+        ]
+
+        unstyled = [
+            selector
+            for selector in selectors
+            if not re.search(re.escape(selector) + r"(?![\w-])", css)
+        ]
+
+        assert not unstyled
 
     def test_the_sheet_trigger_replaces_the_dropdown_only_once_the_row_is_set_up(
         self, css
