@@ -13,9 +13,28 @@ Both override daisy-cotton's components of the same name, recorded in
 these two. A card or dialog with no `view` is drawn
 as the package's card and dialog always looked.
 
-## The features
+## The work
 
-Build order is top to bottom.
+Build order is top to bottom. One feature, two resolve sessions, and a release of
+django-mvp-layout before them (Sam, 2026-11-27).
+
+0. **django-mvp-layout 0.3.0.** Merge https://github.com/django-mvp/django-mvp-layout/pull/24
+   (the slide timing and the drawer width) and release it. Every step below requires 0.3.0, and
+   nothing installs the package from a branch.
+1. **Cards, dialogs and the sheet, built from parts (resolve, one session, one pull request).**
+   Sections 2 and 3 below. It adds the django-mvp-layout dependency, the shared heading and footer
+   rows and the box styles, and renames the sheet. A component is never a feature (Sam,
+   2026-11-27).
+2. **The shell on a layout code (feature).** Section 1 below. Built once session 1 has merged, on
+   top of it. Its specification replaces `specs/001-app-components` and
+   `specs/00x-layout-configuration`, which are removed in its pull request. What
+   `specs/029-layout-state-store` says about the shell that this replaces is moved into the new
+   specification, and the rest of 029 stays.
+3. **Demo pages (resolve, one session, one pull request).** Section 4 below, once 1 and 2 have
+   merged.
+
+The stacking classes `hbf` and `HbF` are django-mvp-layout's, and its own tests cover how they
+behave. django-mvp tests that its markup carries them, never how they stack (Sam, 2026-11-27).
 
 ### 1. The shell on a layout code (feature)
 
@@ -43,7 +62,7 @@ gets a right sidebar by filling a template block.
 Screens: every page. http://devserver:8002/components/card/ has sidebars in a box,
 http://devserver:8002/products/ has none, http://devserver:8002/layout/full-page/ is a filled page.
 
-### 2. A card built from parts, with a layout (feature)
+### 2. A card built from parts, with a layout (resolve session 1)
 
 `<c-card>` overrides daisy-cotton's card. The caller writes the parts it wants: `<c-card.header>`
 (`title`, `icon`, `href`, slots `badges` and `actions`, and a default slot for heading markup),
@@ -62,17 +81,22 @@ the package has is available, measured against the card's own width.
 - The header part is the layout's header, with a `<c-layout.toggle>` for each side that hides
   itself when that sidebar is absent or never closes. The footer part is the layout's footer.
 
-Depends on 1 only for the shared box styles. Screens: every section of
+Screens: every section of
 http://devserver:8002/components/card/, and http://devserver:8002/components/card/#sidebars, #icon-rail, #another-layout-code,
 #a-drawer-at-every-width, #in-a-narrow-card.
 
-### 3. A dialog built from parts, with a layout (feature)
+### 3. A dialog and the sheet built from parts, with a layout (resolve session 1)
 
 `<c-modal>` overrides daisy-cotton's modal, built from `<c-modal.header>` (`title`, `icon`, slot
 `actions`), `<c-modal.body>` and `<c-modal.footer>` (a start group and an `end` slot). It keeps
 `placement`, `closable`, `open`, `content_class` and `class`, and the package's `size`, and writes
 its own `<dialog>`, box, close button and backdrop. The header's title names the dialog.
 `<c-mvp.modal>` is gone, with no alias. The sheet and the search dialog call it.
+
+The sheet is renamed `<c-mvp.bottom_sheet>` (`cotton/mvp/bottom_sheet/`), with no alias, and is
+stacked with `hbf` like the card and the dialog: its grab bar, head and description are the
+header, then the body, which scrolls, and the foot. Its port keeps every change `main` has made to
+the sheet since the prototype branched.
 
 The layout works as on the card: sections in a sidebar, a details pane, options in a drawer.
 
@@ -87,14 +111,14 @@ The layout works as on the card: sections in a sidebar, a details pane, options 
   top corner and the header leaves room for it. The footer part is the layout's footer.
 - Escape closes an open drawer before the dialog (the layout package's script).
 
-Depends on 2 for the shared rows (see below). Screens: every dialog on
+Screens: every dialog on
 http://devserver:8002/components/modal/ and http://devserver:8002/components/sheet/, the search
 dialog (Ctrl K), the page information and create dialogs on http://devserver:8002/products/, the
 language dialog in the sidebar's footer, and
 http://devserver:8002/components/modal/#sections-in-a-sidebar, #two-sidebars,
 #options-in-a-drawer.
 
-### 4. Demo pages (resolve)
+### 4. Demo pages (resolve session 3)
 
 The sidebar's Layout group and the two theme pages become one group, Look & Feel, with three pages:
 
@@ -110,13 +134,16 @@ The sidebar's Layout group and the two theme pages become one group, Look & Feel
   page is in the site's theme. Theme Customization is gone.
 
 The new card and modal examples go with these. Nobody gets a new way of working from them, so this
-is resolve work that comes with features 1 to 3.
+is resolve work that comes after everything above.
 
 ## Shared pieces
 
+In this table and the next, a number names a section above: 2 and 3 are resolve session 1, 1 is
+the feature and 4 is resolve session 3.
+
 | Piece | Where it occurs | Becomes | Built by |
 |---|---|---|---|
-| The heading row and the footer row of a card or dialog, with a toggle each side in a layout | `mvp/templates/cotton/mvp/box/header.html`, `mvp/templates/cotton/mvp/box/footer.html`, called by `cotton/card/header.html`, `card/footer.html`, `modal/header.html`, `modal/footer.html` | Kept as built | 2, reused by 3 |
+| The heading row and the footer row of a card or dialog, with a toggle each side in a layout | `mvp/templates/cotton/mvp/box/header.html`, `mvp/templates/cotton/mvp/box/footer.html`, called by `cotton/card/header.html`, `card/footer.html`, `modal/header.html`, `modal/footer.html` | Kept as built | Session 1 |
 | Stacking a header, body and footer | The card and the dialog built from parts, the shell's left sidebar | django-mvp-layout's `hbf` and `HbF` classes, no stacking rules of django-mvp's own | 1, 2, 3 |
 | Box styles (part spacing, `--mvpl-sidebar-bg`, `--mvpl-line`, header and footer rules) | `mvp/tailwind/base.css`, the block in `@layer utilities { @layer daisyui.l1.l2 }` | Kept, keyed to `.mvp-box-layout` and the parts' classes | 2 |
 | Rail-aware variants `is-drawer-open` / `is-drawer-close` | `mvp/tailwind/base.css` (`@custom-variant`) | Kept, keyed to `.mvpl-sidebar[data-mvpl-rail]` | 1 |
@@ -140,7 +167,7 @@ is resolve work that comes with features 1 to 3.
 | `mvp/config.py` (`layout.view`, `sidebar`, `secondary_sidebar`) | 1 | Same path |
 | `mvp/tailwind/base.css` (variants, rail, full-page rules, box colours) | 1, 2 | Same path |
 | `mvp/templates/cotton/card/index.html, header.html, body.html, footer.html` | 2 | Same paths |
-| `pyproject.toml` (django-mvp-layout 0.2.0) | 1 | Same path |
+| `pyproject.toml` (django-mvp-layout 0.3.0) | 2 (resolve session 1) | Same path |
 | `mvp/templates/cotton/modal.html`, `cotton/modal/header.html, body.html, footer.html` | 3 | Same paths |
 | `mvp/templates/cotton/mvp/box/header.html, footer.html` | 2 | Same paths |
 | `mvp/templates/cotton/mvp/sheet/index.html`, `search/dialog.html`, `page/info.html`, `page/list/actions/create.html`, `actions/language_switcher_modal.html`, `mvp/templates/mvp/account/overview.html`, `mvp/pwa/install.html` | 2, 3 | Same paths |
@@ -238,6 +265,12 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
 - 2026-11-27: The sheet is stacked by django-mvp-layout's hbf too, like the card and the dialog, so
   all three are built and styled the same way. Its grab bar, head and description are the header,
   then the body, which scrolls, and the foot. (Sam)
+- 2026-11-27: Components are never a feature. The card, the dialog and the sheet are one resolve
+  session and one pull request. The shell on a layout code is the one feature, with a new
+  specification in place of the old shell specifications. (Sam)
+- 2026-11-27: The sheet is renamed `<c-mvp.bottom_sheet>`, with no alias. (Sam)
+- 2026-11-27: django-mvp does not test how `hbf` and `HbF` stack. django-mvp-layout's tests cover
+  them. (Sam)
 - 2026-11-27: The prototype is done. The rebuild through the full lanes starts from here. (Sam)
 - 2026-11-27: The site's name shows beside the icon in the header and the sidebar. A project shows a
   full logo instead by overriding `cotton/mvp/brand/mark.html`. (Sam)
