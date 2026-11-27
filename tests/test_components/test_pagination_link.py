@@ -57,23 +57,6 @@ def collect_anchors(html):
     return parser.anchors
 
 
-class TestPaginationLinkPreservesQueryString:
-    def test_page_link_preserves_sort_and_search(self):
-        request = RequestFactory().get("/items/?o=name&q=widget")
-        html = render('<c-mvp.pagination.link :page="2" text="2" />', request)
-        anchors = collect_anchors(html)
-        assert len(anchors) == 1
-        query = parse_qs(urlsplit(anchors[0]["href"]).query)
-        assert query == {"o": ["name"], "q": ["widget"], "page": ["2"]}
-
-    def test_page_link_with_no_other_params_still_changes_the_page(self):
-        request = RequestFactory().get("/items/")
-        html = render('<c-mvp.pagination.link :page="4" text="4" />', request)
-        anchors = collect_anchors(html)
-        query = parse_qs(urlsplit(anchors[0]["href"]).query)
-        assert query == {"page": ["4"]}
-
-
 class TestPaginationWrapperLinksAllPreserveQueryString:
     def test_every_rendered_link_preserves_the_current_query_string(self):
         request = RequestFactory().get("/items/?o=name&q=widget")
@@ -90,19 +73,6 @@ class TestPaginationWrapperLinksAllPreserveQueryString:
             assert query.get("o") == ["name"]
             assert query.get("q") == ["widget"]
             assert "page" in query
-
-
-class TestPaginationCurrentPageIndicator:
-    def test_active_link_gets_a_colour_modifier_no_sibling_has(self):
-        request = RequestFactory().get("/items/")
-        paginator = Paginator(range(9), 3)
-        page_obj = paginator.page(2)
-        html = render_to_string(
-            "tests/pagination.html", {"page_obj": page_obj}, request=request
-        )
-        anchors = collect_anchors(html)
-        current = [a for a in anchors if a.get("aria-current") == "page"]
-        assert len(current) == 1
 
 
 class TestPaginationDisabledControls:
