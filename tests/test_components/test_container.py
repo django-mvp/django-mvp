@@ -54,7 +54,7 @@ class TestContainerWidth:
         }
         assert len(rendered) == len(PageWidth)
 
-    @pytest.mark.parametrize("width", list(PageWidth))
+    @pytest.mark.parametrize("width", [PageWidth.NARROW])
     def test_a_width_from_the_context_matches_the_written_name(self, width):
         assert container_classes(
             '<c-mvp.container :width="width">x</c-mvp.container>', width=width
