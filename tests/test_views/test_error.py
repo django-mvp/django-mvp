@@ -21,21 +21,17 @@ def _crashing_urlconf(*patterns):
     return type("_URLConf", (), {"urlpatterns": list(patterns)})
 
 
-_RENDERED = {}
-
-
-@pytest.fixture
-def error_pages(db, client):
+@pytest.fixture(scope="module")
+def error_pages(django_db_setup, django_db_blocker):
     """Each error page rendered once per module, keyed by code.
 
     404 is the representative page. 500 is the boundary: its own template, and
     the only one that takes a context variable from its handler. The pages
-    are only read, so the first test to need one renders it for the rest.
+    are only read, so they are rendered once for every test in the module.
     """
-    for code in ("404", "500"):
-        if code not in _RENDERED:
-            _RENDERED[code] = client.get(f"/errors/{code}/")
-    return _RENDERED
+    client = Client()
+    with django_db_blocker.unblock():
+        return {code: client.get(f"/errors/{code}/") for code in ("404", "500")}
 
 
 class TestErrorPageRendering:
