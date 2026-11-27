@@ -8,7 +8,7 @@
   <c-demo.layout.region name="app.sidebar"
                         key="sidebar"
                         :focus="focus"
-                        href="{% url 'layout-sidebar' %}"
+                        href="{% url 'layout' %}#sidebar"
                         class="md:w-1/3">
     {{ sidebar }}
   </c-demo.layout.region>
@@ -16,7 +16,7 @@
     <c-demo.layout.region name="app.header"
                           key="header"
                           :focus="focus"
-                          href="{% url 'layout-header' %}">
+                          href="{% url 'layout' %}#header">
       {{ header }}
     </c-demo.layout.region>
     <c-demo.layout.region name="app.main" key="main" :focus="focus" class="grow">

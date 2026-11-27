@@ -1,22 +1,152 @@
-{% extends "demo/layout/base.html" %}
-{% block layout.intro %}
-  Every page that extends <code>mvp/base.html</code> is drawn inside the app shell. The shell has
-  five regions, and each one is a block a template can replace. The sidebar and the header have regions of their own, each on its own page.
-  One layout code in <code>MVP_CONFIG["layout"]["view"]</code> arranges them. Every code, and what
-  each letter does, is in
-  <a class="link" href="{{ layout_docs_url }}">django-mvp-layout's documentation</a>.
-{% endblock layout.intro %}
-{% block layout.diagram %}
-  <c-demo.layout.region name="announcement" note="Above the shell. Scrolls away with the page." class="mb-2" />
-  <c-demo.layout.region name="app" class="grow">
-    <c-demo.layout.shell>
-      <c-slot name="main">
-        <c-demo.layout.region name="content" note="The page" class="grow" />
-        <c-demo.layout.region name="app.messages" note="Django messages" />
-      </c-slot>
-    </c-demo.layout.shell>
-  </c-demo.layout.region>
-{% endblock layout.diagram %}
+{% extends "page_view.html" %}
+{% comment %}
+  The app shell, its sidebar and its header, each drawn as a diagram of its
+  regions with a table of the blocks that fill them, then how the page sits in
+  the shell.
+{% endcomment %}
+{% block page.content %}
+  <c-mvp.text muted tight class="text-lg">
+    Every page that extends <code>mvp/base.html</code> is drawn inside the app shell. The shell has
+    five regions, and each one is a block a template can replace. The sidebar and the header have
+    regions of their own, each below. One layout code in <code>MVP_CONFIG["layout"]["view"]</code>
+    arranges them. Every code, and what each letter does, is in
+    <a class="link" href="{{ layout_docs_url }}">django-mvp-layout's documentation</a>.
+  </c-mvp.text>
+  <div class="mt-2 flex flex-col gap-10">
+    <section id="app" class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">The app</h2>
+      <c-mockup.browser url="https://example.com">
+        {# A set height for the page in the frame, so the regions stretch to #}
+        {# fill it the way the shell fills a window. A minimum, so a narrow #}
+        {# window that stacks the regions grows the frame rather than spilling. #}
+        <div class="flex flex-col p-3" style="min-height: 36rem">
+          <c-demo.layout.region name="announcement" note="Above the shell. Scrolls away with the page." class="mb-2" />
+          <c-demo.layout.region name="app" class="grow">
+            <c-demo.layout.shell>
+              <c-slot name="main">
+                <c-demo.layout.region name="content" note="The page" class="grow" />
+                <c-demo.layout.region name="app.messages" note="Django messages" />
+              </c-slot>
+            </c-demo.layout.shell>
+          </c-demo.layout.region>
+        </div>
+      </c-mockup.browser>
+      <h3 class="text-lg font-semibold">Blocks</h3>
+      {% include "demo/layout/blocks.html" with blocks=app_blocks %}
+    </section>
+    <section id="sidebar" class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">The sidebar</h2>
+      <c-mvp.text muted tight>
+        The sidebar is three regions stacked in a column. The header and footer stay in place while the
+        body scrolls between them.
+      </c-mvp.text>
+      <c-mockup.browser url="https://example.com">
+        {# A set height for the page in the frame, so the regions stretch to #}
+        {# fill it the way the shell fills a window. A minimum, so a narrow #}
+        {# window that stacks the regions grows the frame rather than spilling. #}
+        <div class="flex flex-col p-3" style="min-height: 36rem">
+          <c-demo.layout.shell focus="sidebar">
+          <c-slot name="sidebar">
+          <c-demo.layout.region name="app.sidebar.header" note="Brand icon, title, collapse toggle" />
+          <c-demo.layout.region name="app.sidebar.body" note="The menu" class="grow" />
+          <c-demo.layout.region name="app.sidebar.footer" note="User menu, theme, language" />
+          </c-slot>
+          </c-demo.layout.shell>
+        </div>
+      </c-mockup.browser>
+      <h3 class="text-lg font-semibold">Blocks</h3>
+      {% include "demo/layout/blocks.html" with blocks=sidebar_blocks %}
+      <h3 class="text-lg font-semibold">Example</h3>
+      <p class="text-base-content/60">
+        A sidebar with its own header and footer, and a short list of links for a body.
+      </p>
+      <pre class="overflow-x-auto rounded-box bg-base-300 p-4 text-sm"><code>{% verbatim %}{% extends "mvp/base.html" %}
+
+{% block app.sidebar.header %}
+  &lt;div class="flex w-full items-center justify-between px-4 py-2"&gt;
+    &lt;span class="font-semibold"&gt;Acme Projects&lt;/span&gt;
+    &lt;label for="mvp-app-toggle" class="btn btn-ghost btn-square" aria-label="Toggle sidebar"&gt;
+      &lt;c-icon name="sidebar-left" /&gt;
+    &lt;/label&gt;
+  &lt;/div&gt;
+{% endblock app.sidebar.header %}
+
+{% block app.sidebar.body %}
+  &lt;c-menu class="w-full"&gt;
+    &lt;c-menu.item href="/" icon="home"&gt;Home&lt;/c-menu.item&gt;
+    &lt;c-menu.item href="/projects/" icon="folder"&gt;Projects&lt;/c-menu.item&gt;
+  &lt;/c-menu&gt;
+{% endblock app.sidebar.body %}
+
+{% block app.sidebar.footer %}
+  &lt;div class="mt-auto w-full px-4 py-3 text-sm"&gt;Version 2.4&lt;/div&gt;
+{% endblock app.sidebar.footer %}{% endverbatim %}</code></pre>
+    </section>
+    <section id="header" class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">The header</h2>
+      <c-mvp.text muted tight>
+        The header holds two things, one above the other: the navbar and the tray. They stick to the top
+        of the window together. The navbar is a single row in three parts.
+      </c-mvp.text>
+      <c-mockup.browser url="https://example.com">
+        {# A set height for the page in the frame, so the regions stretch to #}
+        {# fill it the way the shell fills a window. A minimum, so a narrow #}
+        {# window that stacks the regions grows the frame rather than spilling. #}
+        <div class="flex flex-col p-3" style="min-height: 36rem">
+          <c-demo.layout.shell focus="header">
+          <c-slot name="header">
+          <c-demo.layout.region name="app.navbar">
+          <div class="flex flex-col gap-2 sm:flex-row">
+          <c-demo.layout.region name="app.navbar.start" note="Sidebar toggle, site icon, breadcrumbs" class="flex-1" />
+          <c-demo.layout.region name="app.navbar.center" note="Empty" class="flex-1" />
+          <c-demo.layout.region name="app.navbar.end" note="Widgets from settings" class="flex-1" />
+          </div>
+          </c-demo.layout.region>
+          <c-demo.layout.region name="app.header.tray" note="Empty. Full width, under the navbar." />
+          </c-slot>
+          </c-demo.layout.shell>
+        </div>
+      </c-mockup.browser>
+      <h3 class="text-lg font-semibold">Blocks</h3>
+      {% include "demo/layout/blocks.html" with blocks=header_blocks %}
+      <h3 class="text-lg font-semibold">Example</h3>
+      <p class="text-base-content/60">
+        A search box in the middle of the navbar, one more button at its end, and a row of tabs in the
+        tray.
+      </p>
+      <pre class="overflow-x-auto rounded-box bg-base-300 p-4 text-sm"><code>{% verbatim %}{% extends "mvp/base.html" %}
+
+{% block app.navbar.center %}
+  &lt;label class="input input-sm"&gt;
+    &lt;c-icon name="search" /&gt;
+    &lt;input type="search" placeholder="Search projects" aria-label="Search projects" /&gt;
+  &lt;/label&gt;
+{% endblock app.navbar.center %}
+
+{% block app.navbar.end %}
+  &lt;c-button text="New project" icon="plus" size="sm" variant="primary" /&gt;
+{% endblock app.navbar.end %}
+
+{% block app.header.tray %}
+  &lt;div role="tablist" class="tabs tabs-lift px-3"&gt;
+    &lt;a role="tab" class="tab tab-active" aria-selected="true"&gt;Overview&lt;/a&gt;
+    &lt;a role="tab" class="tab"&gt;Members&lt;/a&gt;
+    &lt;a role="tab" class="tab"&gt;Settings&lt;/a&gt;
+  &lt;/div&gt;
+{% endblock app.header.tray %}{% endverbatim %}</code></pre>
+    </section>
+    <section id="page" class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">The page</h2>
+      <c-mvp.text muted tight>
+        The page is the <code>content</code> block, in the middle of the shell. It scrolls with the
+        window, under the header, while the header and the sidebars stay in place. Opening or
+        closing a sidebar beside it narrows or widens the page. Below a sidebar's breakpoint the
+        sidebar is a drawer over the page instead, and the page keeps its width. Its title and its
+        side panel are on <a class="link" href="{% url 'layout-page' %}">Page layout</a>.
+      </c-mvp.text>
+    </section>
+  </div>
+{% endblock page.content %}
 {% block app.secondary_sidebar %}
   <div class="flex flex-col gap-4" id="app-layout-aside">
     <h2 class="text-sm font-semibold text-base-content/70">The right sidebar</h2>

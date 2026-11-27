@@ -1,0 +1,26 @@
+{% comment %}
+  The table of the blocks in one part of the shell. Takes `blocks`, a list of
+  dicts with a name, what it draws by default and what filling it does.
+{% endcomment %}
+<div class="overflow-x-auto">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Block</th>
+        <th scope="col">Draws by default</th>
+        <th scope="col">When a template fills it</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for block in blocks %}
+        <tr>
+          <th scope="row" class="whitespace-nowrap">
+            <code class="font-mono text-sm">{{ block.name }}</code>
+          </th>
+          <td>{{ block.default }}</td>
+          <td>{{ block.filled }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

@@ -96,10 +96,20 @@ http://devserver:8002/components/modal/#sections-in-a-sidebar, #two-sidebars,
 
 ### 4. Demo pages (resolve)
 
-The App page links to django-mvp-layout's documentation of the layout code
-(https://django-mvp.github.io/django-mvp-layout/developer/layout-code.html) and fills the right
-sidebar. The demo has no page of its own for the code. The new card and modal examples. Nobody gets a new way of working from them, so this is resolve work that comes with
-features 1 to 3.
+The sidebar's Layout group and the two theme pages become one group, Look & Feel, with three pages:
+
+- **App layout** (`/layout/`): the shell's own regions, the sidebar's and the header's, each with
+  its diagram and its table of blocks, then a short section on how the page sits in the shell. It
+  links to django-mvp-layout's documentation of the layout code
+  (https://django-mvp.github.io/django-mvp-layout/developer/layout-code.html) and fills the right
+  sidebar. The demo has no page of its own for the code.
+- **Page layout** (`/layout/page/`): the page title and the side panel together, one form for the
+  options of both, and an "On this page" panel listing both halves.
+- **Theme** (`/theme/`): what was Theme Preview, with a short explanation at the top and the theme
+  menu as the page title's action. Theme Customization is gone.
+
+The new card and modal examples go with these. Nobody gets a new way of working from them, so this
+is resolve work that comes with features 1 to 3.
 
 ## Shared pieces
 
@@ -134,9 +144,9 @@ features 1 to 3.
 | `mvp/templates/cotton/mvp/box/header.html, footer.html` | 2 | Same paths |
 | `mvp/templates/cotton/mvp/sheet/index.html`, `search/dialog.html`, `page/info.html`, `page/list/actions/create.html`, `actions/language_switcher_modal.html`, `mvp/templates/mvp/account/overview.html`, `mvp/pwa/install.html` | 2, 3 | Same paths |
 | `docs/adr/0047-the-card-and-the-modal-override-daisy-cottons.md`, the status line of `docs/adr/0030-…` | 2, 3 | Same paths |
-| `demo/templates/demo/layout/app.html` (the link and the right sidebar), `demo/views.py`, `demo/urls.py`, `demo/menus.py` | 4 | Same paths |
+| `demo/templates/demo/layout/app.html`, `layout/page.html`, `layout/blocks.html`, `theme.html`, `cotton/demo/layout/shell.html` (the region links), `demo/views.py`, `demo/urls.py`, `demo/menus.py` | 4 | Same paths |
 | `demo/templates/demo/components/card.html`, `modal.html` (every section) | 4 | Same paths |
-| Every other demo template with a card or dialog: `landing.html`, `dashboard.html`, `theme_customization.html`, `theme_preview.html`, `components/index.html`, `layout/code.html`, `cards/product_card.html`, `account_showcase/…/overview.html` | 2, 3 | Same paths |
+| Every other demo template with a card or dialog: `landing.html`, `dashboard.html`, `theme.html`, `components/index.html`, `cards/product_card.html`, `account_showcase/…/overview.html` | 2, 3 | Same paths |
 
 Screens for the parity check, each at 390 and 1440 wide, signed out and as `regular.user`:
 
@@ -147,7 +157,7 @@ Screens for the parity check, each at 390 and 1440 wide, signed out and as `regu
 - http://devserver:8002/components/modal/ (every dialog open, and on the phone the sections
   drawer open)
 - http://devserver:8002/ (the landing cards), http://devserver:8002/theme/,
-  http://devserver:8002/theme/preview/, http://devserver:8002/components/sheet/
+  http://devserver:8002/layout/page/, http://devserver:8002/components/sheet/
 - As `regular.user`: http://devserver:8002/, http://devserver:8002/account/,
   http://devserver:8002/install/
 
@@ -190,6 +200,10 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   it is released. (Sam)
 - 2026-11-27: django-mvp-layout takes a time for a sidebar's open and close: one for the whole
   site, and one per sidebar on `<c-layout.sidebar>`. Same pull request. (Sam)
+- 2026-11-27: The demo's Layout group and its theme pages become one group, Look & Feel: App layout
+  (app, sidebar and header, and a short section on the page), Page layout (page title and side
+  panel) and Theme (the preview, with a theme menu as the title's action). Theme Customization is
+  removed. (Sam)
 
 ## Decided on my own
 
@@ -242,6 +256,17 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
 - **The right sidebar has no stack.** A page fills it with whatever it likes.
 - **`behavior: "overlay"` replaces `breakpoint: "never"`.**
 - **`page.side` stays as it is.** Whether `app.secondary_sidebar` replaces it is for the rebuild.
+- **The three Look & Feel pages have only their own title as a breadcrumb.** The group has no page
+  to link to, and a crumb without a link is drawn as the current page.
+- **App layout, Page layout and Theme keep the URLs `/layout/`, `/layout/page/` and `/theme/`.**
+  `/layout/sidebar/`, `/layout/header/`, `/layout/title/`, `/layout/side/` and `/theme/preview/`
+  are gone, and the diagram's sidebar and header regions link to their sections on App layout.
+- **The theme action is the header's theme menu**, `<c-mvp.actions.theme-controller>`, the same
+  control in the page title's actions.
+- **Theme's explanation is the opening paragraph Theme Customization had**, without its list of the
+  demo's themes, followed by the preview's own.
+- **Page layout's sample title and eyebrow read "Page layout" and "Look & Feel"**, and its Contents
+  button takes the small size of the title's other actions.
 
 ## Faked or skipped
 
@@ -255,7 +280,7 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
 - **A wrong `layout.view` fails at render**, not at startup. Feature 1 adds a system check.
 - **The old shell is still in the tree**: `mvp/layout.py`, `cotton/app/index.html`,
   `cotton/mvp/layout/sidebar/index.html`, the Alpine `$store.mvp` layout store
-  (`assets/js/layout.js`), and the demo pages `/layout/sidebar/` and `/layout/store/` that show it.
+  (`assets/js/layout.js`), and the demo page `/layout/store/` that shows it.
   Feature 1 removes them.
 - **`MVP_CONFIG["layout"]["navbar"]["sticky"]` is no longer read.** Feature 1 removes it.
 - **django-mvp-accounts, compliance, community and payments break.** Nothing is changed in them.
@@ -264,6 +289,11 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
 - **`assets/tailwind.css` scans the demo's component and layout templates** so their example
   classes build. Feature 4 moves this to the demo.
 - **Icons come from the Bootstrap Icons CDN**, like the rest of the demo.
+- **The demo's tests still name the removed pages**: `test_page_title.py`, `test_theme_customization.py`,
+  `test_pages.py`, `test_surfaces.py` and `test_surfaces_e2e.py` load `/layout/title/`,
+  `/layout/side/`, `customization` or `/theme/preview/`. Feature 4 moves them to the new pages.
+- **`--mvp-sidebar-width` and its touch sizing are no longer read.** The sidebar's drawer on a phone
+  is the layout's width, 16.25rem, not the 20rem the old shell gave it. Feature 1 decides which.
 
 ## What it replaces
 

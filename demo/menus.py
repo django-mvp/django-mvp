@@ -18,9 +18,9 @@ AppMenu.extend(
             },
         ),
         MenuCollapse(
-            name="layout",
+            name="look-and-feel",
             extra_context={
-                "label": "Layout",
+                "label": "Look & Feel",
                 "icon": "layout",
             },
             children=[
@@ -28,59 +28,27 @@ AppMenu.extend(
                     name="layout-app",
                     view_name="layout",
                     extra_context={
-                        "label": "App",
+                        "label": "App layout",
                         "icon": "layout",
                     },
                 ),
                 MenuItem(
-                    name="layout-sidebar",
-                    view_name="layout-sidebar",
+                    name="layout-page",
+                    view_name="layout-page",
                     extra_context={
-                        "label": "Sidebar",
-                        "icon": "sidebar-left",
-                    },
-                ),
-                MenuItem(
-                    name="layout-header",
-                    view_name="layout-header",
-                    extra_context={
-                        "label": "Header",
-                        "icon": "navbar",
-                    },
-                ),
-                MenuItem(
-                    name="layout-title",
-                    view_name="layout-title",
-                    extra_context={
-                        "label": "Page Title",
-                        "icon": "navbar",
-                    },
-                ),
-                MenuItem(
-                    name="layout-side",
-                    view_name="layout-side",
-                    extra_context={
-                        "label": "Side Panel",
+                        "label": "Page layout",
                         "icon": "sidebar-right",
                     },
                 ),
+                MenuItem(
+                    name="theme",
+                    view_name="theme",
+                    extra_context={
+                        "label": "Theme",
+                        "icon": "gears",
+                    },
+                ),
             ],
-        ),
-        MenuItem(
-            name="customization",
-            view_name="customization",
-            extra_context={
-                "label": "Theme Customization",
-                "icon": "gears",
-            },
-        ),
-        MenuItem(
-            name="theme-preview",
-            view_name="theme-preview",
-            extra_context={
-                "label": "Theme Preview",
-                "icon": "gears",
-            },
         ),
         MenuCollapse(
             name="custom-components",

@@ -2,7 +2,7 @@
 
 Most of these instantiate a packaged django-mvp view directly (MVPListView,
 MVPDetailView, MVPCreateView, …) to show what a project gets with no
-customization. A few, like ``layout_demo`` and ``theme_customization_demo``,
+customization. A few, like ``layout_demo`` and ``theme_demo``,
 are plain ``DemoTemplateView`` instances that render a static demo page.
 """
 
@@ -306,42 +306,9 @@ components_demo = ComponentIndexView.as_view()
 utility_classes_demo = UtilityClassesView.as_view()
 
 
-class LayoutPageView(DemoTemplateView):
-    """One page of the Layout group: a part of the shell and the blocks in it.
-
-    ``blocks`` is the table the page shows.
-    """
-
-    blocks = ()
-    has_example = True
-
-    def get_breadcrumbs(self):
-        """Add the Layout crumb ahead of this page's own."""
-        return [
-            {"text": "Layout", "href": reverse("layout")},
-            {"text": self.page_title},
-        ]
-
-    def get_context_data(self, **kwargs):
-        """Add the block table and whether the page shows an example."""
-        context = super().get_context_data(**kwargs)
-        context["blocks"] = self.blocks
-        context["has_example"] = self.has_example
-        return context
-
-
 REPLACES = "Its content replaces the default."
 
-layout_demo = LayoutPageView.as_view(
-    template_name="layout/app.html",
-    page_title="App",
-    has_example=False,
-    extra_context={
-        "layout_docs_url": (
-            "https://django-mvp.github.io/django-mvp-layout/developer/layout-code.html"
-        ),
-    },
-    blocks=[
+APP_BLOCKS = [
         {
             "name": "announcement",
             "default": "Nothing.",
@@ -379,12 +346,8 @@ layout_demo = LayoutPageView.as_view(
             "default": "The dock: a bar of links along the bottom of a narrow window.",
             "filled": REPLACES + " Leave it empty for a page with no dock.",
         },
-    ],
-)
-layout_sidebar_demo = LayoutPageView.as_view(
-    template_name="layout/sidebar.html",
-    page_title="Sidebar",
-    blocks=[
+    ]
+SIDEBAR_BLOCKS = [
         {
             "name": "app.sidebar",
             "default": "The three regions below.",
@@ -405,12 +368,8 @@ layout_sidebar_demo = LayoutPageView.as_view(
             "default": "The user menu or a log-in button, then theme and language.",
             "filled": REPLACES,
         },
-    ],
-)
-layout_header_demo = LayoutPageView.as_view(
-    template_name="layout/header.html",
-    page_title="Header",
-    blocks=[
+    ]
+HEADER_BLOCKS = [
         {
             "name": "app.header",
             "default": "The navbar, then the tray.",
@@ -446,65 +405,23 @@ layout_header_demo = LayoutPageView.as_view(
             "default": "Nothing.",
             "filled": "Its content sits under the navbar at full width.",
         },
-    ],
-)
-# Which regions each theme in the demo's switcher recolours, as the theme page
-# lists it. Kept beside demo/static/css/themes.css by hand.
-DEMO_THEMES = [
-    {"name": "mvp", "palette": "The demo's own, light", "sets": []},
-    {"name": "mvp-dark", "palette": "The demo's own, dark", "sets": []},
-    {
-        "name": "mvp-ink",
-        "palette": "Same as mvp",
-        "sets": ["Sidebar: ink surfaces, paper text, paper current item"],
-    },
-    {
-        "name": "mvp-steel",
-        "palette": "Same as mvp",
-        "sets": ["Header and dock: steel surfaces, white text"],
-    },
-    {
-        "name": "mvp-dark-deep",
-        "palette": "Same as mvp-dark",
-        "sets": [
-            "Header and dock: base-100",
-            "Sidebar: a colour darker than the page, light current item",
-        ],
-    },
-    {
-        "name": "nord",
-        "palette": "daisyUI's nord",
-        "sets": ["Sidebar: nord's dark surfaces and light text"],
-    },
-    {
-        "name": "retro",
-        "palette": "daisyUI's retro",
-        "sets": ["Header and dock: primary"],
-    },
-    {
-        "name": "business",
-        "palette": "daisyUI's business",
-        "sets": [
-            "Header and dock: base-100",
-            "Sidebar: light current item",
-        ],
-    },
-    {"name": "light", "palette": "daisyUI's light", "sets": []},
-    {"name": "dark", "palette": "daisyUI's dark", "sets": []},
-    {"name": "cupcake", "palette": "daisyUI's cupcake", "sets": []},
-    {"name": "corporate", "palette": "daisyUI's corporate", "sets": []},
-    {"name": "dracula", "palette": "daisyUI's dracula", "sets": []},
-    {"name": "synthwave", "palette": "daisyUI's synthwave", "sets": []},
-]
+    ]
 
-theme_customization_demo = DemoTemplateView.as_view(
-    template_name="theme_customization.html",
-    page_title="Theme Customization",
-    extra_context={"themes": DEMO_THEMES},
+layout_demo = DemoTemplateView.as_view(
+    template_name="layout/app.html",
+    page_title="App layout",
+    extra_context={
+        "layout_docs_url": (
+            "https://django-mvp.github.io/django-mvp-layout/developer/layout-code.html"
+        ),
+        "app_blocks": APP_BLOCKS,
+        "sidebar_blocks": SIDEBAR_BLOCKS,
+        "header_blocks": HEADER_BLOCKS,
+    },
 )
-theme_preview_demo = DemoTemplateView.as_view(
-    template_name="theme_preview.html",
-    page_title="Theme Preview",
+theme_demo = DemoTemplateView.as_view(
+    template_name="theme.html",
+    page_title="Theme",
     extra_context={
         "surfaces": ["base-100", "base-200", "base-300"],
         "colours": [
@@ -961,20 +878,18 @@ class ColumnBehaviourTableView(MVPTableView):
     paginate_by = 25
 
 
-class PageSideDemoView(DemoTemplateView):
-    """A long documentation page with an "On this page" side panel.
+class PageLayoutDemoView(DemoTemplateView):
+    """The page title and the side panel, each argument switched from the form at the top.
 
-    Every option of <c-mvp.page.side> is read from the query string, so the
-    page can be switched between them from the form at its top.
+    The title's layout comes from ``?title_layout=`` (TitleLayoutFromQueryMixin),
+    its arguments and every option of <c-mvp.page.side> from the other query
+    parameters.
     """
 
-    template_name = "layout/side.html"
-    page_title = "Side Panel"
-    page_lead = (
-        "A sticky column beside the page, for contents, filters or related links."
-    )
+    template_name = "layout/page.html"
+    page_title = "Page layout"
 
-    OPTIONS = {
+    SIDE_OPTIONS = {
         "collapse": ("drawer", "stack"),
         "align": ("title", "content"),
         "position": ("end", "start"),
@@ -982,57 +897,16 @@ class PageSideDemoView(DemoTemplateView):
         "breakpoint": ("xl", "lg", "2xl", "off"),
     }
 
-    def get_breadcrumbs(self):
-        """Add the Layout crumb ahead of this page's own."""
-        return [
-            {"text": "Layout", "href": reverse("layout")},
-            {"text": self.page_title},
-        ]
-
-    def get_context_data(self, **kwargs):
-        """Add the side panel's options, each falling back to its default."""
-        context = super().get_context_data(**kwargs)
-        side = {}
-        for name, choices in self.OPTIONS.items():
-            value = self.request.GET.get(name)
-            side[name] = value if value in choices else choices[0]
-        side["sticky"] = self.request.GET.get("sticky", "on") == "on"
-        side["toggle"] = self.request.GET.get("toggle", "on") == "on"
-        side["long"] = self.request.GET.get("long") == "on"
-        context["options"] = [
-            (name, choices, side[name]) for name, choices in self.OPTIONS.items()
-        ]
-        # "off" is how the form spells breakpoint=False: always a drawer or stack.
-        if side["breakpoint"] == "off":
-            side["breakpoint"] = False
-        context["side"] = side
-        context["steps"] = range(1, 31)
-        return context
-
-
-page_side_demo = PageSideDemoView.as_view()
-
-
-class PageTitleDemoView(DemoTemplateView):
-    """Every title layout, with each argument switched on or off from the form at the top.
-
-    The layout comes from ``?title_layout=`` (TitleLayoutFromQueryMixin); the
-    arguments from the other query parameters.
-    """
-
-    template_name = "layout/title.html"
-    page_title = "Page Title"
-
     SHORT = {
-        "eyebrow": "Layout",
-        "title": "Page Title",
+        "eyebrow": "Look & Feel",
+        "title": "Page layout",
         "lead": (
             "The block at the top of every page: an eyebrow, the title, a lead and the "
-            "page's actions, in the layout you choose."
+            "page's actions, in the layout you choose. Beside it, a side panel."
         ),
     }
     LONG = {
-        "eyebrow": "Layout · Page furniture · Headings and their arrangement",
+        "eyebrow": "Look & Feel · Page furniture · Headings and their arrangement",
         "title": (
             "A page title long enough to wrap onto a second line on a laptop screen"
         ),
@@ -1105,16 +979,30 @@ class PageTitleDemoView(DemoTemplateView):
             "heading and never inside it."
         )
 
-    def get_breadcrumbs(self):
-        """Add the Layout crumb ahead of this page's own."""
-        return [
-            {"text": "Layout", "href": reverse("layout")},
-            {"text": "Page Title"},
-        ]
+    def side_options(self):
+        """Read the side panel's options, each falling back to its default."""
+        get = self.request.GET
+        side = {}
+        for name, choices in self.SIDE_OPTIONS.items():
+            value = get.get(name)
+            side[name] = value if value in choices else choices[0]
+        side["sticky"] = get.get("sticky", "on") == "on"
+        side["toggle"] = get.get("toggle", "on") == "on"
+        side["long"] = get.get("long") == "on"
+        return side
 
     def get_context_data(self, **kwargs):
-        """Add the switches, the layouts and the pages to try each layout on."""
+        """Add the switches, the layouts, the pages to try each layout on and the side panel."""
         context = super().get_context_data(**kwargs)
+        side = self.side_options()
+        context["side_options"] = [
+            (name, choices, side[name]) for name, choices in self.SIDE_OPTIONS.items()
+        ]
+        # "off" is how the form spells breakpoint=False: always a drawer or stack.
+        if side["breakpoint"] == "off":
+            side["breakpoint"] = False
+        context["side"] = side
+        context["steps"] = range(1, 31)
         context["options"] = self.options()
         context["layouts"] = TITLE_LAYOUTS
         context["current_layout"] = self.get_page_title_layout()
@@ -1133,6 +1021,6 @@ class PageTitleDemoView(DemoTemplateView):
         return context
 
 
-page_title_demo = PageTitleDemoView.as_view()
+page_layout_demo = PageLayoutDemoView.as_view()
 
 

@@ -1,9 +1,22 @@
 {% extends "page_view.html" %}
+{% block page.actions %}
+  <c-mvp.actions.theme-controller />
+{% endblock page.actions %}
 {% block page.content %}
   <c-mvp.text muted tight class="text-lg">
+    A theme is a block of CSS properties, and the header, the dock and the
+    sidebar paint themselves from the same ones as everything else. A theme
+    recolours one of them by giving those properties other values inside it,
+    and the buttons, menus and panels drawn there follow. To write your own,
+    follow
+    <a href="https://github.com/django-mvp/django-mvp/blob/main/docs/theming.md"
+       class="link">the theming guide</a>.
+  </c-mvp.text>
+  <c-mvp.text muted tight class="mt-2 text-lg">
     Everything a theme paints, on one page, drawn from the real components.
-    Pick a theme in the header, or edit one in demo/static/css/themes.css and
-    reload. The header, sidebar and dock around this page are part of the test.
+    Pick a theme with the button beside the title, or edit one in
+    demo/static/css/themes.css and reload. The header, sidebar and dock around
+    this page are part of the test.
   </c-mvp.text>
   <div class="mt-6 flex flex-col gap-8">
     <c-mvp.section title="Colours" level="2">
