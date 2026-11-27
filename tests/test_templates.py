@@ -649,7 +649,17 @@ def _controls(html):
     return sorted(
         (el.name, *(str(el.get(key, "")) for key in keys))
         for el in soup.find_all(
-            ["a", "button", "input", "select", "textarea", "form", "nav", "dialog", "label"]
+            [
+                "a",
+                "button",
+                "input",
+                "select",
+                "textarea",
+                "form",
+                "nav",
+                "dialog",
+                "label",
+            ]
         )
     )
 
@@ -770,10 +780,10 @@ UNIQUE_TITLE_ARGUMENTS = {
     "page_info": "Unique info",
 }
 
-# ``form`` and ``delete`` inherit ``page_view.html``'s title, so ``page`` stands for
-# all three. ``detail`` adds its own actions, and ``list`` and ``table`` draw the
-# title through their own block.
-TITLE_PAGE_KINDS = ["page", "detail", "list", "table"]
+# ``form`` draws the title from its own copy of the title blocks, and ``delete``
+# extends ``form_view.html``, so ``form`` stands for both. ``detail`` adds its own
+# actions, and ``list`` and ``table`` draw the title through their own block.
+TITLE_PAGE_KINDS = ["page", "form", "detail", "list", "table"]
 
 
 @pytest.fixture
@@ -797,31 +807,40 @@ def render_title_page(rf, superuser, product):
         elif kind == "form":
             base, setup = MVPCreateView, {"model": Product, "form_class": ProductForm}
         elif kind == "detail":
-            base, setup = MVPDetailView, {
-                "model": Product,
-                "show_update_action": True,
-                "show_delete_action": True,
-            }
+            base, setup = (
+                MVPDetailView,
+                {
+                    "model": Product,
+                    "show_update_action": True,
+                    "show_delete_action": True,
+                },
+            )
             url_kwargs = {"pk": product.pk}
         elif kind == "delete":
             base, setup = MVPDeleteView, {"model": Product}
             url_kwargs = {"pk": product.pk}
         elif kind == "list":
-            base, setup = MVPListView, {
-                "model": Product,
-                "list_item_template": "cards/product_card.html",
-                "show_create_action": True,
-            }
+            base, setup = (
+                MVPListView,
+                {
+                    "model": Product,
+                    "list_item_template": "cards/product_card.html",
+                    "show_create_action": True,
+                },
+            )
         else:
             pytest.importorskip("django_tables2")
             from demo.tables import ProductTable
             from mvp.integrations.django_tables.views import MVPTableView
 
-            base, setup = MVPTableView, {
-                "model": Product,
-                "table_class": ProductTable,
-                "show_create_action": True,
-            }
+            base, setup = (
+                MVPTableView,
+                {
+                    "model": Product,
+                    "table_class": ProductTable,
+                    "show_create_action": True,
+                },
+            )
         if "page_title" in attrs:
             # Detail and delete pages title themselves from their object.
             attrs["get_page_title"] = lambda self: attrs["page_title"]
@@ -859,7 +878,7 @@ class TestPageTitleArgumentsOnEveryPage:
         assert title.select_one(".mvp-page-lead").get_text(strip=True) == "Unique lead"
         assert "Unique info" in title.find("dialog").get_text()
 
-    @pytest.mark.parametrize("kind", ["page", "detail"])
+    @pytest.mark.parametrize("kind", ["page", "form", "detail"])
     def test_the_actions_are_drawn_in_the_title_on_pages_without_a_toolbar(
         self, render_title_page, kind
     ):
@@ -1059,9 +1078,10 @@ class TestPageTitleBlocks:
         )
         title = title_area(soup)
         for other in set(BLOCK_SELECTORS) - {block}:
-            assert VIEW_VALUES[other] in title.select_one(
-                BLOCK_SELECTORS[other]
-            ).get_text(), other
+            assert (
+                VIEW_VALUES[other]
+                in title.select_one(BLOCK_SELECTORS[other]).get_text()
+            ), other
         if block != "actions":
             assert len(soup.select_one("main").select('a[href="/unique-action/"]')) == 1
 
@@ -1079,7 +1099,7 @@ class TestPageTitleBlocks:
             soup, "table", "heading", replacement, selector
         )
 
-    @pytest.mark.parametrize("kind", ["page", "list"])
+    @pytest.mark.parametrize("kind", ["page", "form", "list"])
     @pytest.mark.parametrize("block", ["eyebrow", "heading", "lead", "info"])
     def test_a_block_filled_with_nothing_removes_its_argument(
         self, render_filled_page, kind, block
@@ -1097,7 +1117,7 @@ class TestPageTitleBlocks:
         ]
         assert empty == []
 
-    @pytest.mark.parametrize("kind", ["page", "detail"])
+    @pytest.mark.parametrize("kind", ["page", "form", "detail"])
     def test_the_actions_block_filled_with_nothing_draws_no_actions_in_the_title(
         self, render_filled_page, kind
     ):
@@ -1118,7 +1138,7 @@ class TestPageTitleBlocks:
         assert "/products/create/" not in links
         assert title_area(soup).select_one("h1") is not None
 
-    @pytest.mark.parametrize("kind", ["page", "list"])
+    @pytest.mark.parametrize("kind", ["page", "form", "list"])
     def test_an_emptied_heading_keeps_the_info_trigger(self, render_filled_page, kind):
         soup = render_filled_page(kind, {"heading": ""})
 
@@ -1127,7 +1147,7 @@ class TestPageTitleBlocks:
         assert "Unique info" in title.find("dialog").get_text()
         assert title.find("button") is not None
 
-    @pytest.mark.parametrize("kind", ["page", "list"])
+    @pytest.mark.parametrize("kind", ["page", "form", "list"])
     def test_overriding_the_title_block_replaces_the_whole_area(
         self, render_filled_page, kind
     ):
@@ -1204,8 +1224,7 @@ class TestPageTitleCalledDirectly:
             f"{DIRECT_ACTION}</c-mvp.page.title>"
         )
         default = render_component(
-            f"<c-mvp.page.title {DIRECT_ARGUMENTS}>"
-            f"{DIRECT_ACTION}</c-mvp.page.title>"
+            f"<c-mvp.page.title {DIRECT_ARGUMENTS}>{DIRECT_ACTION}</c-mvp.page.title>"
         )
 
         assert normalised(inline_actions) == normalised(named)
@@ -1243,7 +1262,7 @@ class TestProjectTitleLayout:
         assert own_layout_slot(soup, "lead").get_text(strip=True) == "Unique lead"
         assert "Unique info" in own_layout_slot(soup, "info").find("dialog").get_text()
 
-    @pytest.mark.parametrize("kind", ["page", "detail"])
+    @pytest.mark.parametrize("kind", ["page", "form", "detail"])
     def test_the_project_layout_receives_the_pages_actions(
         self, render_title_page, kind
     ):

@@ -43,6 +43,15 @@ class TestShippedFrontEndRuntime:
             f"which the bundled runtime exists to prevent: {offenders}"
         )
 
+    def test_the_regex_catches_a_remote_script_tag(self):
+        assert self.REMOTE_SCRIPT.search(
+            '<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x"></script>'
+        )
+        assert self.REMOTE_SCRIPT.search('<script src="//example.test/x.js"></script>')
+        assert not self.REMOTE_SCRIPT.search(
+            "<script src=\"{% static 'js/django-mvp.js' %}\"></script>"
+        )
+
     # A string each library emits into the built output and the others do not.
     # Deliberately not version numbers: this asserts what is in the bundle, not
     # which release of it, so a version bump does not fail the test.

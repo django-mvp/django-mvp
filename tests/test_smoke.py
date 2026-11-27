@@ -110,6 +110,13 @@ class TestShippedStylesheet:
 
 _CUSTOM_PROPERTY_RE = re.compile(r"--[a-zA-Z0-9-]+")
 
+
+def _description_of(row: str) -> str:
+    """The text of a variable table row's second cell."""
+    cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+    return cells[1] if len(cells) > 1 else ""
+
+
 # SC-003: the compressed stylesheet a project downloads may grow by at most
 # 13 KB against the release this feature started from.
 V0_18_0_COMPRESSED_BYTES = 41670
@@ -134,6 +141,10 @@ class TestThemingDocVariableCoverage:
             if line.startswith("| `")
         ]
         assert rows, "no variable table rows found in docs/theming.md"
+        undescribed = [row for row in rows if not _description_of(row)]
+        assert not undescribed, (
+            f"variable table rows with no description: {undescribed}"
+        )
 
         missing = sorted(
             prop for prop in properties if not any(f"`{prop}`" in row for row in rows)

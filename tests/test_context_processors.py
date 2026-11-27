@@ -32,6 +32,21 @@ class TestMvpConfig:
         assert not context["mounted_app"]
         assert not context["mounted_menu"]
 
+    def test_nothing_is_looked_up_until_a_template_reads_a_value(self, rf):
+        request = rf.get("/")
+
+        class Unrouted(type(request)):
+            @property
+            def resolver_match(self):
+                raise AssertionError("the request was read before a value was")
+
+        request.__class__ = Unrouted
+
+        context = mvp_config(request)
+
+        with pytest.raises(AssertionError, match="read before a value"):
+            bool(context["mounted_app"])
+
 
 @pytest.mark.urls("tests.urls_mounted")
 class TestMountedValues:
