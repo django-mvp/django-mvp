@@ -235,6 +235,9 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   tabs: 80px in all with it, 64px without. (Sam)
 - 2026-11-27: The Look & Feel pages' breadcrumbs start with Look & Feel, as text with no link, then
   the page: Look & Feel > App layout, Look & Feel > Page layout, Look & Feel > Theme. (Sam)
+- 2026-11-27: The sheet is stacked by django-mvp-layout's hbf too, like the card and the dialog, so
+  all three are built and styled the same way. Its grab bar, head and description are the header,
+  then the body, which scrolls, and the foot. (Sam)
 - 2026-11-27: The prototype is done. The rebuild through the full lanes starts from here. (Sam)
 - 2026-11-27: The site's name shows beside the icon in the header and the sidebar. A project shows a
   full logo instead by overriding `cotton/mvp/brand/mark.html`. (Sam)

@@ -17,7 +17,7 @@
 <c-modal id="{{ id }}"
          size=""
          class="modal-bottom sm:modal-middle mvp-sheet{% if wide %} mvp-sheet-wide{% endif %} {{ class }}"
-         content_class="mvp-sheet-box"
+         content_class="hbf mvp-sheet-box"
          aria-labelledby="{{ id }}-title"
          :aria-describedby="described_by"
          data-mvp-sheet
@@ -25,24 +25,28 @@
          :data-mvp-sheet-fixed="fixed"
          x-data="mvpSheet"
          only>
-  {% if fixed %}
-    <div class="mvp-sheet-grab" data-mvp-sheet-grab aria-hidden="true"></div>
-  {% else %}
-    <button type="button"
-            class="mvp-sheet-grab"
-            data-mvp-sheet-grab
-            aria-label="{% translate "Change the height of this sheet" %}"></button>
-  {% endif %}
-  <div class="mvp-sheet-head" data-mvp-sheet-head>
-    {% if art.strip %}<span class="mvp-sheet-art" aria-hidden="true">{{ art }}</span>{% endif %}
-    <div class="mvp-sheet-names">
-      <h2 class="mvp-sheet-title" id="{{ id }}-title">{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" /> {% endif %}{{ title }}</h2>
-      {% if lead %}<span class="mvp-sheet-lead" data-mvp-sheet-lead>{{ lead }}</span>{% endif %}
+  {# Stacked by django-mvp-layout's hbf, like the card and the dialog: the #}
+  {# grab bar, head and description are the header, then the body and foot. #}
+  <div class="mvpl-header mvp-sheet-header">
+    {% if fixed %}
+      <div class="mvp-sheet-grab" data-mvp-sheet-grab aria-hidden="true"></div>
+    {% else %}
+      <button type="button"
+              class="mvp-sheet-grab"
+              data-mvp-sheet-grab
+              aria-label="{% translate "Change the height of this sheet" %}"></button>
+    {% endif %}
+    <div class="mvp-sheet-head" data-mvp-sheet-head>
+      {% if art.strip %}<span class="mvp-sheet-art" aria-hidden="true">{{ art }}</span>{% endif %}
+      <div class="mvp-sheet-names">
+        <h2 class="mvp-sheet-title" id="{{ id }}-title">{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" /> {% endif %}{{ title }}</h2>
+        {% if lead %}<span class="mvp-sheet-lead" data-mvp-sheet-lead>{{ lead }}</span>{% endif %}
+      </div>
     </div>
+    {% if description.strip %}<div class="mvp-sheet-description" id="{{ id }}-description">{{ description }}</div>{% endif %}
   </div>
-  {% if description.strip %}<div class="mvp-sheet-description" id="{{ id }}-description">{{ description }}</div>{% endif %}
-  <div class="mvp-sheet-body" data-mvp-sheet-body>{{ slot }}</div>
-  <div class="mvp-sheet-foot" data-mvp-sheet-foot>
+  <div class="mvpl-body mvp-sheet-body" data-mvp-sheet-body>{{ slot }}</div>
+  <div class="mvpl-footer mvp-sheet-foot" data-mvp-sheet-foot>
     {% if actions.strip %}
       {{ actions }}
     {% else %}

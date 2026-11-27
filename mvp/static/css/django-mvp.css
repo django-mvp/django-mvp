@@ -23272,9 +23272,7 @@ html {
   --mvp-sheet-keyboard: 0px;
 }
 .mvp-sheet > .mvp-sheet-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  row-gap: 0.5rem;
   overflow: hidden;
   padding: 0 1rem 0;
   margin-block-end: var(--mvp-sheet-keyboard);
@@ -23285,6 +23283,11 @@ html {
     height: min( var(--mvp-sheet-full), calc(100dvh - var(--mvp-sheet-keyboard)) );
     max-height: min( var(--mvp-sheet-full), calc(100dvh - var(--mvp-sheet-keyboard)) );
   }
+}
+.mvp-sheet-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 .mvp-sheet-grab {
   flex: none;

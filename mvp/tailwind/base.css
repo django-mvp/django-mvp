@@ -1741,10 +1741,11 @@ html {
   --mvp-sheet-keyboard: 0px;
 }
 
+/* The box is stacked by django-mvp-layout's hbf (cotton/mvp/sheet): the
+   header holds the grab bar, the head and the description, the body scrolls
+   between it and the foot. */
 .mvp-sheet > .mvp-sheet-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  row-gap: 0.5rem;
   overflow: hidden;
   padding: 0 1rem 0;
   margin-block-end: var(--mvp-sheet-keyboard);
@@ -1765,6 +1766,12 @@ html {
       calc(100dvh - var(--mvp-sheet-keyboard))
     );
   }
+}
+
+.mvp-sheet-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .mvp-sheet-grab {
