@@ -176,11 +176,10 @@ MVP_CONFIG = {
     "search": {"kinds": ["products", "articles", "components"]},
     "layout": {
         "navbar": {
-            "end": [
-                "mvp.actions.search",
+            "end": ["mvp.actions.search", "mvp.actions.login"],
+            "actions": [
                 "mvp.actions.theme-controller",
                 "mvp.actions.language-switcher",
-                "mvp.actions.login",
             ],
         },
         "sidebar": {
@@ -293,6 +292,7 @@ FLEX_MENUS = {
     "renderers": {
         "sidebar": "mvp.renderers.SidebarRenderer",
         "dock": "mvp.renderers.MobileFooterNavRenderer",
+        "local": "mvp.renderers.LocalNavigationRenderer",
     },
     "log_url_failures": DEBUG,
 }

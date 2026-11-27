@@ -8864,17 +8864,9 @@
       height: var(--size);
     }
   }
-  .size-8 {
-    width: calc(var(--spacing) * 8);
-    height: calc(var(--spacing) * 8);
-  }
   .size-9 {
     width: calc(var(--spacing) * 9);
     height: calc(var(--spacing) * 9);
-  }
-  .size-10 {
-    width: calc(var(--spacing) * 10);
-    height: calc(var(--spacing) * 10);
   }
   .size-12 {
     width: calc(var(--spacing) * 12);
@@ -22385,7 +22377,7 @@
   );
     }
   }
-  :where( h1, h2, h3, h4, h5, h6, .card-title, .collapse-title, .fieldset-legend, .footer-title, .menu-title, .mvp-sidebar-title, .stat-title ) {
+  :where( h1, h2, h3, h4, h5, h6, .card-title, .collapse-title, .fieldset-legend, .footer-title, .menu-title, .mvp-brand-name, .stat-title ) {
     font-family: var(--font-heading, inherit);
   }
 }
@@ -22579,7 +22571,7 @@
       display: inline-flex;
     }
   }
-  .mvp-sidebar-header {
+  .mvp-sidebar-brand-row {
     justify-content: center;
   }
   .mvp-sidebar-toggle {
@@ -22591,8 +22583,32 @@
   .mvp-sidebar-header:hover .mvp-sidebar-brand {
     display: none;
   }
-  .mvp-sidebar-brand-icon {
+  .mvp-brand-icon {
     display: flex;
+  }
+}
+.mvp-app:has(.mvp-sidebar[data-mvpl-mode="overlay"]) .mvp-header-actions, .mvp-sidebar:not([data-mvpl-mode="overlay"]) .mvp-sidebar-actions {
+  display: none;
+}
+.mvp-actions .btn {
+  --size: calc(var(--size-field, 0.25rem) * 10);
+}
+.mvp-actions .btn-square, .mvp-actions .dropdown > .btn {
+  width: var(--size);
+  height: var(--size);
+  padding-inline: 0;
+}
+.mvp-header .navbar-end > .mvp-login {
+  order: 1;
+}
+.mvp-header:has(.mvp-header-tray) {
+  border-bottom: 1px solid var(--color-line);
+}
+.mvp-local-nav {
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 .mvpl-sidebar.mvp-sidebar:not([data-mvpl-rail]) > .mvpl-panel {
@@ -23754,8 +23770,8 @@ html {
 @container mvp-header (width < 36rem) {
   .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) {
     flex-wrap: wrap;
-    row-gap: 0;
-    padding-bottom: 0.375rem;
+    row-gap: 0.25rem;
+    padding-bottom: 0.625rem;
   }
   .mvp-header .navbar-start:has(> .mvp-crumbs) {
     display: contents;

@@ -1,0 +1,8 @@
+{# @description The site's mark: its icon with its name beside it. Drawn in the sidebar's header and in the navbar while the sidebar is closed. Override this template to draw a full logo instead. #}
+{# @prop :title:text | description:"The name beside the icon. Defaults to layout.sidebar.title, then the application's name." #}
+{# @prop class:text | description:"Extra classes on the name." #}
+<c-vars :title="mvp_config.layout.sidebar.title" class="" />
+<span class="mvp-brand-icon flex size-9 shrink-0 items-center justify-center">
+  <c-mvp.brand.icon max-height="1.5rem" class="size-9 object-contain" />
+</span>
+<span class="mvp-brand-name mvp-rail-hide truncate font-semibold {{ class }}">{% firstof title mvp_config.site_name request.site.name %}</span>

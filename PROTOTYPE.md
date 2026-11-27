@@ -220,6 +220,15 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   scrolls. (Sam)
 - 2026-11-27: The sidebar's footer holds one full-width account button, with no theme or language
   control. The theme and the language are set from the header. (Sam)
+- 2026-11-27: The header's toolbar is set in config. `layout.navbar.end` lists the actions that stay
+  in the header at every width (search and log in by default in the demo). `layout.navbar.actions`
+  lists the ones that sit in the header while the sidebar is docked and move to a row under the
+  sidebar's brand row while it is a drawer (theme and language). Every action button is the same
+  square size. (Sam)
+- 2026-11-27: The site's name shows beside the icon in the header and the sidebar. A project shows a
+  full logo instead by overriding `cotton/mvp/brand/mark.html`. (Sam)
+- 2026-11-27: Local navigation sits under the breadcrumbs in the header, with room above and below
+  the breadcrumbs, and scrolls sideways with no scrollbar. The demo's product pages show it. (Sam)
 
 ## Decided on my own
 
@@ -298,9 +307,22 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   demo's themes, followed by the preview's own.
 - **Page layout's sample title and eyebrow read "Page layout" and "Look & Feel"**, and its Contents
   button takes the small size of the title's other actions.
+- **The actions render twice, in the header and in the sidebar,** and the sidebar's mode
+  (`data-mvpl-mode`, set by django-mvp-layout before first paint) decides which one shows. No
+  script moves them.
+- **The name beside the icon is `layout.sidebar.title`, then `site_name`, then the site's name.**
+- **Local navigation is a flex_menu renderer, `local`** (`mvp.renderers.LocalNavigationRenderer`),
+  drawn as daisyUI bordered tabs. A view names its menu with `local_menu` in its context and the
+  base template renders it in the header's tray.
+- **Log in stays the header's last item** wherever `end` lists it.
+- **The demo's product pages get three tabs**: Overview, Order lines and Edit.
 
 ## Faked or skipped
 
+- **FairDM's own tabs are untouched**: they keep their own scrolling row and header styles. It can
+  move to the `local` renderer.
+- **Search staying in the header is the demo's `end` list**, not a setting of its own.
+- **The package docs don't describe the toolbar, the brand mark or local navigation.**
 - **No tests.** Features 1 to 3.
 - **No docs.** `layout.md`, `configuration.md` and `components.md` are rewritten, and the naming
   rule in the constitution and the glossary follow ADR 0047. Features 1 to 3.

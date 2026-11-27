@@ -69,8 +69,9 @@ MVP_CONFIG = {
             "collapse": "offcanvas",
             # Its width while open.
             "width": "16.25rem",
-            # Text shown beside the brand icon in the sidebar header. Falsey
-            # (the default) renders no title. Hidden while collapsed to an icon rail.
+            # Text shown beside the brand icon, in the sidebar header and in the
+            # navbar while the sidebar is closed. None (the default) takes the
+            # application's name. Hidden while collapsed to an icon rail.
             "title": None,
             # Whether sidebar links navigate with htmx instead of a full page
             # load (hx-boost). Off by default: boosting swaps the body in
@@ -91,11 +92,13 @@ MVP_CONFIG = {
         },
         "navbar": {
             # Cotton component names rendered at the end (right side) of the navbar,
-            # in order, e.g. "mvp.actions.theme-controller" ->
-            # <c-mvp.actions.theme-controller />. A name is used as written.
-            # One list, drawn at every width. A widget that should give way
-            # on a narrow window hides itself, or the project lists fewer.
-            "end": ["mvp.actions.theme-controller", "mvp.actions.login"],
+            # in order, e.g. "mvp.actions.search" -> <c-mvp.actions.search />.
+            # A name is used as written. Drawn in the header at every width.
+            "end": ["mvp.actions.login"],
+            # Cotton component names for the header's actions, drawn before
+            # "end". While the sidebar is a drawer they move out of the header
+            # into a row under the sidebar's brand, where a phone has room.
+            "actions": ["mvp.actions.theme-controller"],
             # "sidebar_toggle" is whether the navbar draws its own sidebar
             # toggle below the breakpoint. Off by default: header space is
             # scarce on a phone and the mobile dock ships a sidebar toggle of

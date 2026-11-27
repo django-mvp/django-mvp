@@ -1,0 +1,6 @@
+<a href="{{ url }}"
+   class="tab gap-2 whitespace-nowrap{% if selected %} tab-active{% endif %}"
+   {% if selected %}aria-current="page"{% endif %}>
+  {% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" />{% endif %}
+  {{ label }}
+</a>

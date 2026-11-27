@@ -32,8 +32,8 @@
       <a href="/"
          aria-label="{% trans "Home" %}"
          data-mvpl-when="left-closed"
-         class="mvp-navbar-brand flex shrink-0 items-center px-1">
-        <c-mvp.brand.icon max-height="1.5rem" class="size-8 object-contain" />
+         class="mvp-navbar-brand flex min-w-0 shrink-0 items-center gap-2 px-1">
+        <c-mvp.brand.mark />
       </a>
       {# The trail measures its own box and folds what does not fit (breadcrumbs.js). #}
       {% if breadcrumbs.strip %}
@@ -44,7 +44,7 @@
     {% endif %}
   </div>
   {% if center.strip %}<div class="navbar-center w-auto shrink-0">{{ center }}</div>{% endif %}
-  <div class="navbar-end w-auto shrink-0 gap-3">
+  <div class="navbar-end w-auto shrink-0 gap-1">
     {# Outside the widgets so that filling the end region cannot lose it: #}
     {# the htmx indicator (base.css rule) shows whenever a request is in flight. #}
     <c-loading spinner
@@ -52,8 +52,15 @@
                id="mvp-htmx-indicator"
                aria-hidden="true"
                only />
-    {# One list at every width. What gives way on a narrow window is the #}
-    {# project's call, made in the widget or in the block that fills this region. #}
+    {# The header's actions give way to the sidebar's own copy while the #}
+    {# sidebar is a drawer (base.css). #}
+    {% if mvp_config.layout.navbar.actions %}
+      <div class="mvp-actions mvp-header-actions flex items-center gap-1">
+        {% for widget in mvp_config.layout.navbar.actions %}
+          <c-component :is="widget" />
+        {% endfor %}
+      </div>
+    {% endif %}
     {{ end }}
     {% for widget in mvp_config.layout.navbar.end %}
       <c-component :is="widget" />

@@ -1,4 +1,4 @@
-{% load static mvp i18n %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+{% load static mvp i18n flex_menu %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}"{% if LANGUAGE_BIDI %} dir="rtl"{% endif %}>
   <head>
@@ -155,6 +155,11 @@
                   {% endblock app.navbar %}
                   <c-slot name="tray">
                     {% block app.header.tray %}
+                      {# A view that puts local_menu in its context gets its #}
+                      {# record's local navigation under the header. #}
+                      {% if local_menu %}
+                        {% render_menu local_menu renderer="local" pk=object.pk %}
+                      {% endif %}
                     {% endblock app.header.tray %}
                   </c-slot>
                 </c-app.header>

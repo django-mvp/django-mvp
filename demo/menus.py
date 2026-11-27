@@ -1,7 +1,7 @@
 """The demo site's sidebar and dock menus, built with the AppMenu system."""
 
 from django.urls import reverse_lazy
-from flex_menu import MenuItem
+from flex_menu import Menu, MenuItem
 
 from demo.component_docs import COMPONENTS
 from demo.library.mounted import library
@@ -261,4 +261,28 @@ MobileFooterMenu.append(
             "icon": "home",
         },
     )
+)
+
+# A product's own pages, drawn as local navigation under the header on each
+# of them (views set local_menu = "ProductMenu").
+ProductMenu = Menu(
+    "ProductMenu",
+    extra_context={"label": "Product"},
+    children=[
+        MenuItem(
+            name="product-overview",
+            view_name="product-detail",
+            extra_context={"label": "Overview", "icon": "eye"},
+        ),
+        MenuItem(
+            name="product-order-lines",
+            view_name="product-order-lines",
+            extra_context={"label": "Order lines", "icon": "list-view"},
+        ),
+        MenuItem(
+            name="product-edit",
+            view_name="product-update",
+            extra_context={"label": "Edit", "icon": "edit"},
+        ),
+    ],
 )

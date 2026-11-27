@@ -580,6 +580,7 @@ class ProductDetailView(TitleLayoutFromQueryMixin, MVPDetailView):
     """
 
     model = Product
+    extra_context = {"local_menu": "ProductMenu"}
     show_list_action = True
     show_detail_action = True
     page_actions = [{"text": "Share", "icon": "share", "href": "#", "ghost": True}]
@@ -615,6 +616,7 @@ class ProductUpdateView(MVPUpdateView):
     """Demo product edit form, pre-populated and auto-detecting its layout."""
 
     model = Product
+    extra_context = {"local_menu": "ProductMenu"}
     fields = ["name", "slug", "category", "description", "price", "stock", "status"]
     show_list_action = True
     show_detail_action = True
@@ -642,6 +644,7 @@ class ProductOrderLinesView(MVPUpdateView):
     """
 
     model = Product
+    extra_context = {"local_menu": "ProductMenu"}
     fields = ["name", "category"]
     inlines = [OrderLineInline]
     success_url = "list"

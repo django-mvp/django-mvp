@@ -1,0 +1,11 @@
+{% load flex_menu %}
+{# One row of links that scrolls sideways when it does not fit, with no #}
+{# scrollbar drawn (base.css, .mvp-local-nav). daisyUI styles a tab only as #}
+{# a direct child of .tabs, so the links sit straight inside it. #}
+<nav aria-label="{{ label }}" class="mvp-local-nav">
+  <div class="tabs tabs-border flex-nowrap">
+    {% for child in children %}
+      {% render_item child renderer=renderer %}
+    {% endfor %}
+  </div>
+</nav>

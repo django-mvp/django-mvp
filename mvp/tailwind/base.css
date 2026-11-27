@@ -161,7 +161,7 @@
     .fieldset-legend,
     .footer-title,
     .menu-title,
-    .mvp-sidebar-title,
+    .mvp-brand-name,
     .stat-title
   ) {
     font-family: var(--font-heading, inherit);
@@ -592,7 +592,7 @@
   /* Rail header (ChatGPT-style): only the brand icon shows; hovering the
      header swaps it for the sidebar toggle. Placed after the generic
      :is(a, button, ...) display rules so the hide rules win the tie. */
-  .mvp-sidebar-header {
+  .mvp-sidebar-brand-row {
     justify-content: center;
   }
 
@@ -611,8 +611,53 @@
   /* The generic `> span` hide rule above also blanks the brand icon's wrapper
      span, which left the rail header empty. Keep the icon visible so the
      collapsed header always shows the brand (#174). */
-  .mvp-sidebar-brand-icon {
+  .mvp-brand-icon {
     display: flex;
+  }
+}
+
+/* The header's actions (layout.navbar.actions) are drawn twice: in the
+   header, and in a row under the sidebar's brand. Only one shows. While the
+   left sidebar is a drawer, which django-mvp-layout marks with
+   data-mvpl-mode="overlay" before first paint, a phone has no room in the
+   header, so they sit in the sidebar. Every action is the same square, so a
+   theme menu and a language menu never differ in size. */
+.mvp-app:has(.mvp-sidebar[data-mvpl-mode="overlay"]) .mvp-header-actions,
+.mvp-sidebar:not([data-mvpl-mode="overlay"]) .mvp-sidebar-actions {
+  display: none;
+}
+
+.mvp-actions .btn {
+  --size: calc(var(--size-field, 0.25rem) * 10);
+}
+
+.mvp-actions .btn-square,
+.mvp-actions .dropdown > .btn {
+  width: var(--size);
+  height: var(--size);
+  padding-inline: 0;
+}
+
+/* The log-in button is the header's last item, after the actions, wherever
+   layout.navbar.end lists it. */
+.mvp-header .navbar-end > .mvp-login {
+  order: 1;
+}
+
+/* A header with a tray ends on a line, and the tray's tabs sit on it. */
+.mvp-header:has(.mvp-header-tray) {
+  border-bottom: 1px solid var(--color-line);
+}
+
+/* Local navigation (mvp.renderers.LocalNavigationRenderer): one row of
+   underlined links that scrolls sideways on a narrow screen. It is swiped
+   or wheeled through, so no scrollbar is drawn. */
+.mvp-local-nav {
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -2297,8 +2342,8 @@ html {
 @container mvp-header (width < 36rem) {
   .mvp-header .navbar:has(> .navbar-start > .mvp-crumbs) {
     flex-wrap: wrap;
-    row-gap: 0;
-    padding-bottom: 0.375rem;
+    row-gap: 0.25rem;
+    padding-bottom: 0.625rem;
   }
 
   .mvp-header .navbar-start:has(> .mvp-crumbs) {
