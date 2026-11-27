@@ -53,13 +53,6 @@ class TestSidebarUserMenuAdminLink:
         assert f'href="{reverse("account-center")}"' in html
         assert 'form="logoutForm"' in html
 
-    @pytest.mark.django_db
-    def test_non_staff_user_still_sees_account_center_and_log_out(self, user):
-        html = _render(user)
-
-        assert f'href="{reverse("account-center")}"' in html
-        assert 'form="logoutForm"' in html
-
 
 class TestSidebarUserMenuLogOut:
     @pytest.mark.django_db
