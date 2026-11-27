@@ -24,7 +24,6 @@ import itertools
 import re
 from pathlib import Path
 
-import pytest
 from django import template
 from django.template.context import Context
 from django_cotton.compiler_regex import CottonCompiler
@@ -93,28 +92,34 @@ def _responsive_classes(html, breakpoint):
 
 
 class TestResponsiveClassesAreSafelisted:
-    @pytest.mark.parametrize("bp", BREAKPOINTS)
-    def test_divider_vertical_breakpoint_is_safelisted(self, bp):
-        html = _render(f'<c-divider vertical="{bp}" />')
-        produced = _responsive_classes(html, bp)
-        assert produced, f'<c-divider vertical="{bp}" /> produced no {bp}: class'
+    @staticmethod
+    def _unsafelisted(source_for):
+        """One report line per breakpoint whose classes the stylesheet cannot see."""
+        safelisted = _safelisted_classes()
+        problems = []
+        for bp in BREAKPOINTS:
+            source = source_for(bp)
+            produced = _responsive_classes(_render(source), bp)
+            if not produced:
+                problems.append(f"{source} produced no {bp}: class")
+            elif produced - safelisted:
+                problems.append(f"{source}: {sorted(produced - safelisted)}")
+        return problems
 
-        missing = produced - _safelisted_classes()
-        assert not missing, (
-            f"{sorted(missing)} not covered by any @source inline() entry in "
-            f"{BASE_CSS} — Tailwind's scanner cannot see a class built at "
-            "render time, so it will be missing from the shipped stylesheet"
+    def test_divider_vertical_breakpoints_are_safelisted(self):
+        problems = self._unsafelisted(lambda bp: f'<c-divider vertical="{bp}" />')
+
+        assert not problems, (
+            f"not covered by any @source inline() entry in {BASE_CSS}: {problems}. "
+            "Tailwind's scanner cannot see a class built at render time, so it "
+            "will be missing from the shipped stylesheet"
         )
 
-    @pytest.mark.parametrize("bp", BREAKPOINTS)
-    def test_toolbar_row_breakpoint_is_safelisted(self, bp):
-        html = _render(f'<c-mvp.toolbar row="{bp}" />')
-        produced = _responsive_classes(html, bp)
-        assert produced, f'<c-mvp.toolbar row="{bp}" /> produced no {bp}: class'
+    def test_toolbar_row_breakpoints_are_safelisted(self):
+        problems = self._unsafelisted(lambda bp: f'<c-mvp.toolbar row="{bp}" />')
 
-        missing = produced - _safelisted_classes()
-        assert not missing, (
-            f"{sorted(missing)} not covered by any @source inline() entry in "
-            f"{BASE_CSS} — Tailwind's scanner cannot see a class built at "
-            "render time, so it will be missing from the shipped stylesheet"
+        assert not problems, (
+            f"not covered by any @source inline() entry in {BASE_CSS}: {problems}. "
+            "Tailwind's scanner cannot see a class built at render time, so it "
+            "will be missing from the shipped stylesheet"
         )
