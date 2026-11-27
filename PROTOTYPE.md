@@ -231,6 +231,8 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   page, but the breadcrumbs keep clear of the brand row and of the header's bottom line: 8px
   above them and 10px below, 84px in all. Local navigation sits close under the breadcrumbs, 112px
   with it. Judged on a page with breadcrumbs and no local navigation, scrolled. (Sam)
+- 2026-11-27: Local navigation sits close under the header's row on a wide screen too, with 2rem
+  tabs: 80px in all with it, 64px without. (Sam)
 - 2026-11-27: The site's name shows beside the icon in the header and the sidebar. A project shows a
   full logo instead by overriding `cotton/mvp/brand/mark.html`. (Sam)
 - 2026-11-27: Local navigation sits under the breadcrumbs in the header, with room above and below

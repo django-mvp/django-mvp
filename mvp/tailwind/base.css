@@ -650,6 +650,16 @@
   border-bottom: 1px solid var(--color-line);
 }
 
+/* Local navigation sits close under the header's row, at every width. */
+.mvp-header:has(.mvp-header-tray) .navbar {
+  min-height: 0;
+  padding-bottom: 0;
+}
+
+.mvp-header .mvp-local-nav .tab {
+  --tab-height: 2rem;
+}
+
 /* Local navigation (mvp.renderers.LocalNavigationRenderer): one row of
    underlined links that scrolls sideways on a narrow screen. It is swiped
    or wheeled through, so no scrollbar is drawn. */
@@ -2353,10 +2363,6 @@ html {
 
   .mvp-header:has(.mvp-header-tray) .navbar:has(> .navbar-start > .mvp-crumbs) {
     padding-bottom: 0.125rem;
-  }
-
-  .mvp-header .mvp-local-nav .tab {
-    --tab-height: 2rem;
   }
 
   .mvp-header .navbar-start:has(> .mvp-crumbs) {

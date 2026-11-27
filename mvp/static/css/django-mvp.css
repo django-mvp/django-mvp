@@ -22604,6 +22604,13 @@
 .mvp-header:has(.mvp-header-tray) {
   border-bottom: 1px solid var(--color-line);
 }
+.mvp-header:has(.mvp-header-tray) .navbar {
+  min-height: 0;
+  padding-bottom: 0;
+}
+.mvp-header .mvp-local-nav .tab {
+  --tab-height: 2rem;
+}
 .mvp-local-nav {
   overflow-x: auto;
   scrollbar-width: none;
@@ -23776,9 +23783,6 @@ html {
   }
   .mvp-header:has(.mvp-header-tray) .navbar:has(> .navbar-start > .mvp-crumbs) {
     padding-bottom: 0.125rem;
-  }
-  .mvp-header .mvp-local-nav .tab {
-    --tab-height: 2rem;
   }
   .mvp-header .navbar-start:has(> .mvp-crumbs) {
     display: contents;
