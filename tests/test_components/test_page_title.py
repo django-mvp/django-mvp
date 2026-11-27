@@ -27,16 +27,6 @@ class TestPageTitleArguments:
             "Unique title"
         ]
 
-    def test_the_eyebrow_is_drawn_once(self):
-        soup = render('<c-mvp.page.title title="T" eyebrow="Unique eyebrow" />')
-
-        assert str(soup).count("Unique eyebrow") == 1
-
-    def test_the_lead_is_drawn_once(self):
-        soup = render('<c-mvp.page.title title="T" lead="Unique lead" />')
-
-        assert str(soup).count("Unique lead") == 1
-
     def test_the_info_text_is_drawn_once_in_a_dialog(self):
         soup = render('<c-mvp.page.title title="T" info="Unique info" />')
 
@@ -86,13 +76,6 @@ class TestPageTitleArguments:
         assert len(soup.select("#own-trigger")) == 1
         assert soup.find("dialog") is None
 
-    def test_the_info_trigger_is_a_sibling_of_the_heading(self):
-        soup = render('<c-mvp.page.title title="T" info="Body" />')
-
-        heading = soup.find("h1")
-        assert heading.find("button") is None
-        assert heading.parent.find("button") is not None
-
     def test_the_actions_slot_is_drawn_once(self):
         soup = render(
             '<c-mvp.page.title title="T">'
@@ -131,13 +114,6 @@ class TestPageTitleArguments:
             "Called title"
         ]
 
-    def test_an_undeclared_attribute_lands_on_the_layouts_root_element(self):
-        soup = render('<c-mvp.page.title title="T" id="product-heading" />')
-
-        root = soup.find(True)
-        assert root.get("id") == "product-heading"
-        assert len(soup.select("#product-heading")) == 1
-
     @pytest.mark.parametrize("layout", ["default", "inline", "centred", "compact"])
     def test_an_undeclared_attribute_reaches_the_root_of_every_shipped_layout(
         self, layout
@@ -157,9 +133,7 @@ ARGUMENTS = {
     "lead": 'lead="Unique lead"',
     "info": 'info="Unique info"',
 }
-OWN_ACTION = (
-    '<c-slot name="actions"><a id="own-action" href="/go/">Go</a></c-slot>'
-)
+OWN_ACTION = '<c-slot name="actions"><a id="own-action" href="/go/">Go</a></c-slot>'
 
 
 def render_layout(layout, leave_out=(), actions=True):
@@ -190,7 +164,9 @@ class TestPageTitleLayouts:
         assert soup.select_one(".mvp-page-eyebrow").get_text(strip=True) == (
             "Unique eyebrow"
         )
-        assert soup.select_one("h1").get_text(strip=True) == "Unique title"
+        assert [h1.get_text(strip=True) for h1 in soup.find_all("h1")] == [
+            "Unique title"
+        ]
         assert soup.select_one(".mvp-page-lead").get_text(strip=True) == "Unique lead"
         assert "Unique info" in soup.select_one("dialog").get_text()
         assert len(soup.select("#own-action")) == 1
@@ -221,21 +197,15 @@ class TestPageTitleLayouts:
         assert empty_elements(soup) == []
 
     def test_a_title_alone_draws_one_heading_and_nothing_else(self, layout):
-        soup = render_layout(layout, leave_out=("eyebrow", "lead", "info"), actions=False)
+        soup = render_layout(
+            layout, leave_out=("eyebrow", "lead", "info"), actions=False
+        )
 
         assert [h1.get_text(strip=True) for h1 in soup.find_all("h1")] == [
             "Unique title"
         ]
         assert soup.find_all(["p", "button", "dialog", "a"]) == []
         assert empty_elements(soup) == []
-
-    def test_the_page_has_exactly_one_heading_holding_only_the_title(self, layout):
-        soup = render_layout(layout)
-
-        headings = soup.find_all("h1")
-        assert len(headings) == 1
-        assert headings[0].get_text(strip=True) == "Unique title"
-        assert headings[0].find(["button", "a", "dialog", "input"]) is None
 
     def test_the_info_trigger_is_a_sibling_of_the_heading(self, layout):
         soup = render_layout(layout)
