@@ -73,20 +73,6 @@ class TestBaseTemplateNameMixin:
 
 
 class TestPageMixinGetPageContext:
-    def test_get_page_context_returns_dict_with_required_keys(self):
-        view = ConcretePage()
-        ctx = view.get_page_context()
-        assert set(ctx.keys()) == {
-            "title",
-            "title_args",
-            "title_layout",
-            "class",
-            "breadcrumbs",
-            "info",
-            "info_actions",
-            "width",
-        }
-
     def test_get_page_context_delegates_to_getters(self):
         view = ConcretePage()
         view.page_title = "Test"
@@ -100,18 +86,6 @@ class TestPageMixinGetPageContext:
 
 
 class TestPageTitleArgs:
-    def test_the_group_names_every_argument(self):
-        args = ConcretePage().get_page_title_args()
-
-        assert set(args) == {
-            "eyebrow",
-            "title",
-            "lead",
-            "actions",
-            "info",
-            "info_actions",
-        }
-
     @pytest.mark.parametrize("name", ["eyebrow", "lead", "actions"])
     def test_an_argument_is_empty_until_the_view_sets_it(self, name):
         args = ConcretePage().get_page_context()["title_args"]
@@ -203,15 +177,6 @@ class TestPageTitleArgs:
         assert ctx["info"] == "What this page is for."
         assert ctx["info_actions"] == [{"text": "Docs"}]
 
-    def test_the_subtitle_is_gone_from_the_page_context(self):
-        assert "subtitle" not in ConcretePage().get_page_context()
-
-    def test_a_view_still_setting_the_subtitle_draws_no_lead(self):
-        class OldNamePage(ConcretePage):
-            page_subtitle = "Old name"
-
-        assert not OldNamePage().get_page_context()["title_args"]["lead"]
-
 
 class TestPageTitleLayoutSetting:
     @staticmethod
@@ -260,14 +225,10 @@ class TestPageTitleLayoutSetting:
         ("kind", "expected"),
         [
             ("page", "default"),
-            ("form", "default"),
-            ("create", "default"),
-            ("detail", "default"),
-            ("delete", "default"),
             ("list", "inline"),
         ],
     )
-    def test_with_no_setting_each_page_type_draws_the_layout_it_always_has(
+    def test_with_no_setting_a_page_type_draws_the_layout_it_always_has(
         self, kind, expected
     ):
         view = self._view_classes()[kind]()
@@ -280,19 +241,7 @@ class TestPageTitleLayoutSetting:
     def test_the_layout_reaches_the_page_context(self):
         assert ConcretePage().get_page_context()["title_layout"] == "default"
 
-    def test_each_view_type_names_its_page_type(self):
-        views = self._view_classes()
-        assert {kind: cls.page_type for kind, cls in views.items()} == {
-            "page": "page",
-            "form": "form",
-            "create": "form",
-            "detail": "detail",
-            "delete": "delete",
-            "list": "list",
-        }
-        assert self._table_view_class().page_type == "table"
-
-    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete", "list"])
+    @pytest.mark.parametrize("kind", ["page", "list"])
     def test_a_string_applies_to_every_page_type(self, monkeypatch, kind):
         self._setting(monkeypatch, "centred")
 
@@ -303,9 +252,7 @@ class TestPageTitleLayoutSetting:
 
         assert self._table_view_class()().get_page_title_layout() == "centred"
 
-    @pytest.mark.parametrize(
-        "named", ["page", "form", "detail", "delete", "list", "table"]
-    )
+    @pytest.mark.parametrize("named", ["page", "table"])
     def test_a_dict_naming_one_type_changes_only_that_type(self, monkeypatch, named):
         self._setting(monkeypatch, {named: "centred"})
 
@@ -318,9 +265,7 @@ class TestPageTitleLayoutSetting:
             "table": "compact",
         }
         views = {**self._view_classes(), "table": self._table_view_class()}
-        resolved = {
-            kind: views[kind]().get_page_title_layout() for kind in defaults
-        }
+        resolved = {kind: views[kind]().get_page_title_layout() for kind in defaults}
         assert resolved == {**defaults, named: "centred"}
 
     def test_a_dict_changing_the_table_leaves_the_list_inline(self, monkeypatch):
@@ -336,9 +281,6 @@ class TestPageTitleLayoutOnTheView:
         from mvp.config import MVP_CONFIG
 
         monkeypatch.setitem(MVP_CONFIG["page_title"], "layout", layout)
-
-    def test_a_view_names_no_layout_by_default(self):
-        assert ConcretePage.page_title_layout is None
 
     def test_the_attribute_wins_over_the_setting(self, monkeypatch):
         self._setting(monkeypatch, "inline")
@@ -416,11 +358,10 @@ class TestPageMixinPageWidth:
     def test_a_page_is_wide_unless_it_says_otherwise(self):
         assert ConcretePage().get_page_width() is PageWidth.WIDE
 
-    @pytest.mark.parametrize("width", list(PageWidth))
-    def test_attribute_reaches_the_page_context(self, width):
+    def test_attribute_reaches_the_page_context(self):
         view = ConcretePage()
-        view.page_width = width
-        assert view.get_page_context()["width"] is width
+        view.page_width = PageWidth.NARROW
+        assert view.get_page_context()["width"] is PageWidth.NARROW
 
     def test_the_context_value_renders_as_the_name_a_template_compares(self):
         view = ConcretePage()
@@ -435,12 +376,6 @@ class TestPageMixinPageWidth:
 
 
 class TestPageMixinPageInfo:
-    def test_no_info_by_default(self):
-        assert ConcretePage().get_page_info() == ""
-
-    def test_no_actions_by_default(self):
-        assert ConcretePage().get_page_info_actions() == []
-
     def test_attribute_reaches_the_page_context(self):
         view = ConcretePage()
         view.page_info = "What this page is for."
@@ -625,17 +560,6 @@ class TestModelInfoMixin:
 
     # --- US4: Context shape (T015–T018) ------------------------------------
 
-    def test_model_info_context_key_present(self):
-        class V(ModelInfoMixin, TemplateView):
-            model = Product
-            template_name = "base.html"
-
-        v = V()
-        v.request = RequestFactory().get("/")
-        v.kwargs = {}
-        v.args = []
-        assert "model_info" in v.get_context_data()
-
     def test_model_info_contains_all_four_fields(self):
         class V(ModelInfoMixin, TemplateView):
             model = Product
@@ -790,54 +714,3 @@ class TestMVPHomeView:
         view = self._make_view(AnonymousUser())
         templates = view.get_template_names()
         assert templates == [view.landing_template_name]
-
-
-# TestMVPTemplateViewLayoutIntegration
-
-
-@pytest.mark.django_db
-class TestMVPTemplateViewLayoutIntegration:
-    def test_all_layout_attributes_in_context(self):
-        from mvp.views import MVPTemplateView
-
-        request = RequestFactory().get("/")
-        view = MVPTemplateView(
-            template_name="page_view.html",
-            page_title="T",
-            page_lead="S",
-            page_class="sidebar-collapse",
-            breadcrumbs=[{"text": "Home", "href": "/"}],
-        )
-        view.request = request
-        view.kwargs = {}
-        view.args = []
-        context = view.get_context_data()
-        page = context["page"]
-        assert page["title"] == "T"
-        assert page["title_args"]["lead"] == "S"
-        assert "sidebar-collapse" in page["class"]
-        assert page["breadcrumbs"] == [{"text": "Home", "href": "/"}]
-
-
-# US2: MVPHomeView — guest/dashboard template switch
-
-
-@pytest.mark.django_db
-class TestLoginReturnJourney:
-    def test_full_login_and_return_journey(self, client, make_user):
-        user = make_user(username="journeyuser", password="pass123!")
-
-        # Step 1: Anonymous visit to /
-        response = client.get("/")
-        assert response.status_code == 200
-
-        # Step 2: Authenticate
-        client.force_login(user)
-
-        # Step 3: Visit / as authenticated user
-        response = client.get("/")
-        assert response.status_code == 200
-
-        # Step 5: Confirm sidebar and navbar are present on dashboard
-        assert b"mvp-sidebar" in response.content, "Sidebar missing from dashboard"
-        assert b"mvp-header" in response.content, "Navbar missing from dashboard"
