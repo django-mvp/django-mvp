@@ -24,26 +24,28 @@ def _brand_caches_restored():
     EmailBrand.current.cache_clear()
 
 
-def test_every_email_has_a_subject_and_an_html_message_under_the_senders_naming():
-    missing = []
-    for prefix in PREFIXES:
-        for name in (f"{prefix}_subject.txt", f"{prefix}_message.html"):
-            try:
-                get_template(f"demo/email/{name}")
-            except TemplateDoesNotExist:
-                missing.append(name)
+class TestDemoEmailTemplates:
+    def test_every_email_has_a_subject_and_an_html_message_under_the_senders_naming(
+        self,
+    ):
+        missing = []
+        for prefix in PREFIXES:
+            for name in (f"{prefix}_subject.txt", f"{prefix}_message.html"):
+                try:
+                    get_template(f"demo/email/{name}")
+                except TemplateDoesNotExist:
+                    missing.append(name)
 
-    assert not missing, f"templates the demo should carry: {missing}"
+        assert not missing, f"templates the demo should carry: {missing}"
 
+    @pytest.mark.django_db
+    def test_the_html_message_renders_in_the_brand(self, rf):
+        request = rf.get("/", HTTP_HOST="mail.example.org")
 
-@pytest.mark.django_db
-def test_the_html_message_renders_in_the_brand(rf):
-    request = rf.get("/", HTTP_HOST="mail.example.org")
+        html = render_to_string(
+            "demo/email/invitation_message.html",
+            {"changes": ["one"], "lines": []},
+            request,
+        )
 
-    html = render_to_string(
-        "demo/email/invitation_message.html",
-        {"changes": ["one"], "lines": []},
-        request,
-    )
-
-    assert EmailBrand.current().logo in html
+        assert EmailBrand.current().logo in html

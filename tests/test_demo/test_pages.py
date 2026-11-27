@@ -1,4 +1,6 @@
-"""Tests for demo pages that have no module of their own: the complex form page and the side panel page.
+"""Tests for demo pages that have no module of their own.
+
+They are the complex form page and the side panel page.
 
 Source: demo/views.py, demo/urls.py
 """

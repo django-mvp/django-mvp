@@ -107,6 +107,7 @@ class TestTableArea:
         html = self._render(cotton_render_string)
         assert 'tabindex="0"' in html
 
+
 class TestTableViewTemplate:
     @pytest.mark.django_db
     def test_renders_as_a_filled_page(self, rf, product):
@@ -158,7 +159,9 @@ class TestTableViewTemplate:
         ProductFactory.create_batch(4)
         html = _render_table_view(rf, paginate_by=2, query="?page=2")
         soup = _beautiful_soup()(html, "html.parser")
-        count = soup.find(class_="mvp-list-footer").find(string=re.compile(r"\d+–\d+"))
+        count = soup.find(class_="mvp-list-footer").find(
+            string=re.compile(r"\d+\u2013\d+")
+        )
         assert count is not None, "the pagination bar did not render"
         assert "3–4" in count
         assert "5" in count
@@ -173,7 +176,9 @@ class TestTableViewTemplate:
         soup = _beautiful_soup()(
             _render_table_view(rf, paginate_by=None), "html.parser"
         )
-        count = soup.find(class_="mvp-page-fill").find(string=re.compile(r"\d+–\d+"))
+        count = soup.find(class_="mvp-page-fill").find(
+            string=re.compile(r"\d+\u2013\d+")
+        )
         assert count is None
 
     @pytest.mark.django_db
@@ -615,6 +620,7 @@ class TestRowHeaderCells:
             strip=True
         )
 
+
 class TestFalseyColumnHeading:
     def _headings(self, cotton_render_string):
         pytest.importorskip("django_tables2")
@@ -710,9 +716,7 @@ class TestTableToolbar:
         assert soup.find("a", href="/products/create/") is None
 
     @pytest.mark.django_db
-    def test_a_page_can_keep_the_add_action_and_put_its_own_after_it(
-        self, rf, product
-    ):
+    def test_a_page_can_keep_the_add_action_and_put_its_own_after_it(self, rf, product):
         html = _render_table_view(
             rf, template_name="tests/table_view_action_after_add.html"
         )
@@ -812,9 +816,7 @@ class TestTableToolbar:
         assert soup.find(id=TOOLBAR_PANEL).find(attrs={"name": "is_featured"})
 
     @pytest.mark.django_db
-    def test_an_applied_filter_is_a_chip_in_the_panel_after_the_form(
-        self, rf, product
-    ):
+    def test_an_applied_filter_is_a_chip_in_the_panel_after_the_form(self, rf, product):
         html = _render_table_view(rf, query="?is_featured=true")
         soup = _beautiful_soup()(html, "html.parser")
 
@@ -1127,7 +1129,9 @@ class TestTableTitleLayout:
         toolbar = soup.select_one(".mvp-table-toolbar")
         bar = toolbar.select_one(".mvp-table-toolbar-bar")
         assert bar.select_one(".mvp-list-summary") is not None
-        assert toolbar.select_one('.mvp-table-toolbar-controls a[href="/products/create/"]')
+        assert toolbar.select_one(
+            '.mvp-table-toolbar-controls a[href="/products/create/"]'
+        )
 
     @pytest.mark.parametrize("layout", [None, "inline"])
     def test_the_page_has_one_heading_whatever_the_layout(
