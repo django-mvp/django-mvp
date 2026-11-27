@@ -106,7 +106,8 @@ class TestDeclaredAttributesAreRead:
 
         assert not failures, (
             "\n".join(failures)
-            + "\nRead each name, or drop the declaration so a caller's value reaches the DOM."
+            + "\nRead each name, or drop the declaration"
+            + " so a caller's value reaches the DOM."
         )
 
 

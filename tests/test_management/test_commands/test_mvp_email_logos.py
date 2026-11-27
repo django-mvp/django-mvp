@@ -50,7 +50,7 @@ def run(**options):
 
 
 class TestMvpEmailLogos:
-    def test_both_logos_are_written_64_pixels_high_into_the_first_static_directory_and_found(
+    def test_both_logos_are_written_64_pixels_high_into_the_first_static_dir(
         self, logos, static_dir
     ):
         run()
