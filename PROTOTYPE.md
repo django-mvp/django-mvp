@@ -218,6 +218,8 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
   inside it. `<c-app.sidebar>` draws `<c-layout.sidebar side="left" view="HbF">`, its brand row,
   menu and footer sit straight inside the layout's panel, and the panel is the one thing that
   scrolls. (Sam)
+- 2026-11-27: The sidebar's footer holds one full-width account button, with no theme or language
+  control. The theme and the language are set from the header. (Sam)
 
 ## Decided on my own
 
@@ -267,6 +269,15 @@ None. The only state is the sidebar cookies, `mvpl-<persist>=open|closed`.
 - **`boost` off writes `hx-boost="false"`** on the sidebar rather than leaving the attribute out.
   Cotton can't leave an attribute out of a component's tag, and false says what the setting says.
 - **The rail's scroll styles and its tooltip script follow the panel**, which is now what scrolls.
+- **The account button follows the common sidebar account row** (shadcn/ui's sidebar user block,
+  Vercel, Linear, Supabase): avatar, name over email, and an up-down chevron that marks it as a menu.
+  A faint fill and border at rest make it read as a button before it is pointed at, and pointing
+  at it lifts it to the page's surface. The name is the full name, else the username, and the
+  email line is left out when there is none. In the icon rail it is the avatar alone.
+- **A visitor gets a full-width primary Log in button** at the normal button size, so the footer
+  keeps its weight. `<c-mvp.actions.login>` takes a `size`, `sm` by default as before.
+- **The account menu keeps its rows** (Account Center, Admin Site, Log out) and opens upward over
+  the menu, as wide as the button.
 - **A card with a figure is not stacked.** daisyUI places the figure above or beside the parts,
   which the three areas have no room for.
 - **The dialog is stacked only when it has a part.** The sheet and the search dialog call

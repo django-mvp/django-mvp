@@ -4,10 +4,21 @@
 {% if request.user.is_authenticated %}
   <c-mvp.dropdown valign="top" halign="start" full class="w-full" only>
     <c-slot name="button">
+      {# One full-width row: avatar, name over email, and the up-down chevron #}
+      {# that marks it as a menu. A faint fill and border at rest say it is a #}
+      {# button before it is pointed at. #}
       <div tabindex="0"
            role="button"
-           class="btn btn-ghost btn-sm w-full min-w-0 justify-start px-1">
-        <c-mvp.user.display.compact />
+           aria-label="{% trans "Account menu" %}"
+           class="mvp-account-button flex w-full min-w-0 cursor-pointer items-center gap-3 rounded-field border border-line bg-base-100/50 p-2 text-start transition-colors hover:border-base-content/25 hover:bg-base-100 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+        <c-mvp.avatar size="w-9" class="shrink-0" />
+        <span class="mvp-rail-hide grid min-w-0 flex-1 leading-tight">
+          <span class="truncate text-sm font-semibold">{% firstof request.user.get_full_name request.user.get_username %}</span>
+          {% if request.user.email %}
+            <span class="truncate text-xs opacity-60">{{ request.user.email }}</span>
+          {% endif %}
+        </span>
+        <c-icon name="chevron-expand" class="mvp-rail-hide shrink-0 opacity-60" />
       </div>
     </c-slot>
     {% comment %}

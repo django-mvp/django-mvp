@@ -1,8 +1,9 @@
 {# @description Log-in button; renders only when anonymous and account_login or login reverses. Carries the current page as next, except on the sign-in, sign-up and sign-out pages. #}
 {# @prop variant:text | description:"c-button variant. Unset renders the plain button the navbar wants; the sidebar footer asks for primary, the one thing a signed-out visitor should reach for." #}
 {# @prop full:boolean | description:"Stretch to the width of whatever contains it." #}
+{# @prop size:text | default:"sm" | description:"c-button size. The sidebar footer asks for md, to match the account button's weight." #}
 {% load i18n %}
-<c-vars variant full />
+<c-vars variant full size="sm" />
 {% if not request.user.is_authenticated %}
   {% comment %} Prefer allauth's login URL when present, else Django's. {% endcomment %}
   {% url "account_login" as login_url %}
@@ -21,7 +22,7 @@
   {% if login_url %}
     <c-button text="{% trans "Log in" %}"
               href="{{ login_url }}{% if login_next %}?next={{ login_next }}{% endif %}"
-              size="sm"
+              size="{{ size }}"
               variant="{{ variant }}"
               :block="full" only>
       <c-icon name="login" />
