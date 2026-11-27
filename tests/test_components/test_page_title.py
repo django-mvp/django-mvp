@@ -119,10 +119,13 @@ class TestPageTitleArguments:
         self, layout
     ):
         soup = render(
-            f'<c-mvp.page.title layout="{layout}" title="T" id="product-heading" />'
+            f'<c-mvp.page.title layout="{layout}" title="T" id="product-heading"'
+            ' class="mb-8" />'
         )
 
-        assert soup.find(True).get("id") == "product-heading"
+        root = soup.find(True)
+        assert root.get("id") == "product-heading"
+        assert "mb-8" in root.get("class")
 
 
 LAYOUTS = ["default", "inline", "centred", "compact"]
