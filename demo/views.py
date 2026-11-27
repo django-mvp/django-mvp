@@ -78,8 +78,8 @@ class DemoTemplateView(TitleLayoutFromQueryMixin, MVPTemplateView):
         ]
 
     def get_breadcrumbs(self):
-        """Return the page's own title as the whole trail."""
-        return [{"text": self.page_title}]
+        """Return the declared trail, or the page's own title as the whole trail."""
+        return self.breadcrumbs or [{"text": self.page_title}]
 
 
 class ComponentIndexView(DemoTemplateView):
@@ -410,6 +410,7 @@ HEADER_BLOCKS = [
 layout_demo = DemoTemplateView.as_view(
     template_name="layout/app.html",
     page_title="App layout",
+    breadcrumbs=[{"text": "Look & Feel"}, {"text": "App layout"}],
     extra_context={
         "layout_docs_url": (
             "https://django-mvp.github.io/django-mvp-layout/developer/layout-code.html"
@@ -422,6 +423,7 @@ layout_demo = DemoTemplateView.as_view(
 theme_demo = DemoTemplateView.as_view(
     template_name="theme.html",
     page_title="Theme",
+    breadcrumbs=[{"text": "Look & Feel"}, {"text": "Theme"}],
     extra_context={
         "surfaces": ["base-100", "base-200", "base-300"],
         "colours": [
@@ -891,6 +893,7 @@ class PageLayoutDemoView(DemoTemplateView):
 
     template_name = "layout/page.html"
     page_title = "Page layout"
+    breadcrumbs = [{"text": "Look & Feel"}, {"text": "Page layout"}]
 
     SIDE_OPTIONS = {
         "collapse": ("drawer", "stack"),
