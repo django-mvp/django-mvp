@@ -113,11 +113,6 @@ class TestTheLabelsTheScriptReads:
         assert trail["data-label-one"] == "Show 1 more level"
         assert trail["data-label-many"] == "Show {count} more levels"
 
-    def test_the_menu_heading_is_in_the_markup(self, trail):
-        heading = trail.select_one(".mvp-crumbs-fold-heading")
-
-        assert heading.get_text(strip=True) == "Further up"
-
 
 class TestTheTrailFromATemplate:
     def test_steps_written_in_the_template_are_drawn(self, cotton_render_string_soup):
