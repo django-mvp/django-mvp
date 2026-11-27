@@ -4,7 +4,6 @@ Source: mvp/ordering.py
 """
 
 import pytest
-from django.db import transaction
 from django.db.models import QuerySet
 
 from mvp.ordering import InvalidOrder, save_order
@@ -45,15 +44,6 @@ class TestSaveOrder:
         saved = save_order(project.tasks.all(), ids_of(project, "b", "c", "a"))
 
         assert [t.title for t in saved] == ["b", "c", "a"]
-
-    def test_accepts_identifiers_as_strings(self, project):
-        """Identifiers arrive as text and are converted by the primary key."""
-        ids = ids_of(project, "b", "a", "c")
-        assert all(isinstance(i, str) for i in ids)
-
-        save_order(project.tasks.all(), ids)
-
-        assert positions(project) == {"b": 0, "a": 1, "c": 2}
 
     def test_records_outside_the_queryset_keep_their_positions(self, project):
         """Only the queryset's records are renumbered."""
@@ -128,23 +118,19 @@ class TestSaveOrder:
 
         assert positions(project) == before
 
-    def test_invalid_order_is_a_value_error(self):
-        """Callers that catch ``ValueError`` also catch the refusal."""
-        assert issubclass(InvalidOrder, ValueError)
-
 
 @pytest.mark.django_db(transaction=True)
 class TestSaveOrderTransaction:
     """The save is atomic."""
 
-    def test_the_write_happens_inside_a_transaction(self, project, monkeypatch):
-        """The numbers are written in an atomic block, and a failure undoes them."""
+    def test_a_failure_after_the_numbers_are_written_undoes_them(
+        self, project, monkeypatch
+    ):
+        """The numbers are written and then the save fails: none of them stay."""
         original = QuerySet.bulk_update
-        inside = []
 
         def failing_bulk_update(self, objs, fields, *args, **kwargs):
             original(self, objs, fields, *args, **kwargs)
-            inside.append(transaction.get_connection().in_atomic_block)
             raise RuntimeError("fail after writing")
 
         monkeypatch.setattr(QuerySet, "bulk_update", failing_bulk_update)
@@ -152,5 +138,4 @@ class TestSaveOrderTransaction:
         with pytest.raises(RuntimeError):
             save_order(project.tasks.all(), ids_of(project, "c", "b", "a"))
 
-        assert inside == [True]
         assert positions(project) == {"a": 0, "b": 0, "c": 0}

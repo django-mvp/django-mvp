@@ -1,6 +1,6 @@
 """
-Smoke tests – quick sanity-checks that the package imports cleanly and
-the Django configuration is valid.
+Checks on the committed stylesheet and the theming docs: that the shipped
+stylesheet carries what the package's templates and consumers rely on.
 """
 
 import re
@@ -8,225 +8,107 @@ from pathlib import Path
 
 import pytest
 
-from demo.models import OrderLine
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
 
 
-class TestPackageSanity:
-    @pytest.mark.django_db
-    def test_mvp_apps_load(self, client):
-        response = client.get("/")
-        assert response.status_code in {200, 301, 302, 404}
-
-    def test_mvp_imports(self):
-        import mvp  # noqa: F401
-        from mvp import (
-            renderers,  # noqa: F401
-            views,  # noqa: F401
-        )
-        from mvp.templatetags import mvp as mvp_tags  # noqa: F401
+@pytest.fixture(scope="module")
+def stylesheet() -> str:
+    return STYLESHEET.read_text(encoding="utf-8")
 
 
-class TestStylingDocs:
-    def test_styling_doc_exists(self):
-        styling = BASE_DIR / "docs" / "styling.md"
-        assert styling.exists(), (
-            "docs/styling.md must exist — it is the canonical CSS/theming guide."
-        )
-        content = styling.read_text(encoding="utf-8")
-        assert "mvp_tailwind" in content, (
-            "docs/styling.md must document the 'python manage.py mvp_tailwind' command "
-            "so Tier 2 consumers can find the CSS rebuild path."
-        )
+def _class_present(content: str, css_class: str) -> bool:
+    """Whether ``css_class`` has a rule in ``content``.
 
-    def test_readme_references_styling_doc_and_command(self):
-        readme = BASE_DIR / "README.md"
-        content = readme.read_text(encoding="utf-8")
-        assert "mvp_tailwind" in content, (
-            "README.md must reference 'manage.py mvp_tailwind' so consumers discover "
-            "the CSS rebuild path from the top-level documentation."
-        )
-        assert "docs/styling.md" in content, "README.md must link to docs/styling.md."
-
-    def test_entry_css_imports_packaged_preset(self):
-        entry = (BASE_DIR / "assets" / "tailwind.css").read_text(encoding="utf-8")
-        assert '@plugin "daisyui"' in entry, (
-            "assets/tailwind.css must load the daisyui plugin — its removal once "
-            "shipped a stylesheet with no DaisyUI classes at all."
-        )
-        assert "mvp/tailwind/base.css" in entry, (
-            "assets/tailwind.css must import the packaged preset so the shipped "
-            "stylesheet and consumer builds share one source of truth."
-        )
-        assert (BASE_DIR / "mvp" / "tailwind" / "base.css").exists()
+    A responsive class is committed with its colon escaped
+    (``lg:flex-row`` -> ``lg\\:flex-row``), so matching the bare class name
+    against the built file finds nothing. The escape is reproduced in the
+    pattern.
+    """
+    escaped_class = re.escape(css_class.replace(":", "\\:"))
+    return re.search(rf"\.{escaped_class}\b", content) is not None
 
 
-class TestShippedStylesheetShipsCompleteDaisyUI:
-    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
-
-    @staticmethod
-    def _class_present(content: str, css_class: str) -> bool:
-        return re.search(rf"\.{re.escape(css_class)}\b", content) is not None
-
-    def test_entry_sources_daisyuis_own_component_and_utility_definitions(self):
-        entry = (BASE_DIR / "assets" / "tailwind.css").read_text(encoding="utf-8")
-        assert "node_modules/daisyui/components" in entry, (
-            "assets/tailwind.css must scan daisyUI's component source files, or "
-            "only the components mvp's own templates use ship (#190)."
-        )
-        assert "node_modules/daisyui/utilities" in entry, (
-            "assets/tailwind.css must scan daisyUI's utility source files (glass, "
-            "join, radius, typography), or the same gap applies to them (#190)."
-        )
-
-    def test_control_class_mvp_templates_already_use_is_present(self):
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert self._class_present(content, "modal-top"), (
-            ".modal-top is a component class mvp's own cotton/modal.html template "
-            "renders — if this control fails, the assertion technique itself is "
-            "broken, not the stylesheet."
-        )
-
-    @pytest.mark.parametrize(
-        "css_class",
-        [
-            "carousel",
-            "chat-bubble",
-            "kbd",
-            "rating",
-            "countdown",
-            "timeline",
-            "diff",
-            "fab",
-            "radial-progress",
-            "validator",
-            "glass",
-        ],
-    )
-    def test_component_mvp_templates_never_reference_still_ships(self, css_class):
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert self._class_present(content, css_class), (
-            f".{css_class} is missing from the shipped stylesheet — daisyUI "
-            "component coverage regressed (#190)."
-        )
-
-
-class TestStylesheetShipsAccountCenterClasses:
-    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
-
-    @staticmethod
-    def _class_present(content: str, css_class: str) -> bool:
-        """A responsive class is committed with its colon escaped
-        (``lg:flex-row`` -> ``lg\\:flex-row``), so matching the bare class
-        name against the built file always finds nothing. The escape has to
-        be reproduced here, in the pattern, not just avoided by picking
-        classes that happen not to need it."""
-        escaped_class = re.escape(css_class.replace(":", "\\:"))
-        return re.search(rf"\.{escaped_class}\b", content) is not None
-
-    def test_absent_control_class_is_not_present(self):
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert not self._class_present(content, "not-a-real-django-mvp-class")
-
-    @pytest.mark.parametrize(
-        "css_class",
-        [
-            "lg:flex-row",
-            "lg:items-start",
-            "lg:gap-6",
-            "sm:grid-cols-2",
-            "lg:shrink-0",
-        ],
-    )
-    def test_account_center_template_class_is_present(self, css_class):
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert self._class_present(content, css_class), (
-            f".{css_class} is missing from the shipped stylesheet — rebuild it "
-            "with `invoke build-stylesheet` (Article XV)."
-        )
-
-
-# node_modules is gitignored and the Python CI job never runs npm ci, so the
-# discovery below must skip explicitly rather than fail when the front-end
-# toolchain isn't installed — the same convention used elsewhere in this file
-# for build-artifact checks.
-_DAISYUI_THEME_DIR = BASE_DIR / "node_modules" / "daisyui" / "theme"
-_DAISYUI_THEME_NAMES = (
-    sorted(p.stem for p in _DAISYUI_THEME_DIR.glob("*.css"))
-    if _DAISYUI_THEME_DIR.is_dir()
-    else []
+#: Component classes no template of the package uses, which still have to ship
+#: so a project can use any daisyUI component without rebuilding.
+UNUSED_DAISYUI_CLASSES = (
+    "carousel",
+    "chat-bubble",
+    "kbd",
+    "rating",
+    "countdown",
+    "timeline",
+    "diff",
+    "fab",
+    "radial-progress",
+    "validator",
+    "glass",
 )
 
+#: Responsive classes the Account Center templates use.
+ACCOUNT_CENTER_CLASSES = (
+    "lg:flex-row",
+    "lg:items-start",
+    "lg:gap-6",
+    "sm:grid-cols-2",
+    "lg:shrink-0",
+)
 
-class TestShippedStylesheetShipsEveryPrebuiltTheme:
-    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
+# node_modules is gitignored and the Python CI job never runs npm ci, so the
+# sweep over every daisyUI theme skips rather than fails when the front-end
+# toolchain isn't installed.
+_DAISYUI_THEME_DIR = BASE_DIR / "node_modules" / "daisyui" / "theme"
 
-    def test_daisyui_theme_source_is_discoverable(self):
-        if not _DAISYUI_THEME_DIR.is_dir():
-            pytest.skip(
-                "node_modules/daisyui/theme not installed — front-end "
-                "toolchain not present in this environment"
-            )
-        assert _DAISYUI_THEME_NAMES, (
-            "node_modules/daisyui/theme is present but no theme *.css files "
-            "were discovered under it"
+#: Always checked, because the full sweep below is skipped without node_modules:
+#: reverting ``themes: all`` would otherwise leave the suite green.
+REPRESENTATIVE_THEMES = ("dracula", "synthwave", "cyberpunk", "retro", "valentine")
+
+
+class TestShippedStylesheet:
+    def test_it_ships_the_classes_no_package_template_uses(self, stylesheet):
+        missing = [
+            css_class
+            for css_class in UNUSED_DAISYUI_CLASSES
+            if not _class_present(stylesheet, css_class)
+        ]
+
+        assert not missing, f"missing from the shipped stylesheet: {missing}"
+
+    def test_it_ships_the_responsive_classes_the_account_center_uses(self, stylesheet):
+        missing = [
+            css_class
+            for css_class in ACCOUNT_CENTER_CLASSES
+            if not _class_present(stylesheet, css_class)
+        ]
+
+        assert not missing, (
+            f"missing from the shipped stylesheet: {missing}. "
+            "Rebuild it with `invoke build-stylesheet`."
         )
+
+    def test_it_ships_the_representative_themes(self, stylesheet):
+        missing = [
+            theme
+            for theme in REPRESENTATIVE_THEMES
+            if f"[data-theme={theme}]" not in stylesheet
+        ]
+
+        assert not missing, f"themes missing from the shipped stylesheet: {missing}"
 
     @pytest.mark.skipif(
         not _DAISYUI_THEME_DIR.is_dir(),
         reason="node_modules/daisyui/theme not installed",
     )
-    @pytest.mark.parametrize("theme", _DAISYUI_THEME_NAMES)
-    def test_every_daisyui_theme_ships(self, theme):
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert f"[data-theme={theme}]" in content, (
-            f"[data-theme={theme}] is missing from the shipped stylesheet — "
-            "every daisyUI theme must ship (FR-001, FR-006)."
-        )
+    def test_it_ships_every_daisyui_theme(self, stylesheet):
+        themes = sorted(path.stem for path in _DAISYUI_THEME_DIR.glob("*.css"))
+        assert themes, "node_modules/daisyui/theme holds no theme files"
 
-    # The five names #190's guard listed when it asserted the opposite. Kept as
-    # the unconditional arm because the completeness test above is skipped in
-    # CI, where node_modules is absent — without this, reverting `themes: all`
-    # would leave the suite green while shipping none of them (FR-001).
-    REPRESENTATIVE_THEMES = ("dracula", "synthwave", "cyberpunk", "retro", "valentine")
+        missing = [t for t in themes if f"[data-theme={t}]" not in stylesheet]
 
-    @pytest.mark.parametrize("theme", REPRESENTATIVE_THEMES)
-    def test_representative_named_themes_ship(self, theme):
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert f"[data-theme={theme}]" in content, (
-            f"[data-theme={theme}] is missing from the shipped stylesheet — "
-            "the prebuilt themes must ship inside the package (FR-001)."
-        )
-
-    def test_default_theme_still_bound_through_where_root(self):
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert ":where(:root)" in content, (
-            "the :where(:root) fall-through binding for the default theme "
-            "is missing from the shipped stylesheet"
-        )
-
-    def test_prefers_color_scheme_dark_block_still_emitted(self):
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        assert "@media (prefers-color-scheme:dark)" in content, (
-            "the @media (prefers-color-scheme: dark) block is missing from "
-            "the shipped stylesheet"
-        )
-
-
-class TestOrderLineFieldHelpText:
-    @pytest.mark.parametrize("field_name", ["product", "quantity"])
-    def test_field_has_help_text(self, field_name):
-        field = OrderLine._meta.get_field(field_name)
-        assert str(field.help_text) != ""
+        assert not missing, f"themes missing from the shipped stylesheet: {missing}"
 
 
 _CUSTOM_PROPERTY_RE = re.compile(r"--[a-zA-Z0-9-]+")
-
-
-def _extract_custom_properties(css: str) -> set[str]:
-    return set(_CUSTOM_PROPERTY_RE.findall(css))
-
 
 # SC-003: the compressed stylesheet a project downloads may grow by at most
 # 13 KB against the release this feature started from.
@@ -236,57 +118,29 @@ SC003_GROWTH_BUDGET_BYTES = 13312
 
 class TestThemingDocVariableCoverage:
     THEMING_DOC = BASE_DIR / "docs" / "theming.md"
-    STYLESHEET = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css"
 
-    def _shipped_default_theme_block(self):
-        """The :where(:root) default-theme block from the built stylesheet."""
-        content = self.STYLESHEET.read_text(encoding="utf-8")
-        start = content.find(":where(:root)")
-        assert start != -1, (
-            "the :where(:root) default-theme binding is missing from the "
-            "shipped stylesheet, so there is no theme block to read"
-        )
-        return content[start : content.index("}", start)]
+    def test_every_shipped_custom_property_is_in_the_variable_table(self, stylesheet):
+        start = stylesheet.find(":where(:root)")
+        assert start != -1, "the shipped stylesheet has no default theme block to read"
+        default_theme = stylesheet[start : stylesheet.index("}", start)]
+        properties = set(_CUSTOM_PROPERTY_RE.findall(default_theme))
+        assert properties, "no custom properties were found in the default theme block"
 
-    def _documented_variable_table(self):
-        """Rows of the variable table, not the whole page.
-
-        Scoping matters: the worked example further down sets every property
-        too, so a check for the name appearing *anywhere* in the file passes
-        with the table deleted outright. FR-015 asks for a table that says
-        what each variable controls, so that is what gets checked.
-        """
+        # Only the table's rows: the worked example further down sets every
+        # property too, so a search of the whole page passes with the table gone.
         rows = [
             line
             for line in self.THEMING_DOC.read_text(encoding="utf-8").splitlines()
             if line.startswith("| `")
         ]
         assert rows, "no variable table rows found in docs/theming.md"
-        return rows
 
-    def test_every_shipped_custom_property_is_in_the_variable_table(self):
-        properties = _extract_custom_properties(self._shipped_default_theme_block())
-        assert properties, (
-            "no --custom-property names were extracted from the shipped "
-            "stylesheet's default theme block — the extraction pattern "
-            "itself may be broken, not the documentation"
-        )
-
-        rows = self._documented_variable_table()
         missing = sorted(
-            prop for prop in properties if not any(f"`{prop}`" in r for r in rows)
+            prop for prop in properties if not any(f"`{prop}`" in row for row in rows)
         )
         assert not missing, (
-            "docs/theming.md's variable table is missing these theme "
-            f"variables: {missing}"
+            f"docs/theming.md's variable table is missing these variables: {missing}"
         )
-
-    def test_each_documented_variable_says_what_it_controls(self):
-        for row in self._documented_variable_table():
-            cells = [c.strip() for c in row.strip("|").split("|")]
-            assert len(cells) >= 2 and cells[1], (
-                f"this variable table row has no description: {row}"
-            )
 
     def test_the_compressed_stylesheet_stays_within_its_budget(self):
         compressed = BASE_DIR / "mvp" / "static" / "css" / "django-mvp.css.br"

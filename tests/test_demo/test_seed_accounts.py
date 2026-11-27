@@ -11,7 +11,9 @@ from object_preferences.registry import registry
 
 @pytest.mark.django_db
 class TestSeedAccounts:
-    def test_creates_the_three_accounts_with_their_roles(self):
+    def test_creates_the_three_accounts_with_their_roles_and_the_standard_password(
+        self,
+    ):
         call_command("seed_accounts")
         users = {u.username: u for u in get_user_model().objects.all()}
         assert set(users) == {"regular.user", "staff.user", "super.user"}
@@ -20,9 +22,6 @@ class TestSeedAccounts:
         assert not users["staff.user"].is_superuser
         assert users["super.user"].is_superuser
         assert users["super.user"].email == "super.user@example.com"
-
-    def test_each_signs_in_with_the_standard_password(self):
-        call_command("seed_accounts")
         for username in ("regular.user", "staff.user", "super.user"):
             assert authenticate(username=username, password="password") is not None
 
@@ -43,6 +42,7 @@ class TestSeedAccountsPreferences:
         return locale
 
     def test_the_regular_account_has_chosen_a_timezone_and_language(self, settings):
+        settings.TIME_ZONE = "UTC"
         call_command("seed_accounts")
 
         locale = self.locale_of("regular.user")

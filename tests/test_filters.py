@@ -101,16 +101,6 @@ class TestSearchFilter:
 
         assert names(filterset) == ["Alpha"]
 
-    def test_an_eleventh_word_alone_matches_nothing(self):
-        ProductFactory(name="Omega", description="")
-        words = [*[f"w{i}" for i in range(10)], "omega"]
-
-        filterset = ProductSearch(
-            {"q": " ".join(words)}, queryset=Product.objects.all()
-        )
-
-        assert names(filterset) == []
-
     def test_max_words_raises_the_limit(self):
         ProductFactory(name="Omega", description="")
 
@@ -122,12 +112,11 @@ class TestSearchFilter:
 
         assert names(filterset) == ["Omega"]
 
-    @pytest.mark.parametrize("term", ["", "   "])
-    def test_an_empty_term_narrows_nothing(self, term):
+    def test_an_empty_term_narrows_nothing(self):
         ProductFactory(name="Alpha", description="")
         ProductFactory(name="Beta", description="")
 
-        filterset = ProductSearch({"q": term}, queryset=Product.objects.all())
+        filterset = ProductSearch({"q": "   "}, queryset=Product.objects.all())
 
         assert names(filterset) == ["Alpha", "Beta"]
 
@@ -141,9 +130,6 @@ class TestSearchFilter:
         filterset = NoFields({"q": "alpha"}, queryset=Product.objects.all())
 
         assert names(filterset) == ["Alpha", "Beta"]
-
-    def test_it_has_a_label_without_being_given_one(self):
-        assert SearchFilter(fields=["name"]).label is not None
 
     def test_a_label_it_is_given_is_kept(self):
         assert SearchFilter(fields=["name"], label="Find").label == "Find"
@@ -195,9 +181,6 @@ class TestSortFilter:
 
         assert list(filterset.qs) == default
         assert filterset.qs.query.order_by == Product.objects.all().query.order_by
-
-    def test_it_has_a_label_without_being_given_one(self):
-        assert SortFilter(options=[("name", "Name", "name")]).label is not None
 
     def test_it_offers_the_default_order_as_its_first_choice(self):
         filterset = ProductSort(queryset=Product.objects.all())

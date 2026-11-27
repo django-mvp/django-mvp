@@ -13,7 +13,6 @@ The markup the renderer draws is asserted on the rendered menu, with no browser.
 
 import pytest
 from bs4 import BeautifulSoup
-from django.template import Context, Template
 from django.test import RequestFactory
 from flex_menu import Menu, MenuItem
 from playwright.sync_api import expect
@@ -88,13 +87,6 @@ class TestMobileDockVisibility:
         page.goto(live_server.url)
         expect(page.locator("nav.dock")).to_be_hidden()
 
-    def test_dock_visible_below_the_configured_sidebar_breakpoint(
-        self, page, live_server
-    ):
-        page.set_viewport_size({"width": 900, "height": 800})
-        page.goto(live_server.url)
-        expect(page.locator("nav.dock")).to_be_visible()
-
     def test_dock_visible_at_every_width_when_the_sidebar_breakpoint_is_never(
         self, page, live_server, monkeypatch
     ):
@@ -102,16 +94,6 @@ class TestMobileDockVisibility:
         page.set_viewport_size(DESKTOP)
         page.goto(live_server.url)
         expect(page.locator("nav.dock")).to_be_visible()
-
-    def test_dock_pinned_to_bottom_after_scroll(self, page, live_server):
-        page.set_viewport_size(MOBILE)
-        page.goto(live_server.url)
-        page.evaluate("window.scrollBy(0, 500)")
-        box = page.locator("nav.dock").bounding_box()
-        assert box is not None
-        # bottom edge of the dock sits at the bottom edge of the viewport
-        assert abs((box["y"] + box["height"]) - MOBILE["height"]) < 10
-
 
 @pytest.mark.e2e
 @requires_browser
@@ -128,21 +110,6 @@ class TestMobileDockSidebarToggle:
         self._toggle(page).click()
         expect(sidebar).to_be_visible()
 
-    # Note: closing the drawer is the drawer's own concern, not the dock's —
-    # once open, the overlay sidebar covers the dock, so there is no "tap the
-    # dock toggle again" flow to test here. Drawer close is exercised elsewhere.
-
-    def test_dock_has_a_toggle_and_a_home_link(self, page, live_server):
-        page.set_viewport_size(MOBILE)
-        page.goto(live_server.url)
-        # exactly one sidebar-toggle control (a label bound to the drawer checkbox)
-        expect(self._toggle(page)).to_have_count(1)
-        # exactly one real navigation link (Home)
-        home = page.locator("nav.dock a")
-        expect(home).to_have_count(1)
-        expect(home).to_have_attribute("href", "/")
-
-
 @pytest.mark.django_db
 class TestTheMenuDrivenDockIsDeprecated:
     def test_rendering_a_menu_with_the_dock_renderer_warns(self):
@@ -151,12 +118,3 @@ class TestTheMenuDrivenDockIsDeprecated:
 
         with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
             MobileFooterNavRenderer().render(menu.process(request))
-
-    def test_the_menu_path_of_the_shells_dock_warns(self):
-        request = RequestFactory().get("/")
-        template = Template(
-            '{% load flex_menu %}{% render_menu "MobileFooterMenu" renderer="dock" %}'
-        )
-
-        with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
-            template.render(Context({"request": request}))

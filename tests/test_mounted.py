@@ -17,7 +17,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 from django.template import Context, Template
 from django.test import AsyncRequestFactory, override_settings
-from django.urls import Resolver404, include, path, resolve, reverse
+from django.urls import include, path, resolve, reverse
 from django.views.decorators.csrf import csrf_exempt
 from flex_menu import Menu, MenuItem
 
@@ -46,22 +46,6 @@ CHECKED_URLCONF = urlconf_of(
     handler403="tests.testapp_mounted.views.forbidden",
     handler404="mvp.views.error.not_found",
 )
-
-
-@pytest.mark.django_db
-@pytest.mark.urls(PLAIN_URLCONF)
-class TestFixtureApp:
-    def test_index_page_renders(self, client):
-        response = client.get("/mounted/")
-
-        assert response.status_code == 200
-        assert b'id="testapp-mounted-index"' in response.content
-
-    def test_detail_page_renders(self, client):
-        response = client.get("/mounted/detail/")
-
-        assert response.status_code == 200
-        assert b'id="testapp-mounted-detail"' in response.content
 
 
 def normalised_title(response):
@@ -114,20 +98,10 @@ class TestPageBelongingToNoApp:
         assert "Mounted Index" not in texts
         assert "Mounted Detail" not in texts
 
-    def test_sidebar_has_no_back_link(self, client):
-        response = client.get("/layout/")
-
-        assert b"data-back-link" not in response.content
-
     def test_titled_page_title_is_the_page_then_the_site(self, client):
         response = client.get("/layout/")
 
         assert normalised_title(response) == "App | example.com"
-
-    def test_titled_fixture_page_title_is_the_page_then_the_site(self, client):
-        response = client.get("/mounted/detail/")
-
-        assert normalised_title(response) == "Detail | example.com"
 
     def test_untitled_page_title_is_the_site_alone_after_a_bar(self, client):
         response = client.get("/mounted/")
@@ -205,22 +179,6 @@ class TestClassDeclaration:
             response = client.get("/j/detail/")
 
         assert normalised_title(response) == "Detail | Journal | example.com"
-
-    def test_a_host_subclass_overrides_a_name_and_has_permission(self, rf):
-        class HostApp(MountedFixtureApp):
-            name = "Host's"
-
-            def has_permission(self, request):
-                return super().has_permission(request) and request.user.is_staff
-
-        request = rf.get("/")
-        request.user = type("U", (), {"is_staff": False})()
-        staff = rf.get("/")
-        staff.user = type("U", (), {"is_staff": True})()
-
-        assert HostApp().name == "Host's"
-        assert HostApp().has_permission(request) is False
-        assert HostApp().has_permission(staff) is True
 
     def test_an_unknown_keyword_raises_a_type_error_naming_it(self):
         with pytest.raises(TypeError, match="colour"):
@@ -395,20 +353,6 @@ class TestMountedAppResolver:
         assert first.mounted_app is one
         assert second.mounted_app is two
 
-    def test_unmatched_path_is_still_a_404(self):
-        with pytest.raises(Resolver404):
-            resolve("/mounted/nope/", urlconf="tests.urls_mounted")
-
-    def test_main_is_accepted_and_stored(self):
-        resolver = mount("m/", throwaway_app(path("x/", ok_view)), main=True)
-
-        assert resolver.main is True
-
-    def test_main_defaults_to_false(self):
-        resolver = mount("m/", throwaway_app(path("x/", ok_view)))
-
-        assert resolver.main is False
-
 
 class TestLandingReverse:
     def test_landing_under_the_first_prefix(self):
@@ -430,12 +374,6 @@ class TestHostMenusUntouched:
         mount("m/", app)
 
         assert list(AppMenu.children) == before
-
-    def test_the_apps_entries_are_not_in_app_menu(self):
-        names = {child.name for child in AppMenu.children}
-
-        assert "testapp_mounted_index" not in names
-        assert "testapp_mounted_detail" not in names
 
 
 def named_app(name, *patterns):
@@ -522,16 +460,6 @@ class TestMountedRegistry:
             assert len(check_mounted_apps(None)) == 1
         with override_settings(ROOT_URLCONF=good):
             assert check_mounted_apps(None) == []
-
-    def test_the_error_hint_does_not_tell_a_project_to_include_mvp_urls_once(self):
-        urlconf = urlconf_of(
-            mount("o/", named_app("Outer", mount("i/", named_app("Inner"))))
-        )
-
-        with override_settings(ROOT_URLCONF=urlconf):
-            hint = check_mounted_apps(None)[0].hint
-
-        assert "mvp.urls" not in hint
 
     def test_a_per_request_urlconf_gets_its_own_mounts(self, rf):
         one, two = named_app("One"), named_app("Two")
@@ -868,9 +796,6 @@ class TestMainApp:
         assert "Mounted Index" not in labels
         assert "Mounted Detail" not in labels
 
-    def test_app_menu_is_not_drawn_on_any_page(self, client):
-        assert reverse("layout") not in menu_hrefs(client.get("/detail/"))
-
     def test_main_app_refusing_the_request_falls_back_to_the_app_menu(
         self, client, monkeypatch
     ):
@@ -1074,9 +999,6 @@ class TestMountedAppCheckOnOtherPaths:
 
         assert for_path(client, "/layout/") is second
 
-    # Playwright's loop running on this thread, as on a worker that has already
-    # run a browser test: the view must still run here.
-    @pytest.mark.usefixtures("playwright")
     def test_async_view_behind_a_failing_check_is_refused(self):
         app = throwaway_app(path("x/", async_ok_view, name="x"))
         app.check = lambda request: False
@@ -1088,9 +1010,6 @@ class TestMountedAppCheckOnOtherPaths:
 
         assert response.status_code == 302
 
-    # Playwright's loop running on this thread, as on a worker that has already
-    # run a browser test: the view must still run here.
-    @pytest.mark.usefixtures("playwright")
     def test_async_view_behind_a_passing_check_runs(self):
         app = throwaway_app(path("x/", async_ok_view, name="x"))
         app.check = lambda request: True

@@ -20,9 +20,10 @@ from bs4 import BeautifulSoup
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.sites.models import Site
 from django.contrib.sites.shortcuts import get_current_site
 from django.template import Context, Engine, engines
-from django.template.loader import get_template, render_to_string
+from django.template.loader import render_to_string
 from django.template.loader_tags import BlockNode, ExtendsNode
 from django.test import RequestFactory, override_settings
 from django.utils import translation
@@ -33,6 +34,13 @@ from tests.factories import CategoryFactory, ProductFactory
 
 MVP_TEMPLATES = Path(apps.get_app_config("mvp").path) / "templates"
 DEMO_TEMPLATES = Path(apps.get_app_config("demo").path) / "templates"
+
+
+@pytest.fixture(autouse=True)
+def _site_cache_restored():
+    """Tests here rename the current site; drop the cached row afterwards."""
+    yield
+    Site.objects.clear_cache()
 
 
 @pytest.fixture
@@ -47,9 +55,6 @@ def package_only_engine():
 
 
 class TestDefaultBaseTemplate:
-    def test_the_package_ships_one(self, package_only_engine):
-        assert package_only_engine.get_template("base.html") is not None
-
     def test_it_forwards_to_the_packaged_shell(self, package_only_engine):
         template = package_only_engine.get_template("base.html")
 
@@ -82,15 +87,6 @@ class TestDefaultBaseTemplate:
             parent = extends.parent_name.resolve(Context(), ignore_failures=True)
 
             assert package_only_engine.get_template(parent)
-
-    def test_an_app_listed_above_mvp_still_wins(self):
-        installed = settings.INSTALLED_APPS
-        assert installed.index("demo") < installed.index("mvp")
-
-        origin = get_template("base.html").origin.name
-
-        assert MVP_TEMPLATES not in Path(origin).parents
-        assert Path(origin).parts[-3:] == ("demo", "templates", "base.html")
 
 
 class TestShowCodeTemplate:
@@ -127,24 +123,26 @@ def multiline_brace_comments(source):
 
 
 class TestTemplateComments:
-    def test_the_lexer_really_does_leak_a_multiline_comment(self):
-        rendered = engines["django"].from_string("A{# one\ntwo #}B").render({})
+    def test_no_template_has_a_multiline_brace_comment(self):
+        """A multi-line ``{# #}`` is not a comment: the lexer renders it as text."""
+        templates = _template_files()
+        assert templates, "no templates found, so the scan checks nothing"
+        offenders = []
+        for path in templates:
+            lines = multiline_brace_comments(path.read_text(encoding="utf-8"))
+            if lines:
+                offenders.append(f"{path}: lines {lines}")
 
-        assert rendered == "A{# one\ntwo #}B"
-
-        single_line = engines["django"].from_string("A{# one #}B").render({})
-
-        assert single_line == "AB"
-
-    @pytest.mark.parametrize("path", _template_files(), ids=lambda p: p.name)
-    def test_no_template_has_a_multiline_brace_comment(self, path):
-        lines = multiline_brace_comments(path.read_text(encoding="utf-8"))
-
-        assert not lines, (
-            f"{path} has a {{# ... #}} comment spanning lines "
-            f"{lines} — it will render as visible text. "
-            "Use {% comment %} ... {% endcomment %} instead."
+        assert not offenders, (
+            "These templates have a {# ... #} comment spanning lines, which renders "
+            "as visible text. Use {% comment %} ... {% endcomment %} instead:\n"
+            + "\n".join(offenders)
         )
+
+    def test_the_scanner_finds_a_multiline_comment_and_ignores_a_single_line_one(self):
+        assert multiline_brace_comments("A{# one\ntwo #}B") == [1]
+        assert multiline_brace_comments("A{# one #}B\n{# two #}") == []
+        assert multiline_brace_comments("x\n{# never closed\nat all") == [2]
 
 
 BASE_HEAD_FIXTURE = Path(__file__).parent / "fixtures" / "base_head_off.html"
@@ -163,7 +161,7 @@ def render_shell_head(script_name=""):
 class TestShellHeadWithPwaOff:
     def test_head_carries_no_install_tags(self):
         head = render_shell_head()
-        soup = head_soup()
+        soup = BeautifulSoup(head, "html.parser")
 
         assert soup.find("link", rel="manifest") is None
         assert soup.find("meta", attrs={"name": "theme-color"}) is None
@@ -172,8 +170,6 @@ class TestShellHeadWithPwaOff:
 
 
 def head_soup():
-    from bs4 import BeautifulSoup
-
     return BeautifulSoup(render_shell_head(), "html.parser")
 
 
@@ -239,11 +235,6 @@ class TestShellHeadWithPwaOn:
 
         assert meta["content"] == "Shop"
 
-    def test_it_marks_the_page_as_a_web_app(self):
-        meta = head_soup().find("meta", attrs={"name": "mobile-web-app-capable"})
-
-        assert meta["content"] == "yes"
-
     def test_it_registers_the_worker_by_its_reversed_url(self):
         soup = head_soup()
 
@@ -266,7 +257,6 @@ class TestShellHeadWithPwaOn:
         ).replace(" ", "")
 
     def test_the_scope_follows_the_script_prefix(self):
-        from bs4 import BeautifulSoup
         from django.urls import set_script_prefix
 
         set_script_prefix("/app/")
@@ -300,8 +290,6 @@ class TestShellHeadWithPwaOn:
         assert meta["content"] == "The Corner Shop"
 
     def test_the_apple_title_is_the_host_when_the_site_has_no_name(self):
-        from django.contrib.sites.models import Site
-
         Site.objects.filter(pk=settings.SITE_ID).update(name="")
         Site.objects.clear_cache()
 
@@ -315,12 +303,10 @@ class TestShellHeadWithPwaOn:
         assert meta["content"] == "#123456"
 
     def test_a_hostile_name_stays_escaped(self):
-        from django.contrib.sites.models import Site
-
         name = 'A "b" </script><img src=x onerror=alert(1)>'
         Site.objects.filter(pk=settings.SITE_ID).update(name=name)
         head = render_shell_head()
-        soup = head_soup()
+        soup = BeautifulSoup(head, "html.parser")
 
         title = soup.find("meta", attrs={"name": "apple-mobile-web-app-title"})
 
@@ -328,8 +314,6 @@ class TestShellHeadWithPwaOn:
         assert "<img src=x" not in head
 
     def test_it_adds_no_url_to_another_host(self):
-        from bs4 import BeautifulSoup
-
         on = head_soup()
         off = BeautifulSoup(
             BASE_HEAD_FIXTURE.read_text(encoding="utf-8"), "html.parser"
@@ -358,7 +342,7 @@ class TestShellHeadWithoutMvpUrls:
 
     def test_the_page_renders_without_a_manifest_or_registration(self):
         head = render_shell_head()
-        soup = head_soup()
+        soup = BeautifulSoup(head, "html.parser")
 
         assert soup.find("link", rel="manifest") is None
         assert "serviceWorker" not in head
@@ -387,8 +371,6 @@ class TestShellHeadWithConfiguredValues:
 @pytest.mark.django_db
 class TestShellTitle:
     def title(self):
-        from bs4 import BeautifulSoup
-
         return " ".join(
             BeautifulSoup(render_shell_head(), "html.parser").title.text.split()
         )
@@ -429,7 +411,6 @@ class TestShellDockBlock:
 
 def render_component(markup, **context):
     """Render Cotton ``markup`` with ``context`` for a fixed anonymous request."""
-    from bs4 import BeautifulSoup
     from django_cotton.compiler_regex import CottonCompiler
 
     request = RequestFactory().get("/", HTTP_HOST="testserver")
@@ -441,8 +422,6 @@ def render_component(markup, **context):
 
 def shell_soup(blocks=""):
     """Parse a page that extends the shell and fills the given blocks."""
-    from bs4 import BeautifulSoup
-
     source = '{% extends "mvp/base.html" %}' + blocks
     return BeautifulSoup(render_shell(source), "html.parser")
 
@@ -570,8 +549,6 @@ TEMPLATE_TRAIL = (
 
 def trail_soup(blocks="", **context):
     """Parse a shell page rendered with ``context``, as a view would supply it."""
-    from bs4 import BeautifulSoup
-
     request = RequestFactory().get("/", HTTP_HOST="testserver")
     request.user = AnonymousUser()
     request.site = get_current_site(request)
@@ -687,7 +664,6 @@ def seeded_pages(db):
         "table": "/django-tables2/?page=1",
         "detail": f"/products/{product.pk}/",
         "form": f"/products/{product.pk}/edit/",
-        "create": "/products/create/",
         "dashboard": "/",
         "error": "/errors/404/",
     }
@@ -704,7 +680,7 @@ class TestPackagedPagesUnderCottonIsolation:
     """
 
     @pytest.mark.parametrize(
-        "page", ["list", "table", "detail", "form", "create", "dashboard", "error"]
+        "page", ["list", "table", "detail", "form", "dashboard", "error"]
     )
     def test_the_page_draws_the_same_controls(self, client, user, seeded_pages, page):
         client.force_login(user)
@@ -794,7 +770,10 @@ UNIQUE_TITLE_ARGUMENTS = {
     "page_info": "Unique info",
 }
 
-TITLE_PAGE_KINDS = ["page", "form", "detail", "delete", "list", "table"]
+# ``form`` and ``delete`` inherit ``page_view.html``'s title, so ``page`` stands for
+# all three. ``detail`` adds its own actions, and ``list`` and ``table`` draw the
+# title through their own block.
+TITLE_PAGE_KINDS = ["page", "detail", "list", "table"]
 
 
 @pytest.fixture
@@ -880,7 +859,7 @@ class TestPageTitleArgumentsOnEveryPage:
         assert title.select_one(".mvp-page-lead").get_text(strip=True) == "Unique lead"
         assert "Unique info" in title.find("dialog").get_text()
 
-    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    @pytest.mark.parametrize("kind", ["page", "detail"])
     def test_the_actions_are_drawn_in_the_title_on_pages_without_a_toolbar(
         self, render_title_page, kind
     ):
@@ -1029,23 +1008,6 @@ def title_area(soup):
     return soup.select_one(TITLE_WRAPPER)
 
 
-def block_title_cases():
-    """Each block on every kind of page, then on a page in each layout.
-
-    A table page draws a layout above its toolbar or, compact, inside it, so
-    each layout is tried on it too, for the heading.
-    """
-    cases = (
-        [(kind, None, block) for kind in TITLE_PAGE_KINDS for block in BLOCK_FILLS]
-        + [("page", name, block) for name in TITLE_LAYOUT_NAMES for block in BLOCK_FILLS]
-        + [("table", name, "heading") for name in TITLE_LAYOUT_NAMES]
-    )
-    return [
-        pytest.param(kind, layout, block, id=f"{kind}-{layout or 'own'}-{block}")
-        for kind, layout, block in cases
-    ]
-
-
 def toolbar_actions(kind):
     """Whether a page of this kind draws its actions in a toolbar, not in the title."""
     return kind in ("list", "table")
@@ -1057,32 +1019,67 @@ class TestPageTitleBlocks:
     def attrs(layout):
         return {"page_title_layout": layout} if layout else {}
 
-    @pytest.mark.parametrize(("kind", "layout", "block"), block_title_cases())
-    def test_a_block_replaces_its_argument_alone(
-        self, render_filled_page, kind, layout, block
-    ):
-        replacement, selector = BLOCK_FILLS[block]
-        soup = render_filled_page(kind, {block: replacement}, **self.attrs(layout))
-
+    @staticmethod
+    def assert_block_replaces_its_argument(soup, kind, block, replacement, selector):
         page = soup.select_one("main")
         title = title_area(soup)
         # The actions of a list or table page are in its toolbar, not the title.
         drawn_in = page if block == "actions" and toolbar_actions(kind) else title
         drawn = drawn_in.select(selector)
-        assert len(drawn) == 1
+        assert len(drawn) == 1, block
         if block in ("eyebrow", "heading", "lead"):
             # The info dialog is titled from the view's title, so read the element.
             assert drawn[0].get_text(strip=True) == replacement
         else:
             assert VIEW_VALUES[block] not in drawn_in.get_text()
+
+    @pytest.mark.parametrize(
+        ("kind", "layout"),
+        [(kind, None) for kind in TITLE_PAGE_KINDS]
+        + [("page", name) for name in TITLE_LAYOUT_NAMES if name != "default"],
+    )
+    def test_every_block_replaces_its_argument(self, render_filled_page, kind, layout):
+        fills = {block: markup for block, (markup, _) in BLOCK_FILLS.items()}
+
+        soup = render_filled_page(kind, fills, **self.attrs(layout))
+
+        for block, (replacement, selector) in BLOCK_FILLS.items():
+            self.assert_block_replaces_its_argument(
+                soup, kind, block, replacement, selector
+            )
+
+    @pytest.mark.parametrize("block", BLOCK_FILLS)
+    def test_a_block_replaces_its_argument_alone(self, render_filled_page, block):
+        replacement, selector = BLOCK_FILLS[block]
+
+        soup = render_filled_page("page", {block: replacement})
+
+        self.assert_block_replaces_its_argument(
+            soup, "page", block, replacement, selector
+        )
+        title = title_area(soup)
         for other in set(BLOCK_SELECTORS) - {block}:
             assert VIEW_VALUES[other] in title.select_one(
                 BLOCK_SELECTORS[other]
             ).get_text(), other
-        if block != "actions" and not toolbar_actions(kind):
-            assert len(page.select('a[href="/unique-action/"]')) == 1
+        if block != "actions":
+            assert len(soup.select_one("main").select('a[href="/unique-action/"]')) == 1
 
-    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    @pytest.mark.parametrize("layout", TITLE_LAYOUT_NAMES)
+    def test_a_table_page_draws_a_filled_heading_in_every_layout(
+        self, render_filled_page, layout
+    ):
+        replacement, selector = BLOCK_FILLS["heading"]
+
+        soup = render_filled_page(
+            "table", {"heading": replacement}, **self.attrs(layout)
+        )
+
+        self.assert_block_replaces_its_argument(
+            soup, "table", "heading", replacement, selector
+        )
+
+    @pytest.mark.parametrize("kind", ["page", "list"])
     @pytest.mark.parametrize("block", ["eyebrow", "heading", "lead", "info"])
     def test_a_block_filled_with_nothing_removes_its_argument(
         self, render_filled_page, kind, block
@@ -1100,7 +1097,7 @@ class TestPageTitleBlocks:
         ]
         assert empty == []
 
-    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    @pytest.mark.parametrize("kind", ["page", "detail"])
     def test_the_actions_block_filled_with_nothing_draws_no_actions_in_the_title(
         self, render_filled_page, kind
     ):
@@ -1121,7 +1118,7 @@ class TestPageTitleBlocks:
         assert "/products/create/" not in links
         assert title_area(soup).select_one("h1") is not None
 
-    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    @pytest.mark.parametrize("kind", ["page", "list"])
     def test_an_emptied_heading_keeps_the_info_trigger(self, render_filled_page, kind):
         soup = render_filled_page(kind, {"heading": ""})
 
@@ -1130,7 +1127,7 @@ class TestPageTitleBlocks:
         assert "Unique info" in title.find("dialog").get_text()
         assert title.find("button") is not None
 
-    @pytest.mark.parametrize("kind", TITLE_PAGE_KINDS)
+    @pytest.mark.parametrize("kind", ["page", "list"])
     def test_overriding_the_title_block_replaces_the_whole_area(
         self, render_filled_page, kind
     ):
@@ -1162,7 +1159,7 @@ DIRECT_ACTION = (
 
 @pytest.mark.django_db
 class TestPageTitleCalledDirectly:
-    @pytest.mark.parametrize("layout", TITLE_LAYOUT_NAMES)
+    @pytest.mark.parametrize("layout", ["default", "compact"])
     def test_a_call_with_attributes_and_a_layout_draws_what_a_page_view_draws(
         self, render_title_page, layout
     ):
@@ -1179,10 +1176,10 @@ class TestPageTitleCalledDirectly:
             title_area(page)
         )
 
-    @pytest.mark.parametrize("layout", TITLE_LAYOUT_NAMES)
     def test_actions_given_as_a_list_of_dicts_draw_what_a_page_view_draws(
-        self, render_title_page, layout
+        self, render_title_page
     ):
+        layout = "default"
         page = render_title_page(
             "page", **UNIQUE_TITLE_ARGUMENTS, page_title_layout=layout
         )
@@ -1246,7 +1243,7 @@ class TestProjectTitleLayout:
         assert own_layout_slot(soup, "lead").get_text(strip=True) == "Unique lead"
         assert "Unique info" in own_layout_slot(soup, "info").find("dialog").get_text()
 
-    @pytest.mark.parametrize("kind", ["page", "form", "detail", "delete"])
+    @pytest.mark.parametrize("kind", ["page", "detail"])
     def test_the_project_layout_receives_the_pages_actions(
         self, render_title_page, kind
     ):

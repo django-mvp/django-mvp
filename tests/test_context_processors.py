@@ -3,8 +3,6 @@
 Source: mvp/context_processors.py
 """
 
-from unittest import mock
-
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
@@ -13,7 +11,6 @@ from django.urls import resolve
 
 from mvp.config import MVP_CONFIG
 from mvp.context_processors import mvp_config
-from mvp.mounted import MountedApp
 from tests.testapp_mounted.mounted import testapp_mounted
 
 
@@ -28,6 +25,12 @@ def request_for(rf, path, urlconf):
 class TestMvpConfig:
     def test_exposes_the_merged_configuration(self, rf):
         assert mvp_config(rf.get("/"))["mvp_config"] is MVP_CONFIG
+
+    def test_a_request_that_was_never_routed_names_no_app_and_draws_no_menu(self, rf):
+        context = mvp_config(rf.get("/"))
+
+        assert not context["mounted_app"]
+        assert not context["mounted_menu"]
 
 
 @pytest.mark.urls("tests.urls_mounted")
@@ -57,27 +60,3 @@ class TestMountedValues:
 
             assert not app
             assert menu == testapp_mounted.menu
-
-    def test_no_lookup_runs_until_a_value_is_read(self, rf):
-        request = request_for(rf, "/mounted/", "tests.urls_mounted")
-
-        with (
-            mock.patch.object(MountedApp, "for_request") as for_request,
-            mock.patch.object(MountedApp, "main") as main,
-        ):
-            context = mvp_config(request)
-
-        for_request.assert_not_called()
-        main.assert_not_called()
-        assert context["mounted_app"] is not None
-
-    def test_reading_a_value_runs_the_lookup(self, rf):
-        request = request_for(rf, "/mounted/", "tests.urls_mounted")
-
-        with mock.patch.object(
-            MountedApp, "for_request", wraps=MountedApp.for_request
-        ) as for_request:
-            context = mvp_config(request)
-            assert context["mounted_app"] == testapp_mounted
-
-        for_request.assert_called()

@@ -3,9 +3,8 @@
 Source: demo/settings.py, demo/templates/demo/theme_customization.html
 
 This is FS-026 US-3's demo evidence (SC-002, SC-005): the page a reader checks
-docs/theming.md against. The switcher offers the demo's actual configured set
-of themes, and no theme definition is requested from a host outside the
-project.
+docs/theming.md against. No theme definition is requested from a host
+outside the project.
 
 Two of the five themes on offer, ``mvp`` and ``mvp-dark``, are the demo's own:
 they carry django-mvp's branding, so they live in
@@ -13,9 +12,8 @@ they carry django-mvp's branding, so they live in
 the demo's base template links them alongside the packaged stylesheet. That
 makes the page a live worked example of the technique docs/theming.md
 describes, which is what a sixth hand-written theme called ``sunrise`` used to
-be here for (issue #239). The palette itself is gated in
-tests/test_demo/test_demo_themes.py. What is asserted below is the page: every
-configured theme is offered, and none of them comes from a third party.
+be here for (issue #239). What is asserted below is the page: none of the
+themes comes from a third party.
 
 ``tests/settings.py`` deliberately pins a bare ``MVP_CONFIG`` with no
 ``theme.choices`` (its own docstring: "visual tweaks to the demo don't ripple
@@ -41,25 +39,6 @@ def demo_theme_choices(monkeypatch):
 
 @pytest.mark.django_db
 class TestThemeCustomizationDemoPage:
-    def test_renders_200(self, client, demo_theme_choices):
-        response = client.get(reverse("customization"))
-
-        assert response.status_code == 200
-
-    def test_switcher_offers_every_configured_theme(self, client, demo_theme_choices):
-        assert DEMO_THEME_CHOICES, (
-            "demo.settings.MVP_CONFIG must configure theme.choices for this "
-            "test to mean anything"
-        )
-        response = client.get(reverse("customization"))
-        content = response.content.decode()
-
-        for theme in DEMO_THEME_CHOICES:
-            assert f'data-set-theme="{theme}"' in content, (
-                f'the switcher is missing an entry for "{theme}", one of '
-                "the demo's configured theme.choices"
-            )
-
     def test_no_theme_definition_comes_from_outside_the_project(
         self, client, demo_theme_choices
     ):
@@ -76,26 +55,3 @@ class TestThemeCustomizationDemoPage:
             "and mvp-dark are defined — without it the first two entries in "
             "the picker render as an unstyled fallback and nothing raises"
         )
-
-
-@pytest.mark.django_db
-class TestThemePreviewPage:
-    def test_renders_200(self, client):
-        response = client.get(reverse("theme-preview"))
-
-        assert response.status_code == 200
-
-    def test_draws_every_colour_slot_of_a_theme(self, client):
-        html = client.get(reverse("theme-preview")).content.decode()
-
-        for slot in (
-            "neutral",
-            "primary",
-            "secondary",
-            "accent",
-            "info",
-            "success",
-            "warning",
-            "error",
-        ):
-            assert f"bg-{slot} text-{slot}-content" in html

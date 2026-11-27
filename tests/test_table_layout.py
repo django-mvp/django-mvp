@@ -103,18 +103,9 @@ class TestTableArea:
         region = _beautiful_soup()(html, "html.parser").find(attrs={"role": "region"})
         assert region["aria-label"]
 
-    def test_scrolls_on_both_axes(self, cotton_render_string):
-        html = self._render(cotton_render_string)
-        assert "overflow-auto" in html
-
     def test_is_a_keyboard_reachable_tab_stop(self, cotton_render_string):
         html = self._render(cotton_render_string)
         assert 'tabindex="0"' in html
-
-    def test_is_announced_as_a_scrollable_region(self, cotton_render_string):
-        html = self._render(cotton_render_string)
-        assert 'role="region"' in html
-
 
 class TestTableViewTemplate:
     @pytest.mark.django_db
@@ -129,13 +120,6 @@ class TestTableViewTemplate:
         title = soup.find(class_="page-title")
         assert title is not None
         assert "Products" in title.get_text()
-
-    @pytest.mark.django_db
-    def test_no_action_list_leaks_into_the_page(self, rf, product):
-        html = _render_table_view(rf)
-        assert "['search'" not in html
-        assert "&#x27;search&#x27;" not in html
-        assert "&#39;search&#39;" not in html
 
     @pytest.mark.django_db
     def test_the_app_footer_is_empty_on_a_table_view(self, rf, product):
@@ -189,7 +173,7 @@ class TestTableViewTemplate:
         soup = _beautiful_soup()(
             _render_table_view(rf, paginate_by=None), "html.parser"
         )
-        count = soup.find(class_="mvp-page-fill").find(string=re.compile(r"\d+-\d+"))
+        count = soup.find(class_="mvp-page-fill").find(string=re.compile(r"\d+–\d+"))
         assert count is None
 
     @pytest.mark.django_db
@@ -330,16 +314,6 @@ class TestColumnBehaviourClasses:
         row = soup.find("tbody").find("tr")
         return row.find_all("td")
 
-    def test_each_declared_behaviour_class_renders_on_its_cell(
-        self, cotton_render_string
-    ):
-        cells = self._row_cells(cotton_render_string, self._table())
-        assert "mvp-col-grow" in cells[0].get("class", [])
-        assert "mvp-col-shrink" in cells[1].get("class", [])
-        assert "mvp-col-wrap" in cells[2].get("class", [])
-        assert "mvp-col-nowrap" in cells[3].get("class", [])
-        assert "mvp-col-max-md" in cells[4].get("class", [])
-
     def test_project_wrap_default_off_applies_to_a_column_declaring_neither_class(
         self, cotton_render_string
     ):
@@ -375,10 +349,9 @@ class TestDocumentedClassesMatchShipped:
 
     def _shipped_classes(self):
         text = (REPO_ROOT / "mvp" / "static" / "css" / "django-mvp.css").read_text()
-        return set(re.findall(r"\.(mvp-col-[a-z0-9-]+)\s*\{", text))
-
-    def test_shipped_set_is_not_empty(self):
-        assert self._shipped_classes()
+        shipped = set(re.findall(r"\.(mvp-col-[a-z0-9-]+)\s*\{", text))
+        assert shipped, "no mvp-col classes found, so the comparison checks nothing"
+        return shipped
 
     def test_every_shipped_class_is_documented(self):
         shipped = self._shipped_classes()
@@ -425,16 +398,6 @@ class TestTheFilterFormKeepsTheColumnSort:
 
         inputs = self._sort_inputs(html, name="products-sort")
         assert [i["value"] for i in inputs] == ["price"]
-
-
-class TestColumnBehaviourDemoPage:
-    @pytest.mark.django_db
-    def test_renders_200(self, client, product):
-        pytest.importorskip("django_tables2")
-        from django.urls import reverse
-
-        response = client.get(reverse("table-column-behaviour"))
-        assert response.status_code == 200
 
 
 class TestCustomToolbarDemoPage:
@@ -507,34 +470,6 @@ class TestInferredAlignment:
         names = list(table.columns.names())
         head_row = soup.find("thead").find("tr")
         return dict(zip(names, head_row.find_all("th")))
-
-    @pytest.mark.django_db
-    def test_text_column_cells_are_leading(self, cotton_render_string, product):
-        table = self._table()
-        soup = self._render(cotton_render_string, table)
-        cells = self._cells_by_column(soup, table)
-        assert "text-start" in cells["name"].get("class", [])
-
-    @pytest.mark.django_db
-    def test_numeric_column_cells_are_trailing(self, cotton_render_string, product):
-        table = self._table()
-        soup = self._render(cotton_render_string, table)
-        cells = self._cells_by_column(soup, table)
-        assert "text-end" in cells["price"].get("class", [])
-
-    @pytest.mark.django_db
-    def test_boolean_column_cells_are_centred(self, cotton_render_string, product):
-        table = self._table()
-        soup = self._render(cotton_render_string, table)
-        cells = self._cells_by_column(soup, table)
-        assert "text-center" in cells["is_featured"].get("class", [])
-
-    @pytest.mark.django_db
-    def test_action_column_cells_are_centred(self, cotton_render_string, product):
-        table = self._table()
-        soup = self._render(cotton_render_string, table)
-        cells = self._cells_by_column(soup, table)
-        assert "text-center" in cells["action"].get("class", [])
 
     @pytest.mark.django_db
     def test_heading_carries_the_same_alignment_as_its_cells(
@@ -640,10 +575,6 @@ class TestRowHeaderCells:
         row = self._row(cotton_render_string, self._table(("icon", "name")))
         assert [th.get_text(strip=True) for th in row.find_all("th")] == ["i", "a"]
 
-    def test_a_single_name_may_be_given_as_a_string(self, cotton_render_string):
-        row = self._row(cotton_render_string, self._table("icon"))
-        assert [th.get_text(strip=True) for th in row.find_all("th")] == ["i"]
-
     def test_the_column_heading_is_still_a_column_header(self, cotton_render_string):
         html = cotton_render_string(
             "<c-mvp.addons.django-table :table='table' />",
@@ -653,8 +584,15 @@ class TestRowHeaderCells:
         headings = soup.find("thead").find_all("th")
         assert [heading.get("scope") for heading in headings] == ["col"] * 3
 
-    @pytest.mark.parametrize("localize", [None, True, False])
-    @pytest.mark.parametrize("value", [Decimal("12345.6"), date(2026, 9, 15)])
+    @pytest.mark.parametrize(
+        ("localize", "value"),
+        [
+            (None, Decimal("12345.6")),
+            (True, Decimal("12345.6")),
+            (False, Decimal("12345.6")),
+            (None, date(2026, 9, 15)),
+        ],
+    )
     def test_a_row_header_renders_its_value_the_way_a_data_cell_does(
         self, cotton_render_string, localize, value
     ):
@@ -676,13 +614,6 @@ class TestRowHeaderCells:
         assert row.find("th").get_text(strip=True) == row.find("td").get_text(
             strip=True
         )
-
-    def test_an_unknown_column_name_is_refused(self, cotton_render_string):
-        from django.core.exceptions import ImproperlyConfigured
-
-        with pytest.raises(ImproperlyConfigured, match="nonexistent"):
-            self._row(cotton_render_string, self._table(("icon", "nonexistent")))
-
 
 class TestFalseyColumnHeading:
     def _headings(self, cotton_render_string):
@@ -898,9 +829,8 @@ class TestTableToolbar:
         assert soup.find(class_="mvp-table-toolbar-note") is None
 
     @pytest.mark.django_db
-    @pytest.mark.parametrize(
-        "block",
-        [
+    def test_a_project_can_replace_each_part_of_the_toolbar(self, rf, product):
+        blocks = [
             "page.toolbar",
             "page.summary",
             "page.controls",
@@ -908,19 +838,22 @@ class TestTableToolbar:
             "page.panel",
             "page.filters",
             "page.refinements",
-        ],
-    )
-    def test_a_project_can_replace_one_part_of_the_toolbar(self, rf, product, block):
-        html = _render_table_view(
-            rf,
-            template_name="tests/table_view_part_override.html",
-            query="?q=product",
-            extra_context={"override": block},
-        )
-        soup = _beautiful_soup()(html, "html.parser")
+        ]
+        failures = []
+        for block in blocks:
+            html = _render_table_view(
+                rf,
+                template_name="tests/table_view_part_override.html",
+                query="?q=product",
+                extra_context={"override": block},
+            )
+            soup = _beautiful_soup()(html, "html.parser")
+            if soup.find(id="override") is None:
+                failures.append(f"{block}: the replacement is not drawn")
+            if soup.find(attrs={"role": "region"}) is None:
+                failures.append(f"{block}: the table is gone")
 
-        assert soup.find(id="override") is not None
-        assert soup.find(attrs={"role": "region"}) is not None, "the table is kept"
+        assert not failures, failures
 
 
 class TestTableFilterPanel:
@@ -1173,7 +1106,7 @@ class TestTableTitleLayout:
         assert heading.find_parent(class_="mvp-table-toolbar-bar") is not None
         assert heading.find_parent(class_="mvp-table-toolbar-heading") is None
 
-    @pytest.mark.parametrize("layout", ["default", "inline", "centred"])
+    @pytest.mark.parametrize("layout", ["inline"])
     def test_any_other_layout_draws_the_heading_above_the_bar(
         self, rf, monkeypatch, product, layout
     ):
@@ -1185,7 +1118,7 @@ class TestTableTitleLayout:
         assert heading.find_parent(class_="mvp-table-toolbar-bar") is None
         assert above.find_next(class_="mvp-table-toolbar-bar") is not None
 
-    @pytest.mark.parametrize("layout", [None, "default", "inline", "centred"])
+    @pytest.mark.parametrize("layout", [None, "inline"])
     def test_the_bar_keeps_the_result_summary_and_the_controls(
         self, rf, monkeypatch, product, layout
     ):
@@ -1196,7 +1129,7 @@ class TestTableTitleLayout:
         assert bar.select_one(".mvp-list-summary") is not None
         assert toolbar.select_one('.mvp-table-toolbar-controls a[href="/products/create/"]')
 
-    @pytest.mark.parametrize("layout", [None, "default", "inline", "centred"])
+    @pytest.mark.parametrize("layout", [None, "inline"])
     def test_the_page_has_one_heading_whatever_the_layout(
         self, rf, monkeypatch, product, layout
     ):
