@@ -1,11 +1,15 @@
-"""Tests for the browser-test skip decision in ``tests/conftest.py``.
+"""Tests for the browser-test decisions in ``tests/conftest.py``.
 
 The decision is worth pinning because getting it wrong is invisible. A guard
 that skips in CI turns nineteen browser tests into nineteen green skips, which
 reads exactly like nineteen passes on the checks page (issue #171).
 """
 
-from tests.conftest import _should_skip_browser_tests
+from tests.conftest import (
+    OFF_THIS_MACHINE,
+    _should_skip_browser_tests,
+    answer_request,
+)
 
 
 class TestShouldSkipBrowserTests:
@@ -22,3 +26,50 @@ class TestShouldSkipBrowserTests:
 
     def test_treats_an_empty_ci_variable_as_not_ci(self):
         assert _should_skip_browser_tests(has_browser=False, env={"CI": ""}) is True
+
+
+class FakeRoute:
+    """The answers a Playwright route can give, recorded."""
+
+    def __init__(self):
+        self.answer = None
+
+    def abort(self, reason):
+        self.answer = "abort"
+
+
+class FakeRequest:
+    def __init__(self, url, method="GET"):
+        self.url = url
+        self.method = method
+
+
+def _answer(url):
+    route, external = FakeRoute(), []
+    answer_request(route, FakeRequest(url), external)
+    return route, external
+
+
+class TestAnswerRequest:
+    def test_a_request_to_any_other_host_is_refused_and_recorded(self):
+        route, external = _answer("https://example.com/tracker.js")
+
+        assert route.answer == "abort"
+        assert external == ["GET https://example.com/tracker.js"]
+
+
+class TestOffThisMachine:
+    def test_only_addresses_on_other_machines_match(self):
+        addresses = {
+            "http://localhost:8123/components/": False,
+            "http://127.0.0.1:41233/": False,
+            "http://[::1]:8000/x": False,
+            "https://localhost/": False,
+            "https://example.com/localhost/": True,
+            "http://localhost.example.com/": True,
+            "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js": True,
+        }
+
+        matched = {url: bool(OFF_THIS_MACHINE.match(url)) for url in addresses}
+
+        assert matched == addresses

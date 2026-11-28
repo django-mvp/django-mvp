@@ -5,6 +5,8 @@ controls inside are lifted above it by another. Only a browser shows that a
 click lands on the right one, so this renders the demo's Link section.
 """
 
+import re
+
 import pytest
 from playwright.sync_api import expect
 
@@ -28,17 +30,19 @@ class TestCardLinkInTheBrowser:
         body = body.bounding_box()
         page.mouse.click(body["x"] + 40, body["y"] + 10)
 
-        assert page.url.endswith("#opened")
+        # The address changes in the page first and reaches the test a moment
+        # later, so wait for it instead of reading it at once.
+        expect(page).to_have_url(re.compile(r"#opened$"))
 
     def test_a_button_in_the_card_does_its_own_thing(self, page, live_server):
         page.goto(f"{live_server.url}{PAGE}")
 
         page.locator("#linked_card_button").click()
 
-        assert not page.url.endswith("#opened")
         expect(page.locator("#linked_card_button")).to_have_attribute(
             "data-pressed", "yes"
         )
+        assert not page.url.endswith("#opened")
 
     def test_the_card_has_one_tab_stop_for_its_link(self, page, live_server):
         page.goto(f"{live_server.url}{PAGE}")
