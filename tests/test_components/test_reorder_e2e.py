@@ -430,8 +430,16 @@ DRAG_ENDED = """() => !document.querySelector(
   '.mvp-reorder-sorting, .mvp-reorder-held')"""
 
 
-def drag(page, source, target, below=True, grab="[data-mvp-reorder-handle]"):
-    """Drag the row ``source`` by ``grab`` until it is over the row ``target``."""
+def drag(
+    page, source, target, below=True, grab="[data-mvp-reorder-handle]", starts=True
+):
+    """Drag the row ``source`` by ``grab`` until it is over the row ``target``.
+
+    A loaded browser can handle the moves a frame after the call that sent them has
+    returned, and the library starts a drag one task after the first move. A drag that
+    should happen is released only once it has started and its row has reached the
+    target. ``starts=False`` is for a drag that should never begin.
+    """
     start = page.locator(f'#steps [data-mvp-reorder-value="{source}"] {grab}')
     end = page.locator(f'#steps [data-mvp-reorder-value="{target}"]').bounding_box()
     box = start.bounding_box()
@@ -439,10 +447,9 @@ def drag(page, source, target, below=True, grab="[data-mvp-reorder-handle]"):
     page.mouse.down()
     y = end["y"] + end["height"] * (0.75 if below else 0.25)
     page.mouse.move(box["x"] + box["width"] / 2, y, steps=12)
-    # A drag that is under way is released only once its row has reached the target.
     page.wait_for_function(
-        """([target, below]) => {
-          if (!document.querySelector('#steps .mvp-reorder-sorting')) return true;
+        """([target, below, starts]) => {
+          if (!document.querySelector('#steps .mvp-reorder-sorting')) return !starts;
           const ghost = document.querySelector('#steps .mvp-reorder-ghost');
           const row = document.querySelector(
             `#steps [data-mvp-reorder-value="${target}"]`);
@@ -450,7 +457,7 @@ def drag(page, source, target, below=True, grab="[data-mvp-reorder-handle]"):
             ? ghost.previousElementSibling === row
             : ghost.nextElementSibling === row);
         }""",
-        arg=[target, below],
+        arg=[target, below, starts],
     )
     page.mouse.up()
     page.wait_for_function(DRAG_ENDED)
@@ -469,7 +476,7 @@ class TestDraggingARow:
     def test_dragging_from_outside_the_handle_starts_nothing(self, page, live_server):
         open_page(page, live_server)
 
-        drag(page, "a", "c", grab="div")
+        drag(page, "a", "c", grab="div", starts=False)
 
         assert values(page) == ["a", "b", "c"]
 
@@ -1291,7 +1298,7 @@ class TestReorderMode:
         self.open_mode(page, live_server)
         page.evaluate(SHOW_HANDLES)
 
-        drag(page, "a", "c")
+        drag(page, "a", "c", starts=False)
 
         assert values(page) == ["a", "b", "c"]
 
@@ -1326,7 +1333,7 @@ class TestReorderMode:
         expect(page.locator("#steps [data-mvp-reorder-handle]").first).to_be_hidden()
         assert page.locator("#steps[data-reordering]").count() == 0
         page.evaluate(SHOW_HANDLES)
-        drag(page, "a", "c")
+        drag(page, "a", "c", starts=False)
         assert values(page) == ["a", "b", "c"]
 
     def test_escape_ends_the_mode(self, page, live_server):
