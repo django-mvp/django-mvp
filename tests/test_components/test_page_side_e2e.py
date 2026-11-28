@@ -853,6 +853,21 @@ class TestSideDrawerSlide:
                 return edges;
             }"""
         )
+        # The stretched duration reaches every transition inside the drawer, not
+        # only the ones running at the halfway mark. Finish whatever is left so
+        # the wait that follows does not sit through a minute of each.
+        page.evaluate(
+            """async () => {
+                const frame = () => new Promise(done => requestAnimationFrame(done));
+                for (let round = 0; round < 10; round++) {
+                    const left = document.getAnimations().filter(
+                        a => a instanceof CSSTransition && a.playState !== 'finished');
+                    if (!left.length) return;
+                    for (const slide of left) slide.finish();
+                    await frame();
+                }
+            }"""
+        )
         return edges
 
     @pytest.mark.parametrize("direction", ["ltr", "rtl"])
