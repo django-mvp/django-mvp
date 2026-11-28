@@ -528,10 +528,17 @@ def answer_request(route, request, external):
     for pattern, answer, content_type in STAND_INS:
         match = pattern.fullmatch(url)
         if match:
-            if callable(answer):
-                answer = answer(match).read_bytes()
+            try:
+                body = answer(match).read_bytes() if callable(answer) else answer
+            except OSError as error:
+                # An unanswered route hangs the page until its timeout and hides why.
+                external.append(
+                    f"{request.method} {url} (stand-in unreadable: {error})"
+                )
+                route.abort("failed")
+                return
             route.fulfill(
-                body=answer,
+                body=body,
                 content_type=content_type,
                 headers={"access-control-allow-origin": "*"},
             )
@@ -634,7 +641,7 @@ def _browser_defaults(request, monkeypatch):
     The contexts a test opens itself through ``browser.new_context`` or
     ``browser.new_page`` are configured the same way as the ``page`` fixture's.
     This fixture is set up before the others a test asks for, so it ends after
-    them: the pages are closed and the live server idle by the time it checks.
+    them: the pages are closed by the time it checks.
     """
     if "browser" not in request.fixturenames:
         yield

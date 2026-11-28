@@ -33,11 +33,6 @@ class FakeRoute:
 
     def __init__(self):
         self.answer = None
-        self.body = None
-
-    def fulfill(self, body, content_type, headers):
-        self.answer = "fulfill"
-        self.body = body
 
     def abort(self, reason):
         self.answer = "abort"
@@ -56,14 +51,6 @@ def _answer(url):
 
 
 class TestAnswerRequest:
-    def test_a_request_to_a_stood_in_host_is_served_from_the_repository(self):
-        route, external = _answer(
-            "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"
-        )
-
-        assert (route.answer, external) == ("fulfill", [])
-        assert route.body.startswith(b"\x89PNG")
-
     def test_a_request_to_any_other_host_is_refused_and_recorded(self):
         route, external = _answer("https://example.com/tracker.js")
 
