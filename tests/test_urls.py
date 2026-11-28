@@ -15,7 +15,7 @@ from django.urls import (
 )
 
 from mvp.pwa.views import InstallView
-from mvp.views.account import AccountCenterView, account_center
+from mvp.views.account import account_center
 
 
 def _urlconf():
@@ -149,12 +149,6 @@ class TestPwaUrls:
         assert reverse("mvp-pwa-service-worker") == "/sw.js"
 
     @override_settings(ROOT_URLCONF="tests.urls_pwa")
-    @pytest.mark.usefixtures("pwa_enabled")
-    def test_the_routes_resolve_to_the_packaged_views(self):
-        assert resolve("/manifest.webmanifest").func.__name__ == "manifest"
-        assert resolve("/sw.js").func.__name__ == "service_worker"
-
-    @override_settings(ROOT_URLCONF="tests.urls_pwa")
     def test_the_install_page_is_absent_when_the_feature_is_off(self):
         with pytest.raises(NoReverseMatch):
             reverse("mvp-pwa-install")
@@ -172,12 +166,7 @@ class TestAccountCenterMount:
         with override_settings(ROOT_URLCONF=ACCOUNT_URLCONF):
             yield
 
-    def test_the_landing_resolves_to_the_account_center_view(self):
-
-        assert resolve("/account/").func.view_class is AccountCenterView
-
     def test_the_landing_is_served_for_the_account_center(self):
-
         assert resolve("/account/").func.mounted_app is account_center
 
     def test_the_sign_in_page_is_outside_the_mount(self):

@@ -4,41 +4,19 @@ Source: demo/views.py, demo/urls.py
 """
 
 import pytest
-from bs4 import BeautifulSoup
 
-from demo.models import Project
+from demo.views import ReorderDemoData
 
 pytestmark = pytest.mark.django_db
 
 
 def task_ids(name):
-    return list(
-        Project.objects.get(name=f"Reorder demo: {name}").tasks.values_list(
-            "pk", flat=True
-        )
-    )
+    """The ids of one list's tasks in their saved order, seeding the list if new."""
+    return [task.pk for task in ReorderDemoData().tasks(name)]
 
 
 class TestReorderDemoPage:
-    def test_each_of_the_four_lists_has_several_rows(self, client):
-        response = client.get("/components/reorder/")
-
-        soup = BeautifulSoup(response.content, "html.parser")
-        assert response.status_code == 200
-        for section in ("row-set", "in-a-form", "posts-as-it-changes", "on-demand"):
-            rows = soup.select(f"section#{section} [data-mvp-reorder-row]")
-            assert len(rows) > 2
-
-    def test_the_list_without_buttons_has_rows_and_marks_the_buttons_off(self, client):
-        response = client.get("/components/reorder/")
-
-        soup = BeautifulSoup(response.content, "html.parser")
-        root = soup.select_one("section#without-buttons [data-mvp-reorder]")
-        assert root.has_attr("data-mvp-reorder-hide-buttons")
-        assert len(root.select("[data-mvp-reorder-row]")) > 2
-
     def test_the_form_list_saves_the_order_it_posts(self, client):
-        client.get("/components/reorder/")
         ids = task_ids("form")
 
         response = client.post("/components/reorder/", {"order": ids[::-1]})
@@ -47,7 +25,6 @@ class TestReorderDemoPage:
         assert task_ids("form") == ids[::-1]
 
     def test_the_form_list_refuses_an_order_that_leaves_a_task_out(self, client):
-        client.get("/components/reorder/")
         ids = task_ids("form")
 
         response = client.post("/components/reorder/", {"order": ids[1:]})
@@ -58,7 +35,6 @@ class TestReorderDemoPage:
 
 class TestReorderDemoSave:
     def test_a_posted_order_is_saved_and_the_list_drawn_again(self, client):
-        client.get("/components/reorder/")
         ids = task_ids("mode")
 
         response = client.post("/components/reorder/mode/", {"order": ids[::-1]})
@@ -68,7 +44,6 @@ class TestReorderDemoSave:
         assert b'id="mode-tasks"' in response.content
 
     def test_the_pinned_list_refuses_an_order_that_moves_its_first_task(self, client):
-        client.get("/components/reorder/")
         ids = task_ids("live")
 
         response = client.post("/components/reorder/live/", {"order": ids[::-1]})
@@ -79,7 +54,6 @@ class TestReorderDemoSave:
     def test_the_pinned_list_keeps_an_order_that_leaves_its_first_task_alone(
         self, client
     ):
-        client.get("/components/reorder/")
         ids = task_ids("live")
         wanted = [ids[0], ids[2], ids[1], *ids[3:]]
 

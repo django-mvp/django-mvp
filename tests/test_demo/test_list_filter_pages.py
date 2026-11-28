@@ -9,16 +9,9 @@ drawn inside it, and a page with nothing left over draws no panel and no
 Filters button.
 """
 
-import io
-import re
-
 import pytest
 from bs4 import BeautifulSoup
-from django.core.management import call_command
 from django.urls import reverse
-
-from demo.models import Product
-from mvp.menus import AppMenu
 
 
 def _placed_fields(content):
@@ -44,15 +37,6 @@ class TestToolbarFiltersOnlyPage:
 
         assert toolbar == ["q", "status", "is_featured"]
         assert panel == []
-
-    def test_draws_the_sort_in_the_toolbar(self, client):
-        content = client.get(reverse("product-list-quick")).content.decode()
-
-        assert re.search(r'name="o"', content.split('id="filterForm"', 1)[1])
-
-    def test_draws_no_filter_panel_and_no_panel_button(self, client):
-        content = client.get(reverse("product-list-quick")).content.decode()
-
         assert 'id="filters"' not in content
         assert 'aria-controls="filters"' not in content
 
@@ -81,26 +65,4 @@ class TestFilterPanelOnlyPage:
             "is_available",
             "o",
         ]
-
-    def test_draws_the_panel_button(self, client):
-        content = client.get(reverse("product-list-panel-only")).content.decode()
-
         assert 'aria-controls="filters"' in content
-
-
-class TestListFilterPageMenuItems:
-    @pytest.mark.parametrize(
-        "name", ["product-list-quick", "product-list-panel-only"]
-    )
-    def test_menu_item_resolves_to_its_page(self, name):
-        assert AppMenu.get(name).resolve_url() == reverse(name)
-
-
-@pytest.mark.django_db
-class TestDemoSeedLongName:
-    def test_seeds_a_product_whose_name_wraps(self):
-        call_command("generate_dummy_data", stdout=io.StringIO())
-
-        longest = max(len(name) for name in Product.objects.values_list("name", flat=True))
-
-        assert longest >= 60

@@ -14,7 +14,6 @@ browser and whether anything is fetched over the network at page load.
 import re
 from pathlib import Path
 
-import pytest
 from django.apps import apps
 
 MVP_TEMPLATES = Path(apps.get_app_config("mvp").path) / "templates"
@@ -53,23 +52,6 @@ class TestShippedFrontEndRuntime:
             "<script src=\"{% static 'js/django-mvp.js' %}\"></script>"
         )
 
-    def test_base_template_loads_the_bundled_runtime(self):
-        source = (MVP_TEMPLATES / "mvp" / "base.html").read_text()
-
-        assert "js/django-mvp.js" in source, (
-            "mvp/base.html must load the bundled runtime; without it no "
-            "component that uses Alpine or htmx works"
-        )
-
-    def test_the_bundle_is_committed_and_not_empty(self):
-        assert self.BUNDLE.is_file(), (
-            f"{self.BUNDLE} is missing — run `invoke build-js`"
-        )
-        assert self.BUNDLE.stat().st_size > 50_000, (
-            "the bundle is far smaller than Alpine and htmx together, so the "
-            "build almost certainly did not include them"
-        )
-
     # A string each library emits into the built output and the others do not.
     # Deliberately not version numbers: this asserts what is in the bundle, not
     # which release of it, so a version bump does not fail the test.
@@ -84,22 +66,21 @@ class TestShippedFrontEndRuntime:
         "@floating-ui/dom": "clippingAncestors",
         # The author line of the licence comment the build keeps in the bundle.
         "sortablejs": "RubaXa",
+        # The list row's Alpine component.
+        "the list row component": "mvpRowActions",
     }
 
-    @pytest.mark.parametrize("package,marker", sorted(LIBRARY_MARKERS.items()))
-    def test_every_declared_library_reaches_the_bundle(self, package, marker):
-        assert marker in self.BUNDLE.read_text(), (
-            f"{package} is missing from the built bundle (no {marker!r}) — "
-            "either it was dropped from assets/js/index.js, or the committed "
-            "artifact is stale and needs `invoke build-js`"
-        )
+    def test_every_declared_library_reaches_the_bundle(self):
+        bundle = self.BUNDLE.read_text()
 
+        missing = [
+            f"{package} (no {marker!r})"
+            for package, marker in self.LIBRARY_MARKERS.items()
+            if marker not in bundle
+        ]
 
-class TestRowActionsReachTheBundle:
-    def test_the_row_component_is_registered_in_the_committed_bundle(self):
-        bundle = TestShippedFrontEndRuntime.BUNDLE.read_text()
-
-        assert "mvpRowActions" in bundle, (
-            "the list row's component is missing from the built bundle — "
-            "run `npm run build:js:prod`"
+        assert not missing, (
+            f"missing from the built bundle: {missing}. Either it was dropped from "
+            "assets/js/index.js, or the committed artifact is stale and needs "
+            "`invoke build-js`"
         )

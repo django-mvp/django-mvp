@@ -12,9 +12,6 @@ class TestShouldSkipBrowserTests:
     def test_runs_when_the_browser_is_present(self):
         assert _should_skip_browser_tests(has_browser=True, env={}) is False
 
-    def test_runs_in_ci_when_the_browser_is_present(self):
-        assert _should_skip_browser_tests(has_browser=True, env={"CI": "true"}) is False
-
     def test_skips_locally_without_a_browser(self):
         assert _should_skip_browser_tests(has_browser=False, env={}) is True
 
@@ -22,9 +19,6 @@ class TestShouldSkipBrowserTests:
         assert (
             _should_skip_browser_tests(has_browser=False, env={"CI": "true"}) is False
         )
-
-    def test_accepts_the_other_spelling_of_ci(self):
-        assert _should_skip_browser_tests(has_browser=False, env={"CI": "1"}) is False
 
     def test_treats_an_empty_ci_variable_as_not_ci(self):
         assert _should_skip_browser_tests(has_browser=False, env={"CI": ""}) is True

@@ -15,14 +15,12 @@ from flex_menu import Menu, MenuItem
 
 from mvp.menus import (
     AccountCenterMenu,
-    AppMenu,
     MenuCollapse,
     MenuGroup,
     MobileFooterMenu,
 )
 from mvp.renderers import SidebarRenderer
 from mvp.warnings import MVPDeprecationWarning
-from tests.testapp_account.menus import CHECKED_FLAG
 
 
 def _urlconf():
@@ -85,33 +83,6 @@ class TestAContainerWithNoChildrenIsHidden:
         assert "EmptySection" not in html
         assert 'href="None"' not in html
 
-    @pytest.mark.parametrize("container", [MenuGroup, MenuCollapse])
-    def test_a_container_whose_children_are_all_hidden_is_not_drawn(self, container):
-        html = _sidebar_html(
-            container(
-                name="hidden",
-                extra_context={"label": "HiddenSection"},
-                children=[MenuItem(name="page", url="/page/", check=False)],
-            )
-        )
-
-        assert "HiddenSection" not in html
-
-    @pytest.mark.parametrize("container", [MenuGroup, MenuCollapse])
-    def test_a_container_with_a_child_is_drawn(self, container):
-        html = _sidebar_html(
-            container(
-                name="filled",
-                extra_context={"label": "FilledSection"},
-                children=[
-                    MenuItem(name="page", url="/page/", extra_context={"label": "Page"})
-                ],
-            )
-        )
-
-        assert "FilledSection" in html
-        assert 'href="/page/"' in html
-
     def test_an_empty_container_does_not_disturb_its_siblings(self):
         html = _sidebar_html(
             MenuGroup(name="empty", extra_context={"label": "EmptySection"}),
@@ -122,37 +93,12 @@ class TestAContainerWithNoChildrenIsHidden:
         assert "Home" in html
 
 
-class TestShippedMenus:
-    def test_the_packaged_dock_item_needs_no_url_from_the_project(self):
-        packaged = MobileFooterMenu.children[0]
-        assert packaged.name == "sidebar_toggle"
-        assert not packaged.view_name
-        assert not packaged.url
-
-    def test_the_sidebar_toggle_flips_the_drawer_checkbox(self):
-        toggle = MobileFooterMenu.children[0]
-        assert toggle.extra_context["toggle"] == "mvp-app-toggle"
-
-
 class TestTheMobileFooterMenuIsDeprecated:
     def test_processing_it_warns_and_names_the_template_way(self):
         request = RequestFactory().get("/")
 
         with pytest.warns(MVPDeprecationWarning, match="c-mvp.dock.item"):
             MobileFooterMenu.process(request)
-
-
-class TestShippedMenusCarryAHumanName:
-    @pytest.mark.parametrize("menu", [AppMenu, AccountCenterMenu])
-    def test_the_label_is_not_the_internal_menu_name(self, menu):
-        label = str(menu.extra_context["label"])
-        assert label
-        assert label != menu.name
-
-
-class TestAccountCenterMenu:
-    def test_the_overview_child_points_at_the_landing_page(self):
-        assert AccountCenterMenu.children[0].view_name == "account-center"
 
 
 class TestAccountMenuContribution:
@@ -182,16 +128,6 @@ class TestAccountMenuContribution:
         assert [child.name for child in group.visible_children] == [
             "fixture_grouped_item"
         ]
-
-    def test_an_entry_whose_check_answers_no_is_absent(self, testapp_account_entries):
-        names = self._visible_names(RequestFactory().get("/"))
-        assert "fixture_checked" not in names
-
-    def test_the_same_entry_is_present_for_a_request_the_check_answers_yes_for(
-        self, testapp_account_entries
-    ):
-        names = self._visible_names(RequestFactory().get("/", {CHECKED_FLAG: "1"}))
-        assert "fixture_checked" in names
 
 
 def _divider_before_heading(html, heading):

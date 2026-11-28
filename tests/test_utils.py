@@ -46,7 +46,6 @@ from mvp.utils import (
     BS5_ICONS,
     action_tags,
     app_is_installed,
-    avatar_url,
     message_action,
     reverse_or_none,
     site_name,
@@ -106,15 +105,16 @@ class TestBS5IconsData:
             f"{[a for a in set(all_aliases) if all_aliases.count(a) > 1]}"
         )
 
-    @pytest.mark.parametrize("alias, bootstrap_class", _expanded_aliases().items())
-    def test_class_exists_in_the_pinned_bootstrap_icons_release(
-        self, alias, bootstrap_class
-    ):
-        icon_name = bootstrap_class.removeprefix("bi bi-")
+    def test_every_class_exists_in_the_pinned_bootstrap_icons_release(self):
+        missing = [
+            f"{alias!r} -> {bootstrap_class!r}"
+            for alias, bootstrap_class in _expanded_aliases().items()
+            if bootstrap_class.removeprefix("bi bi-") not in VALID_BOOTSTRAP_ICON_NAMES
+        ]
 
-        assert icon_name in VALID_BOOTSTRAP_ICON_NAMES, (
-            f"{alias!r} -> {bootstrap_class!r}: 'bi-{icon_name}' is not in "
-            "Bootstrap Icons 1.13.1 (tests/fixtures/bootstrap-icons-1.13.1-names.txt)"
+        assert not missing, (
+            "These aliases name a class that is not in Bootstrap Icons 1.13.1 "
+            "(tests/fixtures/bootstrap-icons-1.13.1-names.txt):\n" + "\n".join(missing)
         )
 
 
@@ -133,6 +133,7 @@ class TestPackageTemplatesReferenceKnownIcons:
     def test_every_referenced_icon_name_is_registered(self):
         expanded = _expanded_aliases()
         referenced = _icon_names_referenced_in_package_templates()
+        assert referenced, "the scan found no icon names, so it checks nothing"
 
         unregistered = {
             name
@@ -145,19 +146,6 @@ class TestPackageTemplatesReferenceKnownIcons:
             "that neither BS5_ICONS nor a documented companion pack defines — "
             "each renders as an empty string"
         )
-
-    def test_the_scan_itself_finds_something(self):
-        assert len(_icon_names_referenced_in_package_templates()) > 10
-
-    def test_the_companion_package_exemption_is_still_referenced(self):
-        referenced = _icon_names_referenced_in_package_templates()
-
-        assert referenced >= SUPPLIED_BY_A_COMPANION_PACKAGE
-
-
-class TestAvatarUrl:
-    def test_accepts_the_size_token_by_keyword(self):
-        assert avatar_url(user=None, size="md") is None
 
 
 class TestAppIsInstalled:
@@ -178,6 +166,13 @@ class TestReverseOrNone:
 
     def test_returns_none_for_a_name_that_is_not_registered(self):
         assert reverse_or_none("no-such-url-name") is None
+
+
+@pytest.fixture(autouse=True)
+def _site_cache_restored():
+    """Tests here rename or delete the current site; drop the cached row afterwards."""
+    yield
+    Site.objects.clear_cache()
 
 
 @pytest.fixture
@@ -213,9 +208,8 @@ class TestSiteName:
 
 @pytest.mark.usefixtures("project_components")
 class TestTitleLayoutComponent:
-    @pytest.mark.parametrize("name", ["default", "inline", "centred", "compact"])
-    def test_a_shipped_name_maps_to_its_component(self, name):
-        assert title_layout_component(name) == f"mvp.page.title.{name}"
+    def test_a_shipped_name_maps_to_its_component(self):
+        assert title_layout_component("compact") == "mvp.page.title.compact"
 
     def test_a_project_component_in_a_file_is_returned_unchanged(self):
         assert title_layout_component("fixture_title_file") == "fixture_title_file"

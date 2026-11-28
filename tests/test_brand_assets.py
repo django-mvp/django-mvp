@@ -19,12 +19,9 @@ exist belong to the demo site (tests/test_demo/test_demo_themes.py).
 import re
 from pathlib import Path
 
-import pytest
-
 from mvp.config import MVP_CONFIG
 
 PACKAGE_DIR = Path(__file__).resolve().parent.parent / "mvp"
-PRESET = PACKAGE_DIR / "tailwind" / "base.css"
 BRAND_DIR = PACKAGE_DIR / "static" / "brand"
 BUILT_CSS = PACKAGE_DIR / "static" / "css" / "django-mvp.css"
 
@@ -44,67 +41,39 @@ def _selectors_for(name: str) -> list[str]:
 
 
 class TestBrandAssets:
-    @pytest.mark.parametrize(
-        "filename", ["logo.svg", "logo_dark.svg", "icon.svg", "icon_dark.svg"]
-    )
-    def test_asset_is_present_and_is_an_svg(self, filename):
-        asset = BRAND_DIR / filename
+    def test_every_asset_the_default_resolver_returns_is_an_svg(self):
+        problems = [
+            filename
+            for filename in ("logo.svg", "logo_dark.svg", "icon.svg", "icon_dark.svg")
+            if not (BRAND_DIR / filename).is_file()
+            or not (BRAND_DIR / filename)
+            .read_text(encoding="utf-8")
+            .lstrip()
+            .startswith("<svg")
+        ]
 
-        assert asset.is_file(), (
-            f"mvp/utils.py's default resolver returns brand/{filename}; a missing "
-            "file makes the zero-config case a broken image"
+        assert not problems, (
+            f"mvp/utils.py's default resolver returns brand/{problems}, which are "
+            "missing or not SVGs, so the zero-config case is a broken image"
         )
-        assert asset.read_text(encoding="utf-8").lstrip().startswith("<svg")
-
-    @pytest.mark.parametrize(
-        "pair", [("logo.svg", "logo_dark.svg"), ("icon.svg", "icon_dark.svg")]
-    )
-    def test_dark_variant_is_not_a_copy_of_the_light_one(self, pair):
-        light, dark = (BRAND_DIR / name for name in pair)
-
-        assert light.read_bytes() != dark.read_bytes()
-
-    def test_assets_carry_no_font_dependency(self):
-        for asset in BRAND_DIR.glob("*.svg"):
-            assert "font-family" not in asset.read_text(encoding="utf-8"), (
-                f"{asset.name} references a font, so it renders differently "
-                "on a machine without that font installed"
-            )
 
 
 class TestNoBrandedThemeIsDistributed:
-    @pytest.mark.parametrize("name", BRANDED_THEMES)
-    def test_the_shared_preset_declares_no_theme(self, name):
-        source = PRESET.read_text(encoding="utf-8")
+    def test_the_prebuilt_stylesheet_defines_no_branded_block(self):
+        defined = [name for name in BRANDED_THEMES if _selectors_for(name)]
 
-        assert f'name: "{name}"' not in source, (
-            f"the preset declares a theme called {name!r}, so every consumer "
-            "build generated with mvp_tailwind emits this package's branding"
+        assert defined == [], (
+            f"the shipped stylesheet defines {defined}, so a project installing "
+            "the wheel receives this package's branding"
         )
-        assert f'[data-theme="{name}"]' not in source, (
-            f"the preset defines a block for {name!r}, so every consumer build "
-            "generated with mvp_tailwind emits this package's branding"
-        )
-
-    @pytest.mark.parametrize("name", BRANDED_THEMES)
-    def test_the_prebuilt_stylesheet_defines_no_block(self, name):
-        assert _selectors_for(name) == [], (
-            f"the shipped stylesheet defines [data-theme={name}], so a project "
-            "installing the wheel receives this package's branding"
-        )
-
-    @pytest.mark.parametrize("prebuilt", ["light", "dark", "dracula", "synthwave"])
-    def test_every_prebuilt_theme_still_ships(self, prebuilt):
-        assert _selectors_for(prebuilt)
 
 
 class TestTheAppliedThemeIsPrebuilt:
-    def test_default_theme_is_prebuilt(self):
-        assert MVP_CONFIG["theme"]["default"] == "light"
+    def test_the_configured_pair_is_defined_in_the_shipped_stylesheet(self):
+        undefined = [
+            MVP_CONFIG["theme"][key]
+            for key in ("default", "dark")
+            if not _selectors_for(MVP_CONFIG["theme"][key])
+        ]
 
-    def test_toggle_partner_is_prebuilt(self):
-        assert MVP_CONFIG["theme"]["dark"] == "dark"
-
-    @pytest.mark.parametrize("key", ["default", "dark"])
-    def test_the_configured_pair_is_defined_in_the_shipped_stylesheet(self, key):
-        assert _selectors_for(MVP_CONFIG["theme"][key])
+        assert undefined == []

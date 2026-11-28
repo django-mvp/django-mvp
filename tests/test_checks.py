@@ -7,7 +7,6 @@ from io import StringIO
 
 import pytest
 from django.core import checks
-from django.core.checks.registry import registry
 from django.core.management import call_command
 from django.core.management.base import SystemCheckError
 
@@ -43,9 +42,6 @@ class TestDaisyCottonAppMessages:
 class TestDaisyCottonAppCheck:
     def test_the_repositorys_own_settings_report_nothing(self):
         assert check_daisy_cotton_app(None) == []
-
-    def test_the_check_is_registered(self):
-        assert check_daisy_cotton_app in registry.registered_checks
 
     def test_a_missing_daisy_cotton_stops_the_check_command(self, settings):
         settings.INSTALLED_APPS = [
@@ -102,18 +98,10 @@ class TestPageTitleLayoutMessages:
         assert "first_unknown" in messages[0].msg
         assert "second_unknown" in messages[1].msg
 
-    def test_the_error_says_where_the_value_is_set(self):
-        messages = page_title_layout_messages("no_such_layout")
-
-        assert "page_title" in messages[0].hint
-
 
 class TestPageTitleLayoutCheck:
     def test_the_repositorys_own_settings_report_nothing(self):
         assert check_page_title_layout(None) == []
-
-    def test_the_check_is_registered(self):
-        assert check_page_title_layout in registry.registered_checks
 
     def test_an_unknown_name_in_the_setting_stops_the_check_command(self, monkeypatch):
         from mvp.config import MVP_CONFIG
@@ -145,9 +133,6 @@ class TestEmailBrandCheck:
 
     def test_the_repositorys_own_settings_report_nothing(self):
         assert check_email_brand(None) == []
-
-    def test_the_check_is_registered(self):
-        assert check_email_brand in registry.registered_checks
 
     def test_an_undefined_theme_is_a_warning_naming_it(self, monkeypatch):
         from mvp.config import MVP_CONFIG

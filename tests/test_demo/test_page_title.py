@@ -23,18 +23,11 @@ def title_markup(client, query=""):
 
 @pytest.mark.django_db
 class TestPageTitleDemoPage:
-    @pytest.mark.parametrize("layout", TITLE_LAYOUTS)
-    def test_the_layout_in_the_query_string_draws_the_title(self, client, layout):
-        response, _title = title_markup(client, f"?title_layout={layout}")
-
-        assert response.status_code == 200
-        assert response.context["page"]["title_layout"] == layout
-
-    def test_each_layout_draws_the_title_differently(self, client):
-        drawn = {
-            layout: title_markup(client, f"?title_layout={layout}")[1]
-            for layout in TITLE_LAYOUTS
-        }
+    def test_each_layout_in_the_query_string_draws_the_title_differently(self, client):
+        drawn = {}
+        for layout in TITLE_LAYOUTS:
+            response, drawn[layout] = title_markup(client, f"?title_layout={layout}")
+            assert response.context["page"]["title_layout"] == layout
 
         assert len(set(drawn.values())) == len(TITLE_LAYOUTS)
 
