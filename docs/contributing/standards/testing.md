@@ -225,6 +225,9 @@ A review names each of these as a finding. Do not write them.
   and every test that takes over a second or starts a subprocess. The `e2e` marker is added to any
   test that uses the Playwright `browser` fixture, in `tests/conftest.py`, so a new browser test
   cannot miss it. The `slow` marker is added to the tests listed in `SLOW_TESTS` in the same file.
+- **CI runs the browser tests on one leg.** The coverage leg (Python 3.13, Django 5.2) runs every
+  test. The other legs run `-m "not e2e"`, because a browser test behaves the same on every Python
+  and Django release.
 - **Browser tests wait with the helpers in `tests/conftest.py`, never for a number of
   milliseconds.** `wait_for_alpine` waits until every component on the page is set up,
   `wait_for_transitions` until running transitions finish, `wait_until_still` until no htmx request
