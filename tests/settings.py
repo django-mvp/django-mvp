@@ -53,3 +53,7 @@ MVP_CONFIG = {
         },
     },
 }
+
+# A fast password hasher: every test that creates a user hashes a password, and
+# the default hasher is slow on purpose. Nothing here needs a strong hash.
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

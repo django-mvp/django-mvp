@@ -15,6 +15,8 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
 from django.test import RequestFactory, override_settings
 from django.urls import URLResolver, clear_url_caches
 from django.views.generic import TemplateView
@@ -462,6 +464,19 @@ def _configure_context(context, serve_axe=False):
                 path=str(AXE_SCRIPT), content_type="application/javascript"
             ),
         )
+
+
+@pytest.fixture(autouse=True)
+def _reset_framework_caches():
+    """Empty the ``Site`` and ``ContentType`` caches after every test.
+
+    Both cache rows by primary key in the process. A test database that rolls
+    back leaves those entries pointing at rows that no longer exist, so the
+    next test that looks one up gets a stale object.
+    """
+    yield
+    Site.objects.clear_cache()
+    ContentType.objects.clear_cache()
 
 
 @pytest.fixture(autouse=True)
