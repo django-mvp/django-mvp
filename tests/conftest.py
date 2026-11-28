@@ -13,7 +13,6 @@ import threading
 import time
 import types
 from pathlib import Path
-from urllib.parse import urlsplit
 
 import pytest
 from django.conf import settings
@@ -298,6 +297,7 @@ def project_components(settings):
 BROWSER_TIMEOUT_MS = 20_000
 
 VENDORED = Path(__file__).resolve().parent / "fixtures" / "vendor"
+AXE_SCRIPT = Path(__file__).resolve().parent / "fixtures" / "axe.min.js"
 
 #: A transparent 1 x 1 PNG, answered for every map tile.
 BLANK_TILE = base64.b64decode(
@@ -317,7 +317,7 @@ STAND_INS = (
         re.compile(
             r"https://cdnjs\.cloudflare\.com/ajax/libs/axe-core/[^/]+/axe\.min\.js"
         ),
-        lambda match: Path(__file__).resolve().parent / "fixtures" / "axe.min.js",
+        lambda match: AXE_SCRIPT,
         "application/javascript",
     ),
     (
@@ -351,9 +351,6 @@ STAND_INS = (
         "image/png",
     ),
 )
-
-#: Hosts that are the machine under test, never a request to the network.
-LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
 #: Every web address that is not on this machine. Only these go through Python:
 #: a test that waits with ``wait_until`` does not run Playwright, so a request
@@ -517,10 +514,10 @@ def pytest_collection_modifyitems(config, items):
 def answer_request(route, request, external):
     """Answer one request a browser context makes.
 
-    A request to this machine goes on to the live server. A request to a host in
-    ``STAND_INS`` is answered from the repository. Any other request is refused
-    and recorded in ``external``, which fails the test when it ends, so a page
-    cannot reach the network without a test noticing.
+    Only requests to other machines reach this function (see ``OFF_THIS_MACHINE``).
+    One to a host in ``STAND_INS`` is answered from the repository. Any other is
+    refused and recorded in ``external``, which fails the test when it ends, so a
+    page cannot reach the network without a test noticing.
 
     Args:
         route: The Playwright route for the request.
@@ -528,9 +525,6 @@ def answer_request(route, request, external):
         external: A list that collects ``"METHOD url"`` for each refused request.
     """
     url = request.url
-    if urlsplit(url).hostname in LOCAL_HOSTS:
-        route.fallback()
-        return
     for pattern, answer, content_type in STAND_INS:
         match = pattern.fullmatch(url)
         if match:

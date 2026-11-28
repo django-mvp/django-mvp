@@ -5,7 +5,11 @@ that skips in CI turns nineteen browser tests into nineteen green skips, which
 reads exactly like nineteen passes on the checks page (issue #171).
 """
 
-from tests.conftest import _should_skip_browser_tests, answer_request
+from tests.conftest import (
+    OFF_THIS_MACHINE,
+    _should_skip_browser_tests,
+    answer_request,
+)
 
 
 class TestShouldSkipBrowserTests:
@@ -25,14 +29,11 @@ class TestShouldSkipBrowserTests:
 
 
 class FakeRoute:
-    """The two answers a Playwright route can give, recorded."""
+    """The answers a Playwright route can give, recorded."""
 
     def __init__(self):
         self.answer = None
         self.body = None
-
-    def fallback(self):
-        self.answer = "fallback"
 
     def fulfill(self, body, content_type, headers):
         self.answer = "fulfill"
@@ -55,11 +56,6 @@ def _answer(url):
 
 
 class TestAnswerRequest:
-    def test_a_request_to_the_live_server_goes_on(self):
-        route, external = _answer("http://localhost:8123/components/")
-
-        assert (route.answer, external) == ("fallback", [])
-
     def test_a_request_to_a_stood_in_host_is_served_from_the_repository(self):
         route, external = _answer(
             "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png"
@@ -73,3 +69,20 @@ class TestAnswerRequest:
 
         assert route.answer == "abort"
         assert external == ["GET https://example.com/tracker.js"]
+
+
+class TestOffThisMachine:
+    def test_only_addresses_on_other_machines_match(self):
+        addresses = {
+            "http://localhost:8123/components/": False,
+            "http://127.0.0.1:41233/": False,
+            "http://[::1]:8000/x": False,
+            "https://localhost/": False,
+            "https://example.com/localhost/": True,
+            "http://localhost.example.com/": True,
+            "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js": True,
+        }
+
+        matched = {url: bool(OFF_THIS_MACHINE.match(url)) for url in addresses}
+
+        assert matched == addresses
