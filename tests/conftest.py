@@ -4,19 +4,23 @@ Standardized per Phase 2: all model fixtures and view factory helpers live here
 so individual test files stay focused on assertions, not setup boilerplate.
 """
 
+import base64
 import importlib
 import importlib.util
 import os
 import re
+import threading
 import time
 import types
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
+from django.core.signals import request_finished, request_started
 from django.test import RequestFactory, override_settings
 from django.urls import URLResolver, clear_url_caches
 from django.views.generic import TemplateView
@@ -293,10 +297,69 @@ def project_components(settings):
 #: individual tests used to set failed one run in six on a loaded CI runner.
 BROWSER_TIMEOUT_MS = 20_000
 
-#: axe-core, vendored so the accessibility tests need no network.
-AXE_SCRIPT = Path(__file__).resolve().parent / "fixtures" / "axe.min.js"
-AXE_CDN_URL = re.compile(
-    r"https://cdnjs\.cloudflare\.com/ajax/libs/axe-core/.+/axe\.min\.js"
+VENDORED = Path(__file__).resolve().parent / "fixtures" / "vendor"
+
+#: A transparent 1 x 1 PNG, answered for every map tile.
+BLANK_TILE = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII="
+)
+
+_ICONS = r"https://cdn\.jsdelivr\.net/npm/bootstrap-icons@1\.13\.1/font/"
+_LEAFLET = r"https://unpkg\.com/leaflet@1\.9\.4/dist/"
+
+#: What the browser tests serve in place of the hosts a page asks for, so no
+#: browser test needs the network: ``(address pattern, answer, content type)``.
+#: The pattern matches the whole URL. The answer is the bytes to send, or a
+#: function from the match to the file to send. axe-core and the files under
+#: ``tests/fixtures/vendor`` are copies of the published releases.
+STAND_INS = (
+    (
+        re.compile(
+            r"https://cdnjs\.cloudflare\.com/ajax/libs/axe-core/[^/]+/axe\.min\.js"
+        ),
+        lambda match: Path(__file__).resolve().parent / "fixtures" / "axe.min.js",
+        "application/javascript",
+    ),
+    (
+        re.compile(_ICONS + r"bootstrap-icons\.min\.css"),
+        lambda match: VENDORED / "bootstrap-icons.min.css",
+        "text/css",
+    ),
+    (
+        re.compile(_ICONS + r"fonts/bootstrap-icons\.woff2(?:\?.*)?"),
+        lambda match: VENDORED / "bootstrap-icons.woff2",
+        "font/woff2",
+    ),
+    (
+        re.compile(_LEAFLET + r"leaflet\.css"),
+        lambda match: VENDORED / "leaflet.css",
+        "text/css",
+    ),
+    (
+        re.compile(_LEAFLET + r"leaflet\.js"),
+        lambda match: VENDORED / "leaflet.js",
+        "application/javascript",
+    ),
+    (
+        re.compile(_LEAFLET + r"images/([\w-]+\.png)"),
+        lambda match: VENDORED / "images" / match.group(1),
+        "image/png",
+    ),
+    (
+        re.compile(r"https://tile\.openstreetmap\.org/\d+/\d+/\d+\.png"),
+        BLANK_TILE,
+        "image/png",
+    ),
+)
+
+#: Hosts that are the machine under test, never a request to the network.
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+#: Every web address that is not on this machine. Only these go through Python:
+#: a test that waits with ``wait_until`` does not run Playwright, so a request
+#: held for Python's answer would stall until the test's next browser call.
+OFF_THIS_MACHINE = re.compile(
+    r"^https?://(?!(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:/|$))"
 )
 
 #: Tests that take over a second or start a subprocess, by node id prefix. The
@@ -451,24 +514,128 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.slow)
 
 
-def _configure_context(context, serve_axe=False):
-    """Apply the suite's timeouts to a browser context.
+def answer_request(route, request, external):
+    """Answer one request a browser context makes.
+
+    A request to this machine goes on to the live server. A request to a host in
+    ``STAND_INS`` is answered from the repository. Any other request is refused
+    and recorded in ``external``, which fails the test when it ends, so a page
+    cannot reach the network without a test noticing.
+
+    Args:
+        route: The Playwright route for the request.
+        request: The Playwright request.
+        external: A list that collects ``"METHOD url"`` for each refused request.
+    """
+    url = request.url
+    if urlsplit(url).hostname in LOCAL_HOSTS:
+        route.fallback()
+        return
+    for pattern, answer, content_type in STAND_INS:
+        match = pattern.fullmatch(url)
+        if match:
+            if callable(answer):
+                answer = answer(match).read_bytes()
+            route.fulfill(
+                body=answer,
+                content_type=content_type,
+                headers={"access-control-allow-origin": "*"},
+            )
+            return
+    external.append(f"{request.method} {url}")
+    route.abort("blockedbyclient")
+
+
+def _configure_context(context, external):
+    """Apply the suite's timeouts to a browser context and keep it off the network.
 
     Args:
         context: The Playwright browser context.
-        serve_axe: Answer the axe-core CDN address from the vendored copy. Routing
-            turns the browser's HTTP cache off, so only a test module that loads
-            axe-core asks for it.
+        external: The list that ``answer_request`` records refused requests in.
     """
     context.set_default_timeout(BROWSER_TIMEOUT_MS)
     context.set_default_navigation_timeout(BROWSER_TIMEOUT_MS)
-    if serve_axe:
-        context.route(
-            AXE_CDN_URL,
-            lambda route: route.fulfill(
-                path=str(AXE_SCRIPT), content_type="application/javascript"
-            ),
-        )
+    context.route(
+        OFF_THIS_MACHINE,
+        lambda route, request: answer_request(route, request, external),
+    )
+
+
+class RequestsInFlight:
+    """Count the requests the live server is answering at this moment.
+
+    The live server answers in threads of its own, and the settings and
+    ``MVP_CONFIG`` it reads are shared with the test. A change made, or undone,
+    while a request is still being answered is read half-way, and the next test
+    inherits the last one's page. Waiting for this count to reach zero is what
+    makes the change happen between requests.
+    """
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._count = 0
+
+    def _started(self, **kwargs):
+        with self._lock:
+            self._count += 1
+
+    def _finished(self, **kwargs):
+        with self._lock:
+            self._count -= 1
+
+    def watch(self):
+        """Start counting."""
+        request_started.connect(self._started, weak=False)
+        request_finished.connect(self._finished, weak=False)
+
+    def stop(self):
+        """Stop counting."""
+        request_started.disconnect(self._started)
+        request_finished.disconnect(self._finished)
+
+    def wait_until_idle(self):
+        """Wait until the live server has finished every request it was sent."""
+        wait_until(lambda: self._count <= 0, timeout=15)
+
+
+@pytest.fixture
+def requests_in_flight():
+    """The live server's request count, and an idle server before the test ends.
+
+    A browser test's pages are closed before this fixture ends, and its
+    ``monkeypatch`` undoes after it, so everything a test changed is put back
+    only once no request can still be reading it.
+    """
+    counter = RequestsInFlight()
+    counter.watch()
+    yield counter
+    try:
+        counter.wait_until_idle()
+    finally:
+        counter.stop()
+
+
+@pytest.fixture
+def served_config(monkeypatch, requests_in_flight):
+    """Change ``MVP_CONFIG`` for the pages the live server serves.
+
+    ``MVP_CONFIG`` is one dictionary, shared with the server's threads. Calling
+    ``setitem`` waits for the server to finish any request first, so the change
+    is in place before the next request starts, and the ``monkeypatch`` that
+    holds the old value undoes it only after the pages are closed and the
+    server is idle (see ``requests_in_flight``).
+
+    Returns:
+        An object whose ``setitem(mapping, key, value)`` sets one value.
+    """
+
+    class ServedConfig:
+        @staticmethod
+        def setitem(mapping, key, value):
+            requests_in_flight.wait_until_idle()
+            monkeypatch.setitem(mapping, key, value)
+
+    return ServedConfig()
 
 
 @pytest.fixture(autouse=True)
@@ -486,30 +653,39 @@ def _reset_framework_caches():
 
 @pytest.fixture(autouse=True)
 def _browser_defaults(request, monkeypatch):
-    """Give every browser context a timeout that survives a loaded runner, and
-    serve axe-core from the repository instead of a CDN.
+    """Give every browser context a timeout that survives a loaded runner, keep
+    it off the network, and fail the test that reached out to it.
 
     The contexts a test opens itself through ``browser.new_context`` or
     ``browser.new_page`` are configured the same way as the ``page`` fixture's.
+    This fixture is set up before the others a test asks for, so it ends after
+    them: the pages are closed and the live server idle by the time it checks.
     """
     if "browser" not in request.fixturenames:
+        yield
         return
     from playwright.sync_api import expect
 
     expect.set_options(timeout=BROWSER_TIMEOUT_MS)
-    serve_axe = "axe.min.js" in Path(request.module.__file__).read_text()
+    external = []
+    request.getfixturevalue("requests_in_flight")
     browser = request.getfixturevalue("browser")
     new_context, new_page = browser.new_context, browser.new_page
 
     def configured_context(*args, **kwargs):
         context = new_context(*args, **kwargs)
-        _configure_context(context, serve_axe)
+        _configure_context(context, external)
         return context
 
     def configured_page(*args, **kwargs):
         page = new_page(*args, **kwargs)
-        _configure_context(page.context, serve_axe)
+        _configure_context(page.context, external)
         return page
 
     monkeypatch.setattr(browser, "new_context", configured_context)
     monkeypatch.setattr(browser, "new_page", configured_page)
+    yield
+    assert not external, (
+        "the browser test reached the network. Vendor what the page asks for "
+        "(see STAND_INS in tests/conftest.py): " + ", ".join(external)
+    )

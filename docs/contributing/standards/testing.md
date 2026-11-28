@@ -229,9 +229,17 @@ A review names each of these as a finding. Do not write them.
   milliseconds.** `wait_for_alpine` waits until every component on the page is set up,
   `wait_for_transitions` until running transitions finish, `wait_until_still` until no htmx request
   is in flight and nothing is moving, `frames` for a number of animation frames and `wait_until`
-  for something the server does. The axe-core script is a test asset in
-  `tests/fixtures/axe.min.js`, served to the browser in place of its CDN address, so the
-  accessibility tests need no network.
+  for something the server does. The one fixed wait is `Finger.tap` in the list-row tests, which
+  sits out Chrome's double-tap window in real time.
+- **A browser test never reaches the network.** The browser answers the CDN addresses a page asks
+  for from files in the repository: axe-core in `tests/fixtures/axe.min.js`, and Leaflet, the
+  Bootstrap Icons stylesheet and its font in `tests/fixtures/vendor/`. Add a pattern to `STAND_INS`
+  in `tests/conftest.py` for a new address. Any other request to a host that is not this machine is
+  refused, and the test fails at its end with the addresses it asked for.
+- **A browser test changes `MVP_CONFIG` with the `served_config` fixture.** The live server answers
+  in its own threads and reads the same dictionary. `served_config.setitem` waits until the server
+  has finished its requests before it changes a value, and the old value comes back only after the
+  pages are closed and the server is idle, so one test's configuration is never seen by another.
 
 ---
 
