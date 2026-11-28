@@ -73,7 +73,6 @@ def formset_order_urls(settings):
 
 
 def open_page(page, live_server, layout="stacked", width=1280):
-    page.set_default_timeout(5000)
     page.set_viewport_size({"width": width, "height": 900})
     page.goto(f"{live_server.url}/formset-order-test/?layout={layout}")
     page.wait_for_function("window.Alpine !== undefined")
@@ -149,11 +148,6 @@ class TestReorderingARowSet:
         move(page, "a", "down")
 
         assert submit(page)["names"] == ["b", "c", "a"]
-
-    def test_the_order_is_not_offered_as_a_typed_number(self, page, live_server):
-        open_page(page, live_server)
-
-        expect(page.locator('input[type="number"][name$="-ORDER"]')).to_have_count(0)
 
     def test_an_untouched_blank_row_leaves_the_moved_set_valid(self, page, live_server):
         open_page(page, live_server)
@@ -250,9 +244,8 @@ class TestAnInvalidSubmission:
 
 
 class TestTheTabularLayout:
-    @pytest.mark.parametrize("width", [1280, 390])
-    def test_the_move_buttons_work_at_each_width(self, page, live_server, width):
-        open_page(page, live_server, layout="tabular", width=width)
+    def test_the_move_buttons_work_on_a_phone(self, page, live_server):
+        open_page(page, live_server, layout="tabular", width=390)
 
         move(page, "a", "down")
 

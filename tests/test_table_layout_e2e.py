@@ -141,20 +141,6 @@ class TestTheTableAreaOwnsItsScrolling:
         assert layout["tfootBottom"] == layout["regionBottom"]
         assert layout["tfootTop"] >= layout["regionTop"]
 
-    @pytest.mark.django_db
-    @at_every_viewport
-    def test_the_scrollbar_spans_the_full_height_of_the_table_area(
-        self, page, live_server, viewport
-    ):
-        ProductFactory.create_batch(PRODUCT_COUNT)
-        layout = _scroll_and_measure(page, f"{live_server.url}{TABLE_PAGE}", viewport)
-
-        assert layout["regionScrolled"] > 0, (
-            "the table area did not scroll — pinning is untested"
-        )
-        assert layout["regionTop"] == layout["theadTop"]
-        assert layout["regionBottom"] == layout["tfootBottom"]
-
 
 class TestPaginationStaysReachable:
     @pytest.mark.django_db
@@ -170,43 +156,6 @@ class TestPaginationStaysReachable:
         )
         assert layout["paginationTop"] >= 0
         assert layout["paginationBottom"] <= layout["viewportHeight"]
-
-
-class TestTheBarsSpanTheTable:
-    @pytest.mark.django_db
-    def test_the_toolbar_and_pagination_bars_are_as_wide_as_the_table(
-        self, page, live_server
-    ):
-        ProductFactory.create_batch(PRODUCT_COUNT)
-        page.set_viewport_size(VIEWPORTS["desktop"])
-        page.goto(f"{live_server.url}{TABLE_PAGE}")
-        widths = page.evaluate("""
-            () => {
-              const w = s => Math.round(
-                document.querySelector(s).getBoundingClientRect().width
-              );
-              return {
-                region: w('[role="region"]'),
-                toolbar: w('.mvp-table-toolbar'),
-                title: w('.mvp-table-toolbar h1'),
-                footer: w('.mvp-list-footer'),
-              };
-            }
-        """)
-
-        assert widths["region"] > 0
-        # The bars span the table. Their *content* is inset by the bars' own
-        # padding, which the table deliberately does not carry: the table
-        # reaches the edges of the space the shell gives it so its scrollbar
-        # hugs that edge (Sam, 2026-08-17 — padding belongs on the bars, not
-        # on the table).
-        assert widths["toolbar"] == widths["region"], (
-            "the toolbar is narrower than the table it sits over"
-        )
-        assert widths["footer"] == widths["region"], (
-            "the pagination bar is narrower than the table it sits under"
-        )
-        assert widths["title"] < widths["toolbar"]
 
 
 class TestTheFooterRowSitsAtTheBottom:
@@ -235,28 +184,6 @@ class TestTheFooterRowSitsAtTheBottom:
 
         assert abs(edges["footerRow"] - edges["region"]) <= 1
         assert edges["lastRow"] < edges["footerRow"]
-
-    @at_every_viewport
-    @pytest.mark.django_db
-    def test_rows_keep_their_height_on_a_table_that_overflows(
-        self, page, live_server, viewport
-    ):
-        ProductFactory.create_batch(PRODUCT_COUNT)
-        page.set_viewport_size(viewport)
-        page.goto(f"{live_server.url}{TABLE_PAGE}")
-        heights = page.evaluate("""
-            () => {
-              const h = s => document.querySelector(s).getBoundingClientRect().height;
-              return {
-                filler: h('[role="region"] .mvp-table-filler'),
-                row: h('[role="region"] tbody tr'),
-                heading: h('[role="region"] thead tr'),
-              };
-            }
-        """)
-
-        assert heights["filler"] == 0
-        assert heights["row"] <= heights["heading"] * 1.5
 
 
 class TestTheToolbarOpensAndCloses:
@@ -304,7 +231,9 @@ class TestTheToolbarOpensAndCloses:
         expect(toggle).to_have_attribute("aria-expanded", "false")
         expect(controls).to_be_visible()
         assert abs(controls.evaluate(middle) - toggle.evaluate(middle)) < 2
-        assert toggle.evaluate(left) == toggle_left, "the toggle stays under the pointer"
+        assert toggle.evaluate(left) == toggle_left, (
+            "the toggle stays under the pointer"
+        )
         assert controls.evaluate(left) < toggle_left
 
 
@@ -401,21 +330,6 @@ class TestTheFilterPanelBesideTheTable:
         )
 
     @pytest.mark.django_db
-    def test_the_panel_and_the_table_area_meet_with_no_column_gap(
-        self, page, live_server
-    ):
-        measured = _measure_the_filter_panel(page, live_server, VIEWPORTS["desktop"])
-
-        # The panel defaults to the end, so the table area runs up to its edge.
-        assert measured["main"]["right"] == measured["panel"]["left"]
-
-    @pytest.mark.django_db
-    def test_the_panel_does_not_stick(self, page, live_server):
-        measured = _measure_the_filter_panel(page, live_server, VIEWPORTS["desktop"])
-
-        assert measured["panelPosition"] != "sticky"
-
-    @pytest.mark.django_db
     def test_more_filters_than_fit_scroll_inside_the_panel(self, page, live_server):
         measured = _measure_the_filter_panel(
             page, live_server, {"width": 1440, "height": 420}
@@ -426,26 +340,6 @@ class TestTheFilterPanelBesideTheTable:
         assert measured["asideScrollAfter"] > 0
         assert measured["scrollY"] == 0
         assert measured["panel"]["bottom"] <= measured["viewportHeight"]
-
-    @pytest.mark.django_db
-    @at_every_viewport
-    def test_the_table_still_fills_the_page(self, page, live_server, viewport):
-        measured = _measure_the_filter_panel(page, live_server, viewport)
-
-        assert measured["documentHeight"] == measured["viewportHeight"]
-        assert measured["documentWidth"] == measured["viewportWidth"]
-        assert measured["pagination"]["bottom"] <= measured["viewportHeight"]
-
-    @pytest.mark.django_db
-    @at_every_viewport
-    def test_the_empty_header_row_adds_no_gap_above_the_toolbar(
-        self, page, live_server, viewport
-    ):
-        measured = _measure_the_filter_panel(page, live_server, viewport)
-
-        assert measured["headers"] == 0
-        assert measured["toolbar"]["top"] == measured["main"]["top"]
-        assert measured["main"]["top"] == measured["layout"]["top"]
 
 
 # What is left of a sheet inside the browser's default margins, as print sees

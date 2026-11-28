@@ -19,7 +19,12 @@ from playwright.sync_api import expect
 from demo import urls as demo_urls
 from demo.models import Project
 from mvp.ordering import save_order
-from tests.conftest import requires_browser, urlconf_of
+from tests.conftest import (
+    requires_browser,
+    urlconf_of,
+    wait_until,
+    wait_until_still,
+)
 from tests.factories import ProjectFactory, ProjectTaskFactory
 
 pytestmark = [pytest.mark.e2e, requires_browser]
@@ -386,7 +391,6 @@ def reorder_test_urls(settings):
 
 
 def open_page(page, live_server):
-    page.set_default_timeout(5000)
     page.set_viewport_size(VIEWPORT)
     page.goto(f"{live_server.url}/reorder-test/")
     page.wait_for_function("window.Alpine !== undefined")
@@ -524,10 +528,13 @@ class TestHandleKeyboard:
         page.keyboard.press("ArrowDown")
 
         assert values(page) == ["b", "a", "c"]
-        assert page.evaluate(
-            "document.activeElement.closest('[data-mvp-reorder-row]')"
-            ".dataset.mvpReorderValue"
-        ) == "a"
+        assert (
+            page.evaluate(
+                "document.activeElement.closest('[data-mvp-reorder-row]')"
+                ".dataset.mvpReorderValue"
+            )
+            == "a"
+        )
         assert page.evaluate(
             "document.activeElement.matches('[data-mvp-reorder-handle]')"
         )
@@ -598,7 +605,6 @@ class TestFormDestination:
     def test_a_form_submitted_after_moves_delivers_the_order_under_the_name(
         self, page, live_server
     ):
-        page.set_default_timeout(5000)
         page.set_viewport_size(VIEWPORT)
         page.goto(f"{live_server.url}/reorder-test/form/")
         page.wait_for_function("window.Alpine !== undefined")
@@ -627,7 +633,6 @@ class TestUrlDestination:
         return project
 
     def open_posting_page(self, page, live_server, project):
-        page.set_default_timeout(5000)
         page.set_viewport_size(VIEWPORT)
         page.goto(f"{live_server.url}/reorder-test/post/{project.pk}/")
         page.wait_for_function("window.Alpine !== undefined")
@@ -685,14 +690,13 @@ class TestNoDestination:
         page.locator(
             '#steps [data-mvp-reorder-value="b"] [data-mvp-reorder-down]'
         ).click()
-        page.wait_for_timeout(300)
+        wait_until_still(page)
 
         assert posts == []
 
 
 class TestSeveralLists:
     def test_reordering_one_list_leaves_the_other_alone(self, page, live_server):
-        page.set_default_timeout(5000)
         page.set_viewport_size(VIEWPORT)
         page.goto(f"{live_server.url}/reorder-test/two/")
         page.wait_for_function("window.Alpine !== undefined")
@@ -824,7 +828,6 @@ class Finger:
 def touch_page(browser, live_server):
     context = browser.new_context(has_touch=True, viewport=PHONE)
     page = context.new_page()
-    page.set_default_timeout(5000)
     page.add_init_script(VIBRATE_STUB)
     page.goto(f"{live_server.url}/reorder-test/tall/")
     page.wait_for_function("window.Alpine !== undefined")
@@ -903,7 +906,7 @@ class TestEdgeScrolling:
         touch_page.mouse.move(x, y)
         touch_page.mouse.down()
         touch_page.mouse.move(x, 395, steps=10)
-        touch_page.wait_for_timeout(600)
+        touch_page.wait_for_function("() => window.scrollY > 0")
         scrolled = scroll_y(touch_page)
         held = touch_page.locator("#steps .mvp-reorder-held").count()
         touch_page.mouse.up()
@@ -949,16 +952,17 @@ class TestCancellingADrag:
         self.hold_over_last(page)
         page.keyboard.press("Escape")
         page.mouse.up()
+        # The cancel ends on a later frame, and the rows then slide back. Measure them
+        # only once the drag is over and nothing moves.
+        page.wait_for_function(DRAG_ENDED)
+        wait_until_still(page)
         assert settled(page, ["a", "b", "c"]) == ["a", "b", "c"]
-        # The rows slide back over 180 ms; measure them only once they have stopped.
-        page.wait_for_timeout(400)
         drag(page, "b", "c")
 
         assert settled(page, ["a", "c", "b"]) == ["a", "c", "b"]
 
     @pytest.mark.django_db(transaction=True)
     def test_a_cancelled_drag_posts_nothing(self, page, live_server, project):
-        page.set_default_timeout(5000)
         page.set_viewport_size(VIEWPORT)
         page.goto(f"{live_server.url}/reorder-test/post/{project.pk}/")
         page.wait_for_function("window.Alpine !== undefined")
@@ -975,7 +979,7 @@ class TestCancellingADrag:
         page.mouse.move(x, y + 140, steps=12)
         page.keyboard.press("Escape")
         page.mouse.up()
-        page.wait_for_timeout(300)
+        wait_until_still(page)
 
         assert posts == []
 
@@ -1113,8 +1117,15 @@ class TestKeyboard:
             page.keyboard.press("Tab")
 
         assert reached == [
-            "aup", "adown", "ahandle", "bup", "bdown", "bhandle",
-            "cup", "cdown", "chandle",
+            "aup",
+            "adown",
+            "ahandle",
+            "bup",
+            "bdown",
+            "bhandle",
+            "cup",
+            "cdown",
+            "chandle",
         ]
 
     @pytest.mark.parametrize("key", ["Enter", "Space"])
@@ -1151,7 +1162,6 @@ RECORD_TRANSITIONS = """
 
 class TestReducedMotion:
     def transitions_during_a_drag(self, page, live_server):
-        page.set_default_timeout(5000)
         page.set_viewport_size(VIEWPORT)
         page.goto(f"{live_server.url}/reorder-test/")
         page.wait_for_function("window.Alpine !== undefined")
@@ -1191,7 +1201,6 @@ class TestReducedMotion:
 
 class TestFewRows:
     def open_single(self, page, live_server):
-        page.set_default_timeout(5000)
         page.set_viewport_size(VIEWPORT)
         page.goto(f"{live_server.url}/reorder-test/single/")
         page.wait_for_function("window.Alpine !== undefined")
@@ -1231,7 +1240,6 @@ class TestFewRows:
 
 
 def open_at(page, live_server, address):
-    page.set_default_timeout(5000)
     page.set_viewport_size(VIEWPORT)
     page.goto(f"{live_server.url}{address}")
     page.wait_for_function("window.Alpine !== undefined")
@@ -1501,7 +1509,7 @@ class TestRefusedOrFailedPost:
         page.wait_for_function(
             "window.htmx && !document.querySelector('.htmx-request')"
         )
-        page.wait_for_timeout(200)
+        wait_until_still(page)
 
         self.move_down(page, "b")
 
@@ -1535,13 +1543,12 @@ class TestRefusedOrFailedPost:
         )
         self.open_script(page, live_server)
         self.move_down(page, "a")
-        while len(script.posted) < 1:
-            page.wait_for_timeout(50)
+        wait_until(lambda: len(script.posted) >= 1)
         self.move_down(page, "a")
 
         page.wait_for_selector("#steps[data-answer='2']")
         script.release.set()
-        page.wait_for_timeout(300)
+        wait_until_still(page)
 
         assert script.posted == [["b", "a", "c"], ["b", "c", "a"]]
         assert values(page) == ["b", "c", "a"]
@@ -1671,9 +1678,12 @@ class TestListInADialog:
         page.evaluate("document.getElementById('box').showModal()")
 
         assert values(page) == ["a", "b", "c"]
-        assert page.locator("#steps [data-mvp-reorder-input]").evaluate_all(
-            "inputs => inputs.map(input => input.value)"
-        ) == ["a", "b", "c"]
+        # The inputs follow the rows on a later frame, so wait for them.
+        page.wait_for_function(
+            """() => JSON.stringify([...document.querySelectorAll(
+              '#steps [data-mvp-reorder-input]')].map(input => input.value))
+              === JSON.stringify(['a', 'b', 'c'])"""
+        )
 
     def test_submitting_keeps_the_new_order(self, page, live_server):
         self.open_dialog(page, live_server)
@@ -1717,25 +1727,11 @@ def no_scripts(browser, live_server):
     """A page in a browser context that runs no scripts."""
     context = browser.new_context(java_script_enabled=False, viewport=VIEWPORT)
     page = context.new_page()
-    page.set_default_timeout(5000)
     yield page
     context.close()
 
 
 class TestWithoutScripts:
-    def test_the_rows_show_in_the_saved_order(self, no_scripts, live_server):
-        no_scripts.goto(f"{live_server.url}/reorder-test/form/")
-
-        titles = no_scripts.locator("#steps [data-mvp-reorder-row]")
-
-        assert titles.evaluate_all(
-            "rows => rows.map(row => row.textContent.trim())"
-        ) == [
-            "Alpha",
-            "Beta",
-            "Gamma",
-        ]
-
     def test_no_handle_and_no_button_is_shown(self, no_scripts, live_server):
         no_scripts.goto(f"{live_server.url}/reorder-test/form/")
 

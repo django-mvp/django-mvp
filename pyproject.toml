@@ -239,7 +239,10 @@ DJANGO_SETTINGS_MODULE = "tests.settings"
 python_files = ["test_*.py"]
 testpaths = ["tests"]
 addopts = ["--strict-markers", "--tb=short"]
-markers = ["e2e: End-to-end tests using Playwright"]
+markers = [
+    "e2e: Tests that drive a real browser through Playwright",
+    "slow: Tests that take over a second or start a subprocess",
+]
 # pytest-playwright's sync API keeps an event loop on the main thread, which
 # trips Django's async-safety guard as a false positive during pytest-django's
 # DB setup for a live_server test. The async views under test touch no database,

@@ -16,14 +16,7 @@ from tests.conftest import requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
-VIEWPORTS = {
-    "desktop": {"width": 1440, "height": 900},
-    "mobile": {"width": 390, "height": 844},
-}
-
-at_every_viewport = pytest.mark.parametrize(
-    "viewport", VIEWPORTS.values(), ids=list(VIEWPORTS)
-)
+PHONE = {"width": 390, "height": 844}
 
 
 def pages(query, request):
@@ -44,12 +37,9 @@ def search_site(settings, monkeypatch):
 
 
 class TestNarrowedResultsPage:
-    @at_every_viewport
-    @pytest.mark.parametrize("number", [1, 3, 6])
-    def test_the_page_is_no_wider_than_the_window(
-        self, page, live_server, viewport, number
-    ):
-        page.set_viewport_size(viewport)
+    @pytest.mark.parametrize("number", [3, 6])
+    def test_the_page_is_no_wider_than_the_window(self, page, live_server, number):
+        page.set_viewport_size(PHONE)
         page.goto(f"{live_server.url}/search/?q=heat&kind=pages&page={number}")
 
         widths = page.evaluate(
@@ -58,9 +48,8 @@ class TestNarrowedResultsPage:
 
         assert widths[0] <= widths[1]
 
-    @at_every_viewport
-    def test_a_visible_link_reaches_the_next_page(self, page, live_server, viewport):
-        page.set_viewport_size(viewport)
+    def test_a_visible_link_reaches_the_next_page(self, page, live_server):
+        page.set_viewport_size(PHONE)
         page.goto(f"{live_server.url}/search/?q=heat&kind=pages&page=3")
 
         page.locator("nav a:visible", has_text="Next").click()

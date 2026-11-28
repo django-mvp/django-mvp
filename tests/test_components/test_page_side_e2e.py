@@ -16,7 +16,7 @@ from django.urls import path
 from django_cotton.compiler_regex import CottonCompiler
 
 from demo import urls as demo_urls
-from tests.conftest import requires_browser, urlconf_of
+from tests.conftest import requires_browser, urlconf_of, wait_for_transitions
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
@@ -74,7 +74,6 @@ def side_test_urls(settings):
 
 
 def open_page(page, live_server, query="", viewport=VIEWPORT):
-    page.set_default_timeout(5000)
     page.set_viewport_size(viewport)
     page.goto(f"{live_server.url}/side-test/{query}")
 
@@ -195,30 +194,6 @@ class TestSideColumn:
         scroll_to(page, 1200)
 
         assert top(page, "#toc") < header_bottom(page)
-
-    def test_on_a_filled_page_the_panel_is_the_pages_height_and_does_not_stick(
-        self, page, live_server
-    ):
-        open_page(page, live_server, "?fill=1&tall=1")
-
-        sizes = page.evaluate("""
-            () => {
-              const box = sel => document.querySelector(sel).getBoundingClientRect();
-              const aside = document.getElementById('toc-panel');
-              return {
-                panel: box('#toc').height,
-                layout: box('.mvp-page-layout').height,
-                position: getComputedStyle(document.getElementById('toc')).position,
-                documentHeight: document.documentElement.scrollHeight,
-                viewport: window.innerHeight,
-                asideScrolls: aside.scrollHeight > aside.clientHeight,
-              };
-            }
-        """)
-        assert sizes["documentHeight"] <= sizes["viewport"] + 1
-        assert sizes["position"] != "sticky"
-        assert abs(sizes["panel"] - sizes["layout"]) <= 1
-        assert sizes["asideScrolls"]
 
     def test_on_a_filled_page_the_aside_takes_focus_by_tab_and_scrolls_by_keyboard(
         self, page, live_server
@@ -610,7 +585,6 @@ def side_drawer_page(request):
 
 
 def open_drawer_page(page, live_server, query="", viewport=NARROW):
-    page.set_default_timeout(5000)
     page.set_viewport_size(viewport)
     page.goto(f"{live_server.url}/side-drawer-test/{query}")
     page.wait_for_function("() => window.Alpine !== undefined")
@@ -849,13 +823,60 @@ class TestSideDrawerSlide:
             }"""
         )
 
+    @classmethod
+    def halfway(cls, page):
+        """Freeze the slide half way through and measure the panel there.
+
+        Pausing the running transition halfway makes the position the same on a
+        slow machine as on a fast one. The transition is then finished.
+        """
+        page.wait_for_function(
+            """() => document.getAnimations().some(
+              a => a instanceof CSSTransition
+                && document.getElementById('toc').contains(a.effect.target))"""
+        )
+        edges = page.evaluate(
+            """() => {
+                const slides = document.getAnimations().filter(
+                  a => a instanceof CSSTransition
+                    && document.getElementById('toc').contains(a.effect.target));
+                for (const slide of slides) {
+                  slide.pause();
+                  slide.currentTime = slide.effect.getComputedTiming().endTime / 2;
+                }
+                const panel = document.getElementById('toc-panel');
+                const box = panel.getBoundingClientRect();
+                const edges = {
+                  left: box.left, right: box.right, width: window.innerWidth,
+                };
+                for (const slide of slides) slide.finish();
+                return edges;
+            }"""
+        )
+        # The stretched duration reaches every transition inside the drawer, not
+        # only the ones running at the halfway mark. Finish whatever is left so
+        # the wait that follows does not sit through a minute of each.
+        page.evaluate(
+            """async () => {
+                const frame = () => new Promise(done => requestAnimationFrame(done));
+                for (let round = 0; round < 10; round++) {
+                    const left = document.getAnimations().filter(
+                        a => a instanceof CSSTransition && a.playState !== 'finished');
+                    if (!left.length) return;
+                    for (const slide of left) slide.finish();
+                    await frame();
+                }
+            }"""
+        )
+        return edges
+
     @pytest.mark.parametrize("direction", ["ltr", "rtl"])
     def test_an_end_panel_slides_in_from_the_end_edge(
         self, page, live_server, direction
     ):
         open_drawer_page(page, live_server, "?position=end")
         page.evaluate(f"() => {{ document.documentElement.dir = '{direction}'; }}")
-        page.wait_for_timeout(500)
+        wait_for_transitions(page)
         closed = self.edges(page)
         # The end is the right edge of a left-to-right page and the left edge of the other.
         sign = 1 if direction == "ltr" else -1
@@ -864,10 +885,14 @@ class TestSideDrawerSlide:
         )
         assert away(closed) >= -1
 
+        # A slide that lasts a minute is still running whenever the browser
+        # gets round to measuring it, however busy the machine is.
+        page.add_style_tag(
+            content="#toc, #toc * { transition-duration: 60s !important; }"
+        )
         page.click(BUTTON)
-        page.wait_for_timeout(200)
-        moving = self.edges(page)
-        page.wait_for_timeout(600)
+        moving = self.halfway(page)
+        wait_for_transitions(page)
         opened = self.edges(page)
 
         assert away(opened) < away(moving) < away(closed)

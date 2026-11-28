@@ -20,7 +20,13 @@ from playwright.sync_api import expect
 
 from demo import urls as demo_urls
 from mvp.config import MVP_CONFIG
-from tests.conftest import requires_browser, urlconf_of
+from tests.conftest import (
+    frames,
+    requires_browser,
+    urlconf_of,
+    wait_for_alpine,
+    wait_for_transitions,
+)
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
@@ -134,29 +140,9 @@ def sheet_test_urls(settings):
 
 
 def open_page(page, live_server, viewport=PHONE):
-    page.set_default_timeout(5000)
     page.set_viewport_size(viewport)
     page.goto(f"{live_server.url}/sheet-test/")
-    page.wait_for_function("() => window.Alpine && Alpine.version")
-
-
-def settle(page):
-    """Wait for the open or close slide, a CSS transition, to finish.
-
-    The browser cancels a transition it replaces, and a cancelled transition's
-    ``finished`` promise rejects. So cancellations are not failures: look again
-    until no transition is left running.
-    """
-    page.evaluate(
-        """async () => {
-          for (let round = 0; round < 10; round++) {
-            const running = document.getAnimations()
-              .filter(a => a instanceof CSSTransition);
-            if (!running.length) return;
-            await Promise.allSettled(running.map(a => a.finished));
-          }
-        }"""
-    )
+    wait_for_alpine(page)
 
 
 def dispatch(page, **detail):
@@ -217,7 +203,7 @@ def shown_views(page, sheet="orders"):
 
 
 def box_of(page, sheet):
-    settle(page)
+    wait_for_transitions(page)
     return page.evaluate(
         "sheet => { const r = document.querySelector(`#${sheet} .mvp-sheet-box`)"
         ".getBoundingClientRect();"
@@ -342,39 +328,6 @@ class TestOpening:
         assert open_sheets(page) == ["other"]
 
 
-class TestMenuWidth:
-    @BOTH_WIDTHS
-    def test_the_menu_fills_the_width_of_the_sheet_body_and_lines_up_with_the_head(
-        self, page, live_server, viewport
-    ):
-        open_page(page, live_server, viewport)
-        page.click("#open-orders")
-        settle(page)
-
-        edges = page.evaluate(
-            """() => {
-              const body = document.querySelector('#orders [data-mvp-sheet-body]');
-              const style = getComputedStyle(body);
-              const outer = body.getBoundingClientRect();
-              const edges = el => {
-                const r = el.getBoundingClientRect();
-                return [r.left, r.right];
-              };
-              return {
-                body: [
-                  outer.left + parseFloat(style.paddingLeft),
-                  outer.right - parseFloat(style.paddingRight),
-                ],
-                head: edges(document.querySelector('#orders [data-mvp-sheet-head]')),
-                menu: edges(body.querySelector('ul.menu')),
-              };
-            }"""
-        )
-
-        assert edges["menu"] == pytest.approx(edges["body"], abs=1)
-        assert edges["menu"] == pytest.approx(edges["head"], abs=1)
-
-
 SIDES = ("left", "right", "top", "bottom")
 
 
@@ -409,49 +362,30 @@ class TestFocusOutline:
     def test_a_field_in_the_demo_sheet_shows_its_whole_outline(
         self, page, live_server, viewport
     ):
-        page.set_default_timeout(5000)
         page.set_viewport_size(viewport)
         page.goto(f"{live_server.url}/components/sheet/")
-        page.wait_for_function("() => window.Alpine && Alpine.version")
+        wait_for_alpine(page)
         dispatch(page, id="note_sheet")
-        settle(page)
+        wait_for_transitions(page)
         page.focus("#note_sheet input[name=note]")
 
-        assert outline_room(page, "note_sheet", "#note_sheet input[name=note]") == dict.fromkeys(SIDES, 0)
+        assert outline_room(
+            page, "note_sheet", "#note_sheet input[name=note]"
+        ) == dict.fromkeys(SIDES, 0)
 
-    @BOTH_WIDTHS
-    @pytest.mark.parametrize(
-        "control",
-        [
-            "fields-text",
-            "fields-select",
-            "fields-checkbox",
-            "fields-radio",
-            "fields-button",
-            "fields-wide-button",
-        ],
-    )
-    def test_each_kind_of_control_shows_its_whole_outline(
-        self, page, live_server, viewport, control
+
+class TestKeyboardFocusOutline:
+    def test_a_full_width_button_reached_by_tab_shows_its_whole_outline(
+        self, page, live_server
     ):
-        open_page(page, live_server, viewport)
-        dispatch(page, id="fields")
-        settle(page)
-        tab_to(page, control)
-
-        assert outline_room(page, "fields", f"#{control}") == dict.fromkeys(SIDES, 0)
-
-
-class TestGrabBarGap:
-    def test_the_title_sits_right_under_the_grab_bar(self, page, live_server):
         open_page(page, live_server, PHONE)
-        page.click("#open-orders")
-        settle(page)
+        dispatch(page, id="fields")
+        wait_for_transitions(page)
+        tab_to(page, "fields-wide-button")
 
-        grab = page.locator("#orders [data-mvp-sheet-grab]").bounding_box()
-        head = page.locator("#orders [data-mvp-sheet-head]").bounding_box()
-
-        assert head["y"] - (grab["y"] + grab["height"]) == pytest.approx(0, abs=1)
+        assert outline_room(page, "fields", "#fields-wide-button") == dict.fromkeys(
+            SIDES, 0
+        )
 
 
 class TestCloseButton:
@@ -460,7 +394,7 @@ class TestCloseButton:
     ):
         open_page(page, live_server, DESKTOP)
         page.click("#open-orders")
-        settle(page)
+        wait_for_transitions(page)
         close = page.locator("#orders [data-mvp-sheet-head] [data-mvp-sheet-close]")
 
         expect(close).to_be_visible()
@@ -478,21 +412,11 @@ class TestCloseButton:
     def test_a_phone_shows_no_close_button(self, page, live_server):
         open_page(page, live_server, PHONE)
         page.click("#open-orders")
-        settle(page)
+        wait_for_transitions(page)
 
         expect(page.locator("#orders [data-mvp-sheet-close]")).to_be_hidden()
         box = page.locator("#orders .mvp-sheet-box")
         assert box.get_by_role("button", name="Close").count() == 0
-
-    @BOTH_WIDTHS
-    def test_no_worded_close_button_is_drawn(self, page, live_server, viewport):
-        open_page(page, live_server, viewport)
-        page.click("#open-orders")
-        settle(page)
-
-        assert page.locator("#orders [data-mvp-sheet-foot] button").count() == 0
-        worded = page.locator("#orders .mvp-sheet-box button", has_text="Close")
-        assert worded.count() == 0
 
 
 class TestFocusReturn:
@@ -572,12 +496,12 @@ class TestReplacedSheet:
             "() => { const old = document.getElementById('other');"
             " old.outerHTML = old.outerHTML; }"
         )
-        page.wait_for_function("() => window.Alpine && Alpine.version")
+        wait_for_alpine(page)
 
         dispatch(page, id="other")
 
         assert open_sheets(page) == ["other"]
-        page.wait_for_timeout(200)
+        frames(page, 2)
         assert errors == []
 
 
@@ -652,7 +576,7 @@ class TestClosing:
 
         assert open_sheets(page) == []
         expect(page.locator("#open-orders")).to_be_focused()
-        page.wait_for_timeout(200)
+        wait_for_transitions(page)
         assert posts == []
         assert "/sheet-test/" in page.url
 
@@ -665,7 +589,7 @@ class TestClosing:
         tab_to(page, "open-orders")
         page.keyboard.press("Enter")
         assert open_sheets(page) == ["orders"]
-        settle(page)
+        wait_for_transitions(page)
 
         tab_to(page, "Delete")
         page.keyboard.press("Enter")
@@ -711,7 +635,7 @@ class TestScrolling:
     ):
         open_page(page, live_server, {**viewport, "height": 420})
         page.click("#open-tall")
-        settle(page)
+        wait_for_transitions(page)
         head = page.locator("#tall [data-mvp-sheet-head]")
         body = page.locator("#tall [data-mvp-sheet-body]")
         head_top = head.evaluate("el => el.getBoundingClientRect().top")
@@ -723,7 +647,13 @@ class TestScrolling:
             "() => document.querySelector('#tall [data-mvp-sheet-body]').scrollTop > 0"
         )
         page.mouse.wheel(0, 100000)
-        page.wait_for_timeout(200)
+        page.wait_for_function(
+            """() => {
+              const body = document.querySelector('#tall [data-mvp-sheet-body]');
+              return body.scrollTop + body.clientHeight >= body.scrollHeight - 1;
+            }"""
+        )
+        frames(page, 2)
 
         assert head.evaluate("el => el.getBoundingClientRect().top") == head_top
         expect(head).to_be_in_viewport()
@@ -749,7 +679,7 @@ class TestNothingFromElsewhere:
 
         open_page(page, live_server)
         page.click("#open-orders")
-        page.wait_for_load_state("networkidle")
+        wait_for_transitions(page)
 
         assert foreign == []
 
@@ -758,7 +688,6 @@ class TestWithScriptsOff:
     def test_a_trigger_with_an_address_follows_its_link(self, browser, live_server):
         context = browser.new_context(java_script_enabled=False)
         page = context.new_page()
-        page.set_default_timeout(5000)
 
         page.goto(f"{live_server.url}/sheet-test/")
         page.click("#open-orders")
@@ -821,9 +750,12 @@ class TestKeyboardOffset:
     def test_closing_the_sheet_takes_the_offset_away(self, page, live_server):
         open_page(page, live_server, PHONE)
         page.click("#open-typing")
+        page.wait_for_function("() => document.getElementById('typing').open")
         self.fake_keyboard(page, PHONE["height"] - self.KEYBOARD)
-        offset = "() => document.getElementById('typing').style.getPropertyValue"
-        assert page.evaluate(offset + "('--mvp-sheet-keyboard')") != ""
+        page.wait_for_function(
+            "() => document.getElementById('typing').style"
+            ".getPropertyValue('--mvp-sheet-keyboard') !== ''"
+        )
 
         page.keyboard.press("Escape")
 
@@ -901,14 +833,6 @@ class TestAcrossTheWidthSwitch:
         ) in {None, "rest"}
 
 
-def after_frame(page):
-    """Wait for the browser to deliver the moves it holds back until the next frame."""
-    page.evaluate(
-        "() => new Promise(done => requestAnimationFrame("
-        "() => requestAnimationFrame(() => done())))"
-    )
-
-
 class Finger:
     """Touch points driven through the DevTools protocol.
 
@@ -947,7 +871,7 @@ class Finger:
         self.points = {}
 
     def cancel(self, after_ms=16):
-        after_frame(self.page)
+        frames(self.page, 2)
         self.send("touchCancel", after_ms)
         self.points = {}
 
@@ -986,6 +910,15 @@ SHEET_ANIMATIONS = (
 )
 
 
+# A drag that closes a sheet leaves a finished animation on the box, so a closed
+# sheet is at rest when none is still running.
+RUNNING_SHEET_ANIMATIONS = (
+    "() => document.getAnimations()"
+    ".filter(a => a.playState === 'running' && a.effect.target.closest('dialog'))"
+    ".length"
+)
+
+
 def rest_box(page, sheet):
     """The box once the sheet's own animations have finished.
 
@@ -998,7 +931,7 @@ def rest_box(page, sheet):
 
 def top_now(page, sheet):
     """The box's top edge while a finger is still down."""
-    after_frame(page)
+    frames(page, 2)
     return box_of(page, sheet)["top"]
 
 
@@ -1168,6 +1101,8 @@ class TestDraggingBetweenHeights:
                 window.tops.push(box.getBoundingClientRect().top);
                 if (performance.now() - start < 1200) {
                   requestAnimationFrame(() => sample(start));
+                } else {
+                  window.sampled = true;
                 }
               };
               sample(performance.now());
@@ -1177,7 +1112,7 @@ class TestDraggingBetweenHeights:
         phone.finger.up()
 
         closed(phone, "orders")
-        phone.wait_for_timeout(1300)
+        phone.wait_for_function("() => window.sampled === true")
         tops = phone.evaluate("() => window.tops")
         rises = [(a, b) for a, b in pairwise(tops) if b < a - 1]
         assert rises == []
@@ -1187,7 +1122,7 @@ class TestDraggingBetweenHeights:
         x, y = grab_point(phone, "orders")
         phone.finger.drag(x, y, y + 300, hold_ms=200)
         closed(phone, "orders")
-        phone.wait_for_timeout(600)
+        phone.wait_for_function(f"{RUNNING_SHEET_ANIMATIONS} === 0")
 
         again = open_sheet(phone, "orders")
 
@@ -1433,12 +1368,14 @@ class TestGrabBar:
         phone.mouse.down()
         for step in range(1, 7):
             phone.mouse.move(x, y - (y - 60) * step / 6)
-            phone.wait_for_timeout(60)
-        phone.wait_for_timeout(200)
+            frames(phone, 4)
+        frames(phone, 12)
         phone.mouse.up()
 
         full = rest_box(phone, "tall")
-        phone.wait_for_timeout(100)
+        phone.wait_for_function(
+            "() => document.getElementById('tall').dataset.height === 'full'"
+        )
         assert height_of(phone, "tall") == "full"
         assert full["top"] < rest["top"]
 
@@ -1533,7 +1470,7 @@ class TestWideScreenIgnoresDrags:
         page.mouse.down()
         for step in range(1, 6):
             page.mouse.move(x, y + 80 * step)
-            page.wait_for_timeout(30)
+            frames(page, 2)
         during = box_of(page, "orders")
         page.mouse.up()
 

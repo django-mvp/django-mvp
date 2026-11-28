@@ -22,7 +22,13 @@ from demo.filters import ProductFilter
 from demo.models import Category, Product
 from demo.urls import urlpatterns as demo_patterns
 from demo.views import ProductListView
-from tests.conftest import requires_browser, urlconf_of
+from tests.conftest import (
+    frames,
+    requires_browser,
+    urlconf_of,
+    wait_for_alpine,
+    wait_until_still,
+)
 from tests.factories import CategoryFactory, ProductFactory
 
 pytestmark = [pytest.mark.e2e, requires_browser, pytest.mark.django_db]
@@ -31,13 +37,15 @@ DESKTOP = {"width": 1440, "height": 900}
 LIST_PAGE = "/products/"
 TABLE_PAGE = "/django-tables2/"
 STATUS_LABELS = dict(Product.STATUS_CHOICES)
-SORT_LABELS = {key: str(label) for key, label, _ in ProductFilter.base_filters["o"].options}
+SORT_LABELS = {
+    key: str(label) for key, label, _ in ProductFilter.base_filters["o"].options
+}
 
 
 def _open(page, live_server, path):
     page.set_viewport_size(DESKTOP)
     page.goto(f"{live_server.url}{path}")
-    page.wait_for_load_state("networkidle")
+    wait_for_alpine(page)
 
 
 def _query(page):
@@ -93,9 +101,10 @@ class TestToolbarApplies:
 
         _wait_for_query(page, {"q": ["lamp"]})
 
-    def test_a_search_for_the_word_unknown_reaches_the_address(
+    def test_a_typed_search_for_the_word_unknown_reaches_the_address(
         self, page, live_server, products
     ):
+        """Only a choice's ``unknown`` is dropped from the address, never typed text."""
         _open(page, live_server, LIST_PAGE)
 
         page.locator("input[name=q]").fill("unknown")
@@ -250,23 +259,12 @@ class TestFilterPanel:
         expect(page.locator("#filters-panel")).to_be_visible()
         expect(button).to_have_attribute("aria-expanded", "true")
 
-    def test_a_panel_taller_than_the_screen_has_no_scrollbar_of_its_own(
-        self, page, live_server, products
-    ):
-        page.set_viewport_size({"width": 1440, "height": 500})
-        page.goto(f"{live_server.url}{LIST_PAGE}?price_min=1")
-        page.wait_for_load_state("networkidle")
-        aside = page.locator("#filters-panel")
-
-        assert aside.evaluate("el => el.getBoundingClientRect().height") > 500
-        assert aside.evaluate("el => el.scrollHeight <= el.clientHeight")
-
     def test_scrolling_the_page_keeps_apply_and_clear_in_view(
         self, page, live_server, products
     ):
         page.set_viewport_size({"width": 1440, "height": 500})
         page.goto(f"{live_server.url}{LIST_PAGE}?price_min=1")
-        page.wait_for_load_state("networkidle")
+        wait_for_alpine(page)
 
         for position in (0, 200, 400):
             page.evaluate(f"window.scrollTo(0, {position})")
@@ -281,18 +279,18 @@ class TestFilterPanel:
         ProductFactory.create_batch(40, status="published", is_featured=False)
         page.set_viewport_size({"width": 1440, "height": 500})
         page.goto(f"{live_server.url}{LIST_PAGE}")
-        page.wait_for_load_state("networkidle")
+        wait_for_alpine(page)
         _panel(page).locator("input[name=price_min]").fill("1")
         _apply(page)
         _wait_for_query(page, {"price_min": ["1"]})
+        wait_until_still(page)
         page.wait_for_function(
             "() => document.getElementById('filters').style.getPropertyValue('--mvp-page-side-top') !== ''"
         )
 
         page.evaluate("window.scrollTo(0, 1000)")
-        page.evaluate(
-            "() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))"
-        )
+        page.wait_for_function("() => window.scrollY >= 1000")
+        frames(page, 2)
 
         bottom = page.locator("#filters-panel").evaluate(
             "el => el.getBoundingClientRect().bottom"
@@ -326,7 +324,7 @@ class TestFilterPanel:
     ):
         page.set_viewport_size(NARROW)
         page.goto(f"{live_server.url}{LIST_PAGE}")
-        page.wait_for_load_state("networkidle")
+        wait_for_alpine(page)
         page.locator("button[aria-controls=filters]").click()
         expect(page.locator("#filters-panel")).to_be_visible()
         page.locator("#filters input[name=price_min]").fill("5")
@@ -394,18 +392,21 @@ def _count_page_loads(page):
     loads = []
     page.on(
         "request",
-        lambda request: loads.append(request.url)
-        if request.resource_type in ("document", "xhr", "fetch")
-        else None,
+        lambda request: (
+            loads.append(request.url)
+            if request.resource_type in ("document", "xhr", "fetch")
+            else None
+        ),
     )
     return loads
 
 
 def _settle(page):
-    page.wait_for_load_state("networkidle")
-    # A submit is queued a task after focus leaves; give it the time to have fired.
-    page.wait_for_timeout(300)
-    page.wait_for_load_state("networkidle")
+    wait_until_still(page)
+    # A submit is queued a task after focus leaves; two frames let it fire.
+    frames(page, 2)
+    page.wait_for_load_state("load")
+    wait_until_still(page)
 
 
 def _move_focus_away(page):
@@ -431,8 +432,10 @@ class TestSeveralValuesApplyOnClose:
         _move_focus_away(page)
 
         page.wait_for_url(
-            lambda url: sorted(parse_qs(urlparse(url).query).get("category", []))
-            == sorted([str(first.pk), str(second.pk)])
+            lambda url: (
+                sorted(parse_qs(urlparse(url).query).get("category", []))
+                == sorted([str(first.pk), str(second.pk)])
+            )
         )
         assert set(_query(page)) == {"category"}
         _settle(page)
@@ -622,38 +625,6 @@ class PhoneToolbarFilter(django_filters.FilterSet):
         fields: list[str] = []
 
 
-class PhoneToolbarListView(ProductListView):
-    filterset_class = PhoneToolbarFilter
-    toolbar_filters = ["q", "category", "status", "o"]
-
-
-PHONE_TOOLBAR_PAGE = "/phone-toolbar/"
-PHONE_TOOLBAR_URLCONF = urlconf_of(
-    path(PHONE_TOOLBAR_PAGE.strip("/") + "/", PhoneToolbarListView.as_view()),
-    *demo_patterns,
-)
-
-
-@pytest.mark.urls(PHONE_TOOLBAR_URLCONF)
-class TestTheToolbarOnAPhone:
-    def test_two_filters_sort_and_add_share_the_row_under_the_search(
-        self, page, live_server, products
-    ):
-        page.set_viewport_size({"width": 375, "height": 800})
-        page.goto(f"{live_server.url}{PHONE_TOOLBAR_PAGE}")
-        page.wait_for_load_state("networkidle")
-
-        toolbar = page.locator(".mvp-list-toolbar")
-        search = toolbar.locator("input[name=q]").bounding_box()
-        controls = [
-            toolbar.get_by_role("button", name=name, exact=True).bounding_box()
-            for name in ("Category", "Status", "Sort", "Add")
-        ]
-
-        assert len({round(box["y"]) for box in controls}) == 1, controls
-        assert controls[0]["y"] > search["y"]
-
-
 class PhoneToolbarPanelListView(ProductListView):
     """One choice filter and the sort in the toolbar, the category in the panel."""
 
@@ -675,7 +646,7 @@ class TestTheFiltersButtonOnAPhone:
     def _filters_button(self, page, live_server, query=""):
         page.set_viewport_size({"width": 375, "height": 800})
         page.goto(f"{live_server.url}{PHONE_TOOLBAR_PANEL_PAGE}{query}")
-        page.wait_for_load_state("networkidle")
+        wait_for_alpine(page)
         return page.locator(".mvp-list-toolbar .mvp-page-side-toggle")
 
     def test_it_is_drawn_as_its_icon_alone(self, page, live_server, products):

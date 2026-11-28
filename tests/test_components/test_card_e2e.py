@@ -8,7 +8,7 @@ click lands on the right one, so this renders the demo's Link section.
 import pytest
 from playwright.sync_api import expect
 
-from tests.conftest import requires_browser
+from tests.conftest import frames, requires_browser
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
@@ -21,6 +21,10 @@ class TestCardLinkInTheBrowser:
 
         body = page.locator("#linked_card .card-body")
         body.scroll_into_view_if_needed()
+        # Fonts and images that arrive late move the card, and a click aimed
+        # at where it was lands somewhere else.
+        page.evaluate("() => document.fonts.ready")
+        frames(page, 2)
         body = body.bounding_box()
         page.mouse.click(body["x"] + 40, body["y"] + 10)
 

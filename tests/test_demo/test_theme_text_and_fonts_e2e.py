@@ -56,6 +56,28 @@ TEXT_USES = (
     "badge badge-{slot} badge-soft",
 )
 
+FILL_USES = (
+    ("bg-primary", "backgroundColor"),
+    ("btn btn-primary", "backgroundColor"),
+    ("badge badge-primary", "backgroundColor"),
+    ("btn btn-primary btn-outline", "borderTopColor"),
+    ("border border-primary", "borderTopColor"),
+)
+
+DISABLED_BUTTONS = (
+    '<button class="btn btn-link" disabled>x</button>',
+    '<button class="btn btn-link btn-primary" disabled>x</button>',
+    '<a class="btn btn-link btn-disabled">x</a>',
+    '<button class="btn btn-primary btn-outline" disabled>x</button>',
+    '<a class="btn btn-primary btn-ghost btn-disabled">x</a>',
+)
+
+FONT_USES = (
+    ("Probe Sans", "<p>x</p>"),
+    ("Probe Serif", '<p class="font-serif">x</p>'),
+    ("Probe Mono", "<code>x</code>"),
+)
+
 HEADINGS = (
     "<h1>",
     "<h2>",
@@ -71,6 +93,11 @@ HEADINGS = (
     '<legend class="fieldset-legend">',
     '<span class="mvp-sidebar-title">',
 )
+
+
+def link(use, slot):
+    """A link drawn with one use of a brand colour as text."""
+    return f'<a href="#x" class="{use.format(slot=slot)}">x</a>'
 
 
 class ThemedPage:
@@ -122,37 +149,48 @@ def themed(page, live_server):
 
 
 class TestThemeTextValue:
-    @pytest.mark.parametrize("slot", SLOTS)
-    @pytest.mark.parametrize("use", TEXT_USES)
-    def test_text_reads_the_text_value(self, themed, use, slot):
+    def test_text_reads_the_text_value(self, themed):
         theme = themed(PALETTE + TEXT_VALUES)
-        element = theme.draw(f'<a href="#x" class="{use.format(slot=slot)}">x</a>')
 
-        assert theme.computed(element, "color") == theme.resolve(TEXTS[slot])
+        wrong = [
+            f"{use.format(slot=slot)}: {got}"
+            for slot in SLOTS
+            for use in TEXT_USES
+            if (got := theme.computed(theme.draw(link(use, slot)), "color"))
+            != theme.resolve(TEXTS[slot])
+        ]
 
-    @pytest.mark.parametrize("slot", SLOTS)
-    @pytest.mark.parametrize("use", TEXT_USES)
-    def test_without_a_text_value_text_reads_the_fill(self, themed, use, slot):
+        assert wrong == [], "these did not read the text value: " + "; ".join(wrong)
+
+    def test_without_a_text_value_text_reads_the_fill(self, themed):
         theme = themed(PALETTE)
-        element = theme.draw(f'<a href="#x" class="{use.format(slot=slot)}">x</a>')
 
-        assert theme.computed(element, "color") == theme.resolve(FILLS[slot])
+        wrong = [
+            f"{use.format(slot=slot)}: {got}"
+            for slot in SLOTS
+            for use in TEXT_USES
+            if (got := theme.computed(theme.draw(link(use, slot)), "color"))
+            != theme.resolve(FILLS[slot])
+        ]
 
-    @pytest.mark.parametrize(
-        ("classes", "prop"),
-        [
-            ("bg-primary", "backgroundColor"),
-            ("btn btn-primary", "backgroundColor"),
-            ("badge badge-primary", "backgroundColor"),
-            ("btn btn-primary btn-outline", "borderTopColor"),
-            ("border border-primary", "borderTopColor"),
-        ],
-    )
-    def test_fills_keep_the_fill(self, themed, classes, prop):
+        assert wrong == [], "these did not read the fill: " + "; ".join(wrong)
+
+    def test_fills_keep_the_fill(self, themed):
         theme = themed(PALETTE + TEXT_VALUES)
-        element = theme.draw(f'<a href="#x" class="{classes}">x</a>')
+        fill = theme.resolve(FILLS["primary"])
 
-        assert theme.computed(element, prop) == theme.resolve(FILLS["primary"])
+        wrong = [
+            f"{classes} {prop}: {got}"
+            for classes, prop in FILL_USES
+            if (
+                got := theme.computed(
+                    theme.draw(f'<a href="#x" class="{classes}">x</a>'), prop
+                )
+            )
+            != fill
+        ]
+
+        assert wrong == [], "these lost the fill: " + "; ".join(wrong)
 
     def test_a_solid_button_keeps_its_content_colour(self, themed):
         theme = themed(PALETTE + TEXT_VALUES)
@@ -200,21 +238,17 @@ class TestThemeTextValue:
 
         assert theme.computed(element, "color") == theme.resolve_slot("neutral")
 
-    @pytest.mark.parametrize(
-        "markup",
-        [
-            '<button class="btn btn-link" disabled>x</button>',
-            '<button class="btn btn-link btn-primary" disabled>x</button>',
-            '<a class="btn btn-link btn-disabled">x</a>',
-            '<button class="btn btn-primary btn-outline" disabled>x</button>',
-            '<a class="btn btn-primary btn-ghost btn-disabled">x</a>',
-        ],
-    )
-    def test_a_disabled_button_stays_muted(self, themed, markup):
+    def test_a_disabled_button_stays_muted(self, themed):
         theme = themed(PALETTE + TEXT_VALUES)
-        element = theme.draw(markup)
+        text = theme.resolve(TEXTS["primary"])
 
-        assert theme.computed(element, "color") != theme.resolve(TEXTS["primary"])
+        wrong = [
+            markup
+            for markup in DISABLED_BUTTONS
+            if theme.computed(theme.draw(markup), "color") == text
+        ]
+
+        assert wrong == [], "these took the text value: " + "; ".join(wrong)
 
     def test_a_text_utility_on_the_element_still_wins(self, themed):
         theme = themed(PALETTE + TEXT_VALUES)
@@ -251,26 +285,32 @@ class TestThemeTextValue:
 
 
 class TestThemeFonts:
-    @pytest.mark.parametrize(
-        ("variable", "markup"),
-        [
-            ("--font-sans", "<p>x</p>"),
-            ("--font-serif", '<p class="font-serif">x</p>'),
-            ("--font-mono", "<code>x</code>"),
-        ],
-    )
-    def test_a_font_variable_reaches_the_text_it_names(self, themed, variable, markup):
-        theme = themed(f'{variable}: "Probe Face", serif;')
-        element = theme.draw(markup)
+    def test_a_font_variable_reaches_the_text_it_names(self, themed):
+        theme = themed(
+            '--font-sans: "Probe Sans", serif;'
+            ' --font-serif: "Probe Serif", serif;'
+            ' --font-mono: "Probe Mono", serif;'
+        )
 
-        assert "Probe Face" in theme.computed(element, "fontFamily")
+        wrong = [
+            f"{face}: {got}"
+            for face, markup in FONT_USES
+            if face not in (got := theme.computed(theme.draw(markup), "fontFamily"))
+        ]
 
-    @pytest.mark.parametrize("markup", HEADINGS)
-    def test_a_heading_reads_the_heading_font(self, themed, markup):
+        assert wrong == [], "these did not reach their text: " + "; ".join(wrong)
+
+    def test_a_heading_reads_the_heading_font(self, themed):
         theme = themed('--font-heading: "Probe Heading", serif;')
-        element = theme.draw(f"{markup}x")
 
-        assert "Probe Heading" in theme.computed(element, "fontFamily")
+        wrong = [
+            markup
+            for markup in HEADINGS
+            if "Probe Heading"
+            not in theme.computed(theme.draw(f"{markup}x"), "fontFamily")
+        ]
+
+        assert wrong == [], "these did not read the heading font: " + "; ".join(wrong)
 
     def test_body_text_keeps_the_body_font(self, themed):
         theme = themed('--font-sans: "Probe Body"; --font-heading: "Probe Heading";')
@@ -279,14 +319,17 @@ class TestThemeFonts:
         assert "Probe Body" in theme.computed(element, "fontFamily")
         assert "Probe Heading" not in theme.computed(element, "fontFamily")
 
-    @pytest.mark.parametrize("markup", HEADINGS)
-    def test_without_a_heading_font_a_heading_follows_the_body_font(
-        self, themed, markup
-    ):
+    def test_without_a_heading_font_a_heading_follows_the_body_font(self, themed):
         theme = themed('--font-sans: "Probe Body", serif;')
-        element = theme.draw(f"{markup}x")
 
-        assert "Probe Body" in theme.computed(element, "fontFamily")
+        wrong = [
+            markup
+            for markup in HEADINGS
+            if "Probe Body"
+            not in theme.computed(theme.draw(f"{markup}x"), "fontFamily")
+        ]
+
+        assert wrong == [], "these did not follow the body font: " + "; ".join(wrong)
 
     def test_without_a_heading_font_a_heading_inherits_from_its_container(self, themed):
         theme = themed("")

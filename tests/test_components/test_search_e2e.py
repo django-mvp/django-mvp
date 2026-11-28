@@ -8,7 +8,7 @@ mounted at ``search/`` and two function kinds registered.
 Source: assets/js/search.js
 """
 
-import time
+import threading
 
 import pytest
 from playwright.sync_api import expect
@@ -17,7 +17,7 @@ from mvp.config import MVP_CONFIG
 from mvp.search import registry as registry_module
 from mvp.search.kinds import Result
 from mvp.search.registry import SearchRegistry
-from tests.conftest import requires_browser
+from tests.conftest import requires_browser, wait_until, wait_until_still
 
 pytestmark = [pytest.mark.e2e, requires_browser]
 
@@ -25,10 +25,28 @@ NARROW = {"width": 600, "height": 800}
 WIDE = {"width": 1440, "height": 900}
 
 
+class SlowAnswer:
+    """The answer to the query ``ap``, held while ``release`` is clear.
+
+    It is released from the start. A test that needs the answer late clears it.
+    """
+
+    def __init__(self):
+        self.asked = threading.Event()
+        self.release = threading.Event()
+        self.release.set()
+        self.answered = threading.Event()
+
+
+slow = SlowAnswer()
+
+
 def fruit(query, request):
-    """Find three fruits for any query; a query of ``ap`` is answered slowly."""
+    """Find fruits for any query; the answer to ``ap`` waits to be released."""
     if query == "ap":
-        time.sleep(0.8)
+        slow.asked.set()
+        slow.release.wait(timeout=10)
+        slow.answered.set()
     names = ["apple", "apricot"] if query.startswith("ap") else ["avocado"]
     return [
         Result(
@@ -49,6 +67,7 @@ def vegetables(query, request):
 @pytest.fixture(autouse=True)
 def search_site(settings, monkeypatch):
     """Serve the search at ``search/`` with the widget in the navbar."""
+    monkeypatch.setitem(globals(), "slow", SlowAnswer())
     search_registry = SearchRegistry()
     monkeypatch.setattr(registry_module, "default_registry", search_registry)
     settings.ROOT_URLCONF = "tests.urls_search"
@@ -59,7 +78,6 @@ def search_site(settings, monkeypatch):
 
 
 def open_page(page, live_server, viewport=WIDE):
-    page.set_default_timeout(5000)
     page.set_viewport_size(viewport)
     page.goto(f"{live_server.url}/components/")
     page.wait_for_function("() => window.htmx && window.Alpine")
@@ -229,16 +247,19 @@ class TestResults:
         page.wait_for_url("**/search/?q=apr")
 
     def test_a_newer_answer_replaces_an_older_one(self, page, live_server):
+        slow.release.clear()
         open_page(page, live_server)
         page.keyboard.press("Control+k")
 
         page.keyboard.type("ap")
-        page.wait_for_timeout(300)
+        wait_until(slow.asked.is_set)
         page.keyboard.type("r")
 
         expect(page.locator("#mvp-search-results")).to_contain_text("about apr")
-        # The slow answer to "ap" lands after this wait, if it is not dropped.
-        page.wait_for_timeout(1000)
+        # Let the slow answer to "ap" go and give it time to land, if not dropped.
+        slow.release.set()
+        wait_until(slow.answered.is_set)
+        wait_until_still(page)
         passages = page.locator(".mvp-search-hit-passage").all_inner_texts()
         assert set(passages) == {"about apr"}
 

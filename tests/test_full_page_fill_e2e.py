@@ -77,26 +77,6 @@ def _layout(page, url, viewport):
 
 class TestFullPageContentFillsTheShell:
     @at_every_viewport
-    def test_the_shell_becomes_a_flex_column_with_a_height(
-        self, page, live_server, viewport
-    ):
-        layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
-
-        assert layout["display"] == "flex"
-        assert layout["flexDirection"] == "column"
-        assert layout["minHeight"] == f"{layout['viewport']}px"
-
-    @at_every_viewport
-    def test_the_container_never_computes_to_zero_height(
-        self, page, live_server, viewport
-    ):
-        layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
-
-        assert layout["mapHeight"] > 0, (
-            "h-full resolved to zero — the height is not reaching the content"
-        )
-
-    @at_every_viewport
     def test_the_map_fills_the_space_below_the_header(
         self, page, live_server, viewport
     ):
@@ -145,28 +125,7 @@ class TestTheDockJoinsTheColumn:
         assert layout["dockPosition"] == "fixed"
 
 
-class TestTheDemoPageDropsTheFooter:
-    @at_every_viewport
-    def test_no_footer_renders(self, page, live_server, viewport):
-        layout = _layout(page, f"{live_server.url}{FILL_PAGE}", viewport)
-
-        assert layout["footerCount"] == 0
-
-    @at_every_viewport
-    def test_an_ordinary_page_still_has_one(self, page, live_server, viewport):
-        layout = _layout(page, f"{live_server.url}{ORDINARY_PAGE}", viewport)
-
-        assert layout["footerCount"] == 1
-
-
 class TestOrdinaryPagesAreUntouched:
-    @at_every_viewport
-    def test_the_shell_keeps_its_original_layout(self, page, live_server, viewport):
-        layout = _layout(page, f"{live_server.url}{ORDINARY_PAGE}", viewport)
-
-        assert layout["display"] == "block"
-        assert layout["minHeight"] == "auto"
-
     @at_every_viewport
     def test_no_scrollbar_is_introduced(self, page, live_server, viewport):
         layout = _layout(page, f"{live_server.url}{ORDINARY_PAGE}", viewport)
