@@ -283,14 +283,14 @@ class TestFilterPanel:
         _panel(page).locator("input[name=price_min]").fill("1")
         _apply(page)
         _wait_for_query(page, {"price_min": ["1"]})
+        wait_until_still(page)
         page.wait_for_function(
             "() => document.getElementById('filters').style.getPropertyValue('--mvp-page-side-top') !== ''"
         )
 
         page.evaluate("window.scrollTo(0, 1000)")
-        page.evaluate(
-            "() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))"
-        )
+        page.wait_for_function("() => window.scrollY >= 1000")
+        frames(page, 2)
 
         bottom = page.locator("#filters-panel").evaluate(
             "el => el.getBoundingClientRect().bottom"

@@ -22,7 +22,6 @@ from mvp.ordering import save_order
 from tests.conftest import (
     requires_browser,
     urlconf_of,
-    wait_for_transitions,
     wait_until,
     wait_until_still,
 )
@@ -953,9 +952,11 @@ class TestCancellingADrag:
         self.hold_over_last(page)
         page.keyboard.press("Escape")
         page.mouse.up()
+        # The cancel ends on a later frame, and the rows then slide back. Measure them
+        # only once the drag is over and nothing moves.
+        page.wait_for_function(DRAG_ENDED)
+        wait_until_still(page)
         assert settled(page, ["a", "b", "c"]) == ["a", "b", "c"]
-        # The rows slide back; measure them only once they have stopped.
-        wait_for_transitions(page)
         drag(page, "b", "c")
 
         assert settled(page, ["a", "c", "b"]) == ["a", "c", "b"]
