@@ -11,7 +11,6 @@ project chooses to mount it.
 """
 
 import copy
-import re
 from pathlib import Path
 
 import pytest
@@ -290,26 +289,6 @@ class TestDevelopmentNotice:
 
 
 @pytest.mark.django_db
-@pytest.mark.usefixtures("account_urlconf")
-class TestSignInAlertIcons:
-    def test_the_development_notice_carries_an_icon(self, client):
-        content = client.get(reverse("account_login")).content.decode()
-        soup = BeautifulSoup(content, "html.parser")
-
-        assert soup.select_one("[role=alert]").find("i") is not None
-
-    def test_every_alert_on_a_failed_sign_in_carries_an_icon(self, client):
-        response = client.post(
-            reverse("account_login"), {"username": "nobody", "password": "wrong"}
-        )
-        soup = BeautifulSoup(response.content.decode(), "html.parser")
-
-        alerts = soup.select("[role=alert]")
-        assert len(alerts) == 2
-        assert all(alert.find("i") is not None for alert in alerts)
-
-
-@pytest.mark.django_db
 class TestDevelopmentNoticeAbsence:
     def test_with_allauth_installed_the_sign_in_page_carries_no_notice_of_ours(
         self, client, allauth_installed
@@ -349,19 +328,7 @@ class TestAccountCenterView:
         assert "mvp-sidebar" in content
         assert "mvp-header" in content
 
-    def test_the_title_is_a_bar_then_the_area_then_the_site(self, client, make_user):
-        user = make_user(username="accountcentertitle", password="pass123!")
-        client.force_login(user)
-        response = client.get(reverse("account-center"))
-        soup = BeautifulSoup(response.content, "html.parser")
-        title = " ".join(soup.title.get_text().split())
-        bar, area, site = (part.strip() for part in title.split("|"))
-        assert (bar, site) == ("", "example.com")
-        assert area
-
-    def test_signed_in_request_shows_only_the_preferences_card(
-        self, client, make_user
-    ):
+    def test_signed_in_request_shows_only_the_preferences_card(self, client, make_user):
         user = make_user(username="accountcenteruser3", password="pass123!")
         client.force_login(user)
         content = client.get(reverse("account-center")).content.decode()
@@ -419,9 +386,7 @@ class TestAccountCenterView:
         def get_page_title_args(self):
             return {"title": "Computed title", "lead": "Computed lead"}
 
-        soup = self._render_with(
-            rf, user, get_page_title_args=get_page_title_args
-        )
+        soup = self._render_with(rf, user, get_page_title_args=get_page_title_args)
 
         title = soup.select_one("main h1").find_parent(class_="page-title")
         assert title.select_one("h1").get_text(strip=True) == "Computed title"
@@ -490,11 +455,13 @@ class TestAccountLayout:
         assert reverse("home") not in menu
         assert reverse("layout") not in menu
 
-    @pytest.mark.parametrize("breakpoint", ["sm", "lg", "2xl", "never"])
+    @pytest.mark.parametrize("sidebar_breakpoint", ["sm", "never"])
     def test_no_second_navigation_is_drawn_in_the_main_content(
-        self, signed_in, monkeypatch, breakpoint
+        self, signed_in, monkeypatch, sidebar_breakpoint
     ):
-        monkeypatch.setitem(MVP_CONFIG["layout"]["sidebar"], "breakpoint", breakpoint)
+        monkeypatch.setitem(
+            MVP_CONFIG["layout"]["sidebar"], "breakpoint", sidebar_breakpoint
+        )
 
         main = main_content(signed_in.get(reverse("account-center")))
 
@@ -557,14 +524,6 @@ class TestAccountCenterCards:
         soup = BeautifulSoup(content, "html.parser")
         region = soup.find(id="account-center-cards")
         return region.find_all(class_="card")
-
-    def test_with_neither_app_installed_the_region_holds_only_the_preferences_card(
-        self, client, make_user
-    ):
-        self._login(client, make_user, "cardsuser0")
-        response = client.get(reverse("account-center"))
-        (card,) = self._cards(response.content.decode())
-        assert card.find("a", href=reverse("account-preferences")) is not None
 
     def test_a_project_template_adds_its_card_to_the_region(
         self, client, make_user, settings

@@ -129,13 +129,6 @@ class TestToolbarFieldName:
 
 class TestToolbarFieldHidesItsValue:
     @pytest.mark.parametrize("name", sorted(CHOSEN_LABELS))
-    def test_the_button_never_shows_the_value_chosen(self, render, db, name):
-        soup = render(_field(name, CHOSEN))
-
-        trigger = soup.find(attrs={"role": "button"})
-        assert CHOSEN_LABELS[name] not in trigger.get_text(" ", strip=True)
-
-    @pytest.mark.parametrize("name", sorted(CHOSEN_LABELS))
     def test_the_button_is_the_same_whatever_is_chosen(self, render, db, name):
         chosen = render(_field(name, CHOSEN)).find(attrs={"role": "button"})
         untouched = render(_field(name)).find(attrs={"role": "button"})

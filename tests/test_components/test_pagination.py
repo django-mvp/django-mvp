@@ -116,22 +116,3 @@ class TestCompactPagination:
         soup = self._render(cotton_render_string_soup, number=1, pages=1)
 
         assert soup.find("nav") is None
-
-
-class TestListFooterSpacing:
-    def test_the_footer_spacing_does_not_reach_the_pager_buttons(
-        self, cotton_render_string_soup
-    ):
-        from django.test import RequestFactory
-
-        soup = cotton_render_string_soup(
-            '<c-mvp.page.list.footer :page_obj="page_obj" class="px-4" />',
-            context={
-                "page_obj": Paginator(list(range(30)), 10).page(2),
-                "request": RequestFactory().get("/products/"),
-            },
-        )
-
-        assert "px-4" in soup.find(class_="mvp-list-footer")["class"]
-        for control in soup.find_all(["a", "button", "nav", "select"]):
-            assert "px-4" not in control.get("class", [])

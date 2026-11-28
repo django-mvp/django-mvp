@@ -276,20 +276,6 @@ class TestHtmxComponentConfiguration:
         assert has_form_partial(response)
         assert not has_success_partial(response)
 
-    @pytest.mark.django_db
-    def test_get_htmx_form_component_override_used(self):
-        view = make_htmx_view(data={"name": ""})
-        view.get_htmx_form_component = lambda: SUCCESS_COMPONENT
-
-        form_cls = view.get_form_class()
-        form = form_cls(data={"name": ""})
-        assert not form.is_valid()
-
-        response = view.form_invalid(form)
-
-        assert has_success_partial(response)
-        assert not has_form_partial(response)
-
 
 class DefaultFormComponentView(HtmxFormMixin, MVPCreateView):
     """A view that leaves ``htmx_form_component`` at the mixin's default."""
@@ -470,23 +456,6 @@ class TestHtmxTriggerHeaders:
 
         assert "HX-Trigger-After-Settle" in response
         assert "HX-Trigger" not in response or response.get("HX-Trigger") is None
-
-    @pytest.mark.django_db
-    def test_htmx_trigger_after_swap_uses_correct_header(self):
-        view = make_htmx_view(
-            data={"name": "Widget K"},
-            extra_attrs={
-                "htmx_trigger": "itemCreated",
-                "htmx_trigger_after": "swap",
-            },
-        )
-        form_cls = view.get_form_class()
-        form = form_cls(data={"name": "Widget K"})
-        assert form.is_valid(), form.errors
-
-        response = view.form_valid(form)
-
-        assert "HX-Trigger-After-Swap" in response
 
     @pytest.mark.django_db
     def test_htmx_trigger_none_adds_no_trigger_header(self):

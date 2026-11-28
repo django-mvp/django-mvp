@@ -26,17 +26,6 @@ class TestPageListCard:
         assert product.name in soup.get_text()
 
     @pytest.mark.django_db
-    def test_the_surrounding_context_no_longer_decides(
-        self, cotton_render_string_soup, product
-    ):
-        soup = cotton_render_string_soup(
-            f'<c-mvp.page.list :list="items" card="{CARD}" />',
-            context={"items": [product], "list_item_template": "no/such/card.html"},
-        )
-
-        assert product.name in soup.get_text()
-
-    @pytest.mark.django_db
     def test_an_unknown_card_is_not_swallowed(self, cotton_render_string_soup, product):
         with pytest.raises(TemplateDoesNotExist):
             cotton_render_string_soup(

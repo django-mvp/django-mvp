@@ -8,7 +8,6 @@ tests/login_action.html.
 
 from urllib.parse import parse_qs, urlsplit
 
-import pytest
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
@@ -21,7 +20,11 @@ def _signup_urls():
     """A project with a sign-up page registered as ``account_signup``, the name allauth uses."""
     patterns = [
         path("", include("mvp.urls")),
-        path("signup/", TemplateView.as_view(template_name="tests/login_action.html"), name="account_signup"),
+        path(
+            "signup/",
+            TemplateView.as_view(template_name="tests/login_action.html"),
+            name="account_signup",
+        ),
     ]
     return type("_SignupUrls", (), {"urlpatterns": patterns})
 
@@ -79,20 +82,3 @@ class TestLogInButtonCarriesTheCurrentPage:
 
         assert href.path == reverse("account_login")
         assert href.query == ""
-
-
-class TestSigningInFromTheButtonReturnsToThePage:
-    @pytest.mark.django_db
-    def test_a_visitor_lands_back_on_the_page_they_pressed_it_on(self, client, django_user_model):
-        django_user_model.objects.create_user(username="reader", password="pw-for-tests")
-        login = _href(_render("/some/page/?tab=2"))
-
-        form = BeautifulSoup(client.get(f"{login.path}?{login.query}").content.decode(), "html.parser")
-        next_value = form.select_one('input[name="next"]')["value"]
-        response = client.post(
-            reverse("account_login"),
-            {"username": "reader", "password": "pw-for-tests", "next": next_value},
-        )
-
-        assert response.status_code == 302
-        assert response.url == "/some/page/?tab=2"

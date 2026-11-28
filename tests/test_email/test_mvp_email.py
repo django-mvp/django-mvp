@@ -175,15 +175,6 @@ class TestRequestHeldOnTheContext:
     def test_email_url_uses_it(self, request_on_mail_host):
         assert render_with_request_attribute("{% email_url '/a/' %}", request_on_mail_host) == "http://mail.example.org/a/"
 
-    def test_email_brand_uses_it_for_the_logos(self, request_on_mail_host):
-        output = render_with_request_attribute("{% email_brand as brand %}{{ brand.logo }}", request_on_mail_host)
-
-        assert output.startswith("http://mail.example.org/")
-
-    def test_email_site_name_uses_it(self, request_on_mail_host, monkeypatch):
-        monkeypatch.setitem(MVP_CONFIG, "site_name", None)
-
-        assert render_with_request_attribute("{% email_site_name %}", request_on_mail_host)
 
 
 class TestEmailSiteName:

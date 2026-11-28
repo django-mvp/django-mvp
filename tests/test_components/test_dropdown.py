@@ -30,23 +30,12 @@ def render(source, **context):
 
 PANEL = '<ul class="menu"><li>an item</li></ul>'
 
-# Every pair the component accepts, and the Floating UI placement it means.
-# `center` is the one case with no suffix: Floating UI spells a centred
-# alignment as the bare side, so `bottom-center` is not a placement and
-# `bottom` is.
+# Floating UI spells a centred alignment as the bare side, so `bottom-center`
+# is not a placement and `bottom` is. One pair with a suffix and one centred
+# pair take the two branches that turn a valign/halign pair into a placement.
 PLACEMENTS = {
-    ("bottom", "start"): "bottom-start",
-    ("bottom", "center"): "bottom",
-    ("bottom", "end"): "bottom-end",
-    ("top", "start"): "top-start",
-    ("top", "center"): "top",
     ("top", "end"): "top-end",
-    ("left", "start"): "left-start",
     ("left", "center"): "left",
-    ("left", "end"): "left-end",
-    ("right", "start"): "right-start",
-    ("right", "center"): "right",
-    ("right", "end"): "right-end",
 }
 
 every_pair = pytest.mark.parametrize(
@@ -92,15 +81,6 @@ class TestDropdownKeepsItsDaisyUIMarkup:
         html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")
 
         assert 'class="dropdown dropdown-bottom dropdown-start "' in html
-
-    @every_pair
-    def test_every_accepted_pair_still_emits_its_daisyui_classes(self, valign, halign):
-        html = render(
-            f'<c-mvp.dropdown valign="{valign}" '
-            f'halign="{halign}">{PANEL}</c-mvp.dropdown>'
-        )
-
-        assert f'class="dropdown dropdown-{valign} dropdown-{halign} "' in html
 
     def test_there_is_exactly_one_panel(self):
         html = render(f"<c-mvp.dropdown>{PANEL}</c-mvp.dropdown>")

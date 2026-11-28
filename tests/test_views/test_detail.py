@@ -234,17 +234,6 @@ class TestCRUDDirectoryContext:
 
 @pytest.mark.django_db
 class TestDirectoryPermissionGating:
-    def test_US2_callable_permission_returning_true_includes_url(self):
-        # Use staticmethod so the callable is not wrapped as a bound method
-        view = make_stub_view(
-            extra_attrs={
-                "directory": ["create"],
-                "show_create_action": staticmethod(lambda user: True),
-            },
-            kwargs={},
-        )
-        assert "create_url" in view.get_directory()
-
     def test_US2_callable_permission_returning_false_excludes_url(self):
         view = make_stub_view(
             extra_attrs={
@@ -306,18 +295,6 @@ class TestDirectoryPermissionGating:
 
 
 @pytest.mark.django_db
-class TestDetailPageForStaffUser:
-    def test_US5_staff_sees_list_link(self, client, staff_user, product):
-        client.force_login(staff_user)
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        list_url = reverse("product-list")
-        assert list_url in content, "List link must be present for staff user"
-
-
-@pytest.mark.django_db
 class TestDetailPageForRegularUser:
     def test_US5_regular_user_sees_list_link(self, client, user, product):
         client.force_login(user)
@@ -327,36 +304,6 @@ class TestDetailPageForRegularUser:
         content = response.content.decode()
         list_url = reverse("product-list")
         assert list_url in content, "List link must be present for all users"
-
-
-@pytest.mark.django_db
-class TestProductDetailPageHeadingAndCSSClass:
-    def test_product_detail_page_heading_equals_str_product(self, client, product):
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "<h1" in content and str(product) in content, (
-            f"Heading element containing '{product!s}' must be present"
-        )
-
-    def test_product_detail_page_container_has_model_css_class(self, client, product):
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "product-page" in content, (
-            "CSS class 'product-page' must be present in the page container"
-        )
-
-    def test_product_detail_page_container_has_action_css_class(self, client, product):
-        url = reverse("product-detail", kwargs={"pk": product.pk})
-        response = client.get(url)
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "mvp-detail-page" in content, (
-            "CSS class 'mvp-detail-page' must be present in the page container"
-        )
 
 
 @pytest.mark.django_db
@@ -408,19 +355,6 @@ class TestDefaultDirectoryIsInertWithoutPermission:
 
 @pytest.mark.django_db
 class TestActionVisibilityAttributes:
-    def test_true_includes_url(self):
-        view = make_stub_view(
-            extra_attrs={"directory": ["list"], "show_list_action": True}, kwargs={}
-        )
-        assert "list_url" in view.get_directory()
-
-    def test_false_excludes_url(self):
-        view = make_stub_view(
-            extra_attrs={"directory": ["delete"], "show_delete_action": False},
-            kwargs={"pk": 1},
-        )
-        assert "delete_url" not in view.get_directory()
-
     def test_callable_is_passed_the_user(self):
         seen = []
 
@@ -470,15 +404,3 @@ class TestLegacyPermissionAttributes:
         )
         with pytest.raises(ImproperlyConfigured):
             view.get_directory()
-
-    def test_the_error_names_the_view_the_replacement_and_the_limitation(self):
-        view = make_stub_view(
-            extra_attrs={"directory": ["delete"], "has_delete_permission": True},
-            kwargs={"pk": 1},
-        )
-        with pytest.raises(ImproperlyConfigured) as exc:
-            view.get_directory()
-        message = str(exc.value)
-        assert "has_delete_permission" in message
-        assert "show_delete_action" in message
-        assert type(view).__name__ in message

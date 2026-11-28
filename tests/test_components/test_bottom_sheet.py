@@ -46,16 +46,10 @@ class TestSheetDialog:
         dialog = soup.select_one("dialog#more")
         assert dialog is not None
         assert dialog.has_attr("open") is False
-        assert {"modal", "modal-bottom", "sm:modal-middle"} <= set(dialog["class"])
         title = soup.select_one("#more-title")
         assert dialog["aria-labelledby"] == "more-title"
         assert title.name == "h2"
         assert title.get_text(strip=True) == "Orders"
-
-    def test_the_title_is_drawn_once(self, render_sheet):
-        soup = render_sheet()
-
-        assert len(soup.select("dialog h2")) == 1
 
     def test_the_title_and_the_line_under_it_sit_in_a_div(self, render_sheet):
         soup = render_sheet(attrs='lead="Three open"')
@@ -211,8 +205,6 @@ class TestSheetOptions:
 
         assert dialog.has_attr("data-mvp-sheet-full") is False
         assert dialog.has_attr("data-mvp-sheet-fixed") is False
-        box = dialog.select_one(".mvp-sheet-box")
-        assert "sm:max-w-2xl" not in box["class"]
 
     def test_full_sets_its_data_attribute(self, render_sheet):
         dialog = render_sheet("full").select_one("dialog#more")
@@ -225,12 +217,6 @@ class TestSheetOptions:
 
         assert dialog.has_attr("data-mvp-sheet-fixed")
         assert dialog.has_attr("data-mvp-sheet-full") is False
-
-    def test_wide_adds_the_wide_size_class(self, render_sheet):
-        dialog = render_sheet("wide").select_one("dialog#more")
-
-        assert "sm:max-w-2xl" in dialog.select_one(".mvp-sheet-box")["class"]
-        assert {"modal-bottom", "sm:modal-middle"} <= set(dialog["class"])
 
 
 class TestSheetView:

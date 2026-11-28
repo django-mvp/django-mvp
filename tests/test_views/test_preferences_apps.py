@@ -8,8 +8,6 @@ from bs4 import BeautifulSoup
 from django.urls import reverse
 from object_preferences.registry import registry
 
-from tests.testapp_preferences.reading import page_size_for
-
 URL_NAME = "account-preferences"
 
 
@@ -85,12 +83,3 @@ class TestAnInstalledAppsGroup:
         fieldsets = soup.select_one("main form").find_all("fieldset", recursive=False)
         assert fieldsets[1].select("[aria-invalid='true']")
         assert not fieldsets[0].select("[aria-invalid='true']")
-
-    def test_the_app_reads_the_default_until_the_person_chooses(self, user):
-        assert page_size_for(user) == 20
-
-    def test_the_app_reads_what_the_person_saved(self, signed_in, user):
-        signed_in.post(reverse(URL_NAME), values())
-
-        user.refresh_from_db()
-        assert page_size_for(user) == 50

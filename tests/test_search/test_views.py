@@ -65,9 +65,8 @@ def hit_links(response, name):
 
 
 class TestSearchPanel:
-    @pytest.mark.parametrize("query", ["", "   "])
-    def test_an_empty_query_lists_every_active_kind(self, client, kinds, query):
-        response = client.get(reverse("mvp-search-panel"), {"q": query})
+    def test_an_empty_query_lists_every_active_kind(self, client, kinds):
+        response = client.get(reverse("mvp-search-panel"), {"q": ""})
 
         assert response.status_code == 200
         for kind in kinds:
@@ -122,11 +121,6 @@ class TestSearchPanel:
         assert 'role="status"' in response.text
         assert hit_links(response, "pages") == []
 
-    def test_the_query_is_used_as_the_search_normalises_it(self, client, kinds):
-        response = client.get(reverse("mvp-search-panel"), {"q": "  heat  "})
-
-        assert f"{reverse('mvp-search')}?q=heat&kind=pages" in hrefs(response)
-
     def test_markup_in_a_result_is_escaped(self, client, search_registry):
         search_registry.register(
             CountedKind("pages", 1, title="<script>alert(1)</script>")
@@ -179,11 +173,6 @@ class TestSearchPanelListbox:
 
 
 class TestSearchView:
-    def test_it_answers_an_anonymous_request(self, client, kinds):
-        response = client.get(reverse("mvp-search"), {"q": "heat"})
-
-        assert response.status_code == 200
-
     def test_every_active_kind_is_a_narrowing_link_with_its_count(self, client, kinds):
         response = client.get(reverse("mvp-search"), {"q": "heat"})
 

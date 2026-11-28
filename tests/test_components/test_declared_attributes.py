@@ -19,8 +19,6 @@ DOM to assert against.
 import re
 from pathlib import Path
 
-import pytest
-
 import mvp
 
 COTTON_DIR = Path(next(iter(mvp.__path__))).resolve() / "templates" / "cotton"
@@ -89,21 +87,27 @@ class TestDeclaredAttributesAreRead:
     def test_inventory_is_nonempty(self):
         assert len(COMPONENTS) > 50, "cotton template discovery looks broken"
 
-    @pytest.mark.parametrize("relpath", COMPONENTS)
-    def test_no_declared_attribute_goes_unread(self, relpath):
-        source = (COTTON_DIR / relpath).read_text()
-        declaration = CVARS.search(source)
-        body = source[: declaration.start()] + source[declaration.end() :]
+    def test_no_declared_attribute_goes_unread(self):
+        failures = []
+        for relpath in COMPONENTS:
+            source = (COTTON_DIR / relpath).read_text()
+            declaration = CVARS.search(source)
+            body = source[: declaration.start()] + source[declaration.end() :]
 
-        unread = [
-            name
-            for name in declared_names(declaration.group("body"))
-            if not is_read(name, expressions(body))
-        ]
+            unread = [
+                name
+                for name in declared_names(declaration.group("body"))
+                if not is_read(name, expressions(body))
+            ]
+            if unread:
+                failures.append(
+                    f"{relpath} declares {', '.join(unread)} and never reads it."
+                )
 
-        assert not unread, (
-            f"{relpath} declares {', '.join(unread)} and never reads it. "
-            "Read it, or drop the declaration so a caller's value reaches the DOM."
+        assert not failures, (
+            "\n".join(failures)
+            + "\nRead each name, or drop the declaration"
+            + " so a caller's value reaches the DOM."
         )
 
 

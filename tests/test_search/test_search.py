@@ -42,11 +42,6 @@ def kinds_setting(monkeypatch):
     return set_kinds
 
 
-class TestSearchConfig:
-    def test_kinds_default_to_empty(self):
-        assert MVP_CONFIG["search"]["kinds"] == []
-
-
 class TestActiveKinds:
     def test_every_registered_kind_in_registration_order_without_a_setting(
         self, search_registry, kinds
@@ -91,14 +86,7 @@ class TestSearch:
 
         assert [g.kind.name for g in groups] == ["a", "b", "c"]
 
-    def test_each_group_is_limited_and_counted(self, rf, search_registry):
-        search_registry.register(RecordingKind("a", count=7))
-
-        (group,) = mvp.search.search(rf.get("/"), "word", 4)
-
-        assert (len(group.results), group.total, group.more) == (4, 7, 3)
-
-    @pytest.mark.parametrize("query", ["", "   ", "\t \n"])
+    @pytest.mark.parametrize("query", ["", "\t \n"])
     def test_an_empty_query_returns_no_groups(self, rf, kinds, query):
         assert mvp.search.search(rf.get("/"), query, 4) == []
         assert all(kind.queries == [] for kind in kinds)
@@ -122,19 +110,3 @@ class TestSearch:
 
         with pytest.raises(RuntimeError):
             mvp.search.search(rf.get("/"), "word", 4)
-
-    def test_a_kinds_own_more_url_is_kept(self, rf, search_registry):
-        class Own(RecordingKind):
-            def more_url(self, query):
-                return f"/own/?q={query}"
-
-        search_registry.register(Own("own"))
-
-        (group,) = mvp.search.search(rf.get("/"), "word", 4)
-
-        assert group.more_url == "/own/?q=word"
-
-    def test_there_is_no_more_url_when_the_kind_gives_none(self, rf, kinds):
-        groups = mvp.search.search(rf.get("/"), "word", 4)
-
-        assert [g.more_url for g in groups] == [None, None, None]

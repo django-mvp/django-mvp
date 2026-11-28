@@ -59,14 +59,21 @@ class TestHardcodedSurfaces:
     def urls_mounted(self, settings):
         settings.ROOT_URLCONF = "demo.urls"
 
-    @pytest.mark.parametrize("path", PAGES)
-    def test_a_page_names_no_surface_against_its_meaning(self, path):
+    def test_no_page_names_a_surface_against_its_meaning(self):
         ProductFactory.create_batch(2)
+        client = Client()
 
-        response = Client().get(path)
+        failures = []
+        for path in PAGES:
+            response = client.get(path)
+            if response.status_code != 200:
+                failures.append(f"{path}: status {response.status_code}")
+                continue
+            found = hardcoded_surfaces(response.content.decode())
+            if found:
+                failures.append(f"{path}: {found}")
 
-        assert response.status_code == 200, path
-        assert hardcoded_surfaces(response.content.decode()) == []
+        assert not failures, "\n".join(failures)
 
     def test_a_card_on_the_page_colour_is_found(self):
         html = '<div class="card bg-base-200">x</div><hr class="border-base-300">'

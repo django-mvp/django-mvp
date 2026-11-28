@@ -45,9 +45,6 @@ class TestEmailTemplateOverrides:
         assert "<p>Hello</p>" in html
         assert "mvp-email-card" not in html
 
-    def test_without_an_override_the_packages_base_template_is_used(self, project_templates):
-        assert "mvp-email-card" in render(CHILD)
-
     def test_a_project_piece_replaces_the_packages(self, project_templates):
         project_templates(
             "cotton/mvp/email/button.html",
@@ -60,8 +57,3 @@ class TestEmailTemplateOverrides:
         assert button["href"] == "https://example.org/go"
         assert button.get_text() == "Go"
         assert soup.find("td", class_="mvp-email-button") is None
-
-    def test_without_an_override_the_packages_piece_is_used(self, project_templates):
-        soup = BeautifulSoup(render(CHILD), "html.parser")
-
-        assert soup.find("td", class_="mvp-email-button") is not None

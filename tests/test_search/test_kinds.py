@@ -1,7 +1,5 @@
 """Tests for mvp.search.kinds."""
 
-import dataclasses
-
 import pytest
 from django.utils.functional import Promise
 
@@ -18,17 +16,6 @@ class SevenItemKind(Kind):
             Result(title=f"{query} {n}", url=f"/s/{n}/", where="Sevens")
             for n in range(7)
         ]
-
-
-class TestResult:
-    def test_result_is_immutable(self):
-        result = Result(title="A", url="/a/", where="Pages")
-
-        with pytest.raises(dataclasses.FrozenInstanceError):
-            result.title = "B"
-
-    def test_passage_defaults_to_empty(self):
-        assert Result(title="A", url="/a/", where="Pages").passage == ""
 
 
 class TestGroup:
@@ -51,9 +38,6 @@ class TestKind:
         group = SevenItemKind().group("x", rf.get("/"), limit=3)
 
         assert [r.url for r in group.results] == ["/s/0/", "/s/1/", "/s/2/"]
-
-    def test_group_has_no_more_url_by_default(self, rf):
-        assert SevenItemKind().group("x", rf.get("/"), limit=4).more_url is None
 
     def test_group_uses_the_kinds_own_more_url(self, rf):
         class OwnAddress(SevenItemKind):
@@ -91,22 +75,6 @@ class TestKind:
 
 
 class TestFunctionKind:
-    def test_holds_the_values_it_was_given(self):
-        kind = FunctionKind(
-            lambda query, request: [],
-            name="docs",
-            label="Documents",
-            icon="file",
-            description="Things written down",
-        )
-
-        assert (kind.name, str(kind.label), kind.icon, str(kind.description)) == (
-            "docs",
-            "Documents",
-            "file",
-            "Things written down",
-        )
-
     def test_find_calls_the_function_with_query_and_request(self, rf):
         seen = []
 

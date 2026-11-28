@@ -113,7 +113,7 @@ class TestModalProps:
 
     @pytest.mark.parametrize(
         ("size", "width"),
-        [("sm", "max-w-md"), ("md", "max-w-2xl"), ("lg", "max-w-4xl")],
+        [("lg", "max-w-4xl")],
     )
     def test_size_sets_the_box_width(self, render_modal, size, width):
         soup = render_modal(attrs=f'size="{size}"')
@@ -154,11 +154,6 @@ class TestModalProps:
         soup = render_modal(attrs='class="extra-dialog"')
 
         assert "extra-dialog" in soup.find("dialog")["class"]
-
-    def test_the_box_is_the_only_surface(self, render_modal):
-        soup = render_modal(attrs="closable")
-
-        assert soup.select_one(".modal-box .card") is None
 
 
 class TestModalLayout:

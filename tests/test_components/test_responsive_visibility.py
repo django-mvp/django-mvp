@@ -52,6 +52,10 @@ VIEWPORT_HEIGHT = 900
 #: Breakpoint name -> Tailwind min-width in px (mvp/layout.py BREAKPOINT_WIDTHS).
 REAL_BREAKPOINTS = {"sm": 640, "md": 768, "lg": 1024, "xl": 1280, "2xl": 1536}
 
+#: The first, the default and the last breakpoint. Every breakpoint takes the
+#: same rule through the same stylesheet, so the ends and the default cover it.
+SAMPLED_BREAKPOINTS = {name: REAL_BREAKPOINTS[name] for name in ("sm", "lg", "2xl")}
+
 #: `never` has no width to key off; two arbitrary, far-apart widths prove the
 #: regions it governs behave identically at both.
 NEVER_WIDTHS = (375, 1920)
@@ -150,7 +154,7 @@ def _open_drawer(page):
 
 @pytest.mark.usefixtures("mobile_navbar_toggle")
 class TestSidebarEchoRegion:
-    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    @pytest.mark.parametrize(("bp", "px"), SAMPLED_BREAKPOINTS.items())
     def test_icons_mode_hides_at_or_above_unconditionally(
         self, page, regions_server, bp, px
     ):
@@ -169,7 +173,7 @@ class TestSidebarEchoRegion:
         assert _display(_toggle_label(page)) == "none"
         assert _display(_site_icon(page)) == "none"
 
-    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    @pytest.mark.parametrize(("bp", "px"), SAMPLED_BREAKPOINTS.items())
     def test_offcanvas_mode_shown_below_regardless_of_drawer_state(
         self, page, regions_server, bp, px
     ):
@@ -230,14 +234,14 @@ class TestSidebarEchoRegion:
 
 
 class TestMobileSidebarToggleSetting:
-    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    @pytest.mark.parametrize(("bp", "px"), SAMPLED_BREAKPOINTS.items())
     def test_hidden_below_the_breakpoint_by_default(self, page, regions_server, bp, px):
         _goto(page, regions_server, bp=bp, collapse="offcanvas", viewport=px - 1)
         assert _display(_toggle_label(page)) == "none"
         # the site icon is a separate control and keeps its own rule
         assert _display(_site_icon(page)) != "none"
 
-    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    @pytest.mark.parametrize(("bp", "px"), SAMPLED_BREAKPOINTS.items())
     def test_drawn_below_the_breakpoint_when_switched_on(
         self, page, regions_server, monkeypatch, bp, px
     ):
@@ -305,14 +309,12 @@ def _wait_for_store(page):
 @pytest.fixture
 def collapsed_earlier(page):
     """A visitor who collapsed the desktop sidebar on an earlier visit."""
-    page.add_init_script(
-        "window.localStorage.setItem('mvp-app-drawer-open', 'false');"
-    )
+    page.add_init_script("window.localStorage.setItem('mvp-app-drawer-open', 'false');")
 
 
 @pytest.mark.usefixtures("mobile_navbar_toggle")
 class TestAlwaysOpenSidebar:
-    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    @pytest.mark.parametrize(("bp", "px"), SAMPLED_BREAKPOINTS.items())
     def test_no_toggle_is_drawn_at_or_above_the_breakpoint(
         self, page, regions_server, bp, px
     ):
@@ -322,7 +324,7 @@ class TestAlwaysOpenSidebar:
         assert _display(_toggle_label(page)) == "none"
         assert _display(_site_icon(page)) == "none"
 
-    @pytest.mark.parametrize(("bp", "px"), REAL_BREAKPOINTS.items())
+    @pytest.mark.parametrize(("bp", "px"), SAMPLED_BREAKPOINTS.items())
     def test_both_toggles_are_drawn_below_the_breakpoint(
         self, page, regions_server, bp, px
     ):

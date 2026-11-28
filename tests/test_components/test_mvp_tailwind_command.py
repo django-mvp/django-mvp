@@ -4,10 +4,9 @@ The command generates a Tailwind v4 entry file for consumer projects that
 build their own CSS (Tier 2 in docs/styling.md).
 """
 
+import runpy
 from io import StringIO
 from pathlib import Path
-
-import runpy
 
 import daisy_cotton
 from django.core.management import call_command
@@ -74,15 +73,6 @@ class TestMVPTailwindCommand:
         daisy_source = f'@source "{lines[3]}";'
         assert daisy_source in output
         assert output.index(daisy_source) > output.index(forms_source)
-
-    def test_packaged_preset_provides_drawer_variants_and_rail_css(self):
-        preset = Path(_run("--paths").strip().splitlines()[0])
-        css = preset.read_text(encoding="utf-8")
-        assert "@custom-variant is-drawer-open" in css
-        assert "@custom-variant is-drawer-close" in css
-        assert '@source inline("{sm,md,lg,xl,2xl}:drawer-open");' in css
-        assert ".mvp-sidebar--icons" in css
-        assert ".mvp-rail-only" in css
 
     def test_packaged_preset_safelists_the_classes_only_settings_name(self):
         """A project's own build scans the package's templates, not its

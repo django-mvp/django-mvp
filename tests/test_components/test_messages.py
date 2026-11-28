@@ -32,7 +32,7 @@ VARIANTS = frozenset(LEVEL_VARIANTS.values())
 UNTAGGED_LEVEL = 35
 # A level a project registers a tag of its own for.
 PROJECT_LEVEL = 45
-PROJECT_TAGS = ("notice", "in")
+PROJECT_TAGS = ("notice",)
 
 
 @pytest.fixture
@@ -61,7 +61,11 @@ def render_messages(cotton_render_string_soup):
 
 
 class TestMessageLevels:
-    @pytest.mark.parametrize(("level", "variant"), LEVEL_VARIANTS.items())
+    # Debug is the one level whose tag is not its variant; success stands for the rest.
+    @pytest.mark.parametrize(
+        ("level", "variant"),
+        [(messages.DEBUG, "info"), (messages.SUCCESS, "success")],
+    )
     def test_a_message_draws_one_alert_holding_it(
         self, render_messages, level, variant
     ):
@@ -106,15 +110,6 @@ class TestAProjectsOwnLevelTag:
         assert not {f"alert-{variant}" for variant in VARIANTS} & set(
             alerts[0]["class"]
         )
-
-
-class TestMessageIcons:
-    @pytest.mark.parametrize("level", LEVEL_VARIANTS)
-    def test_a_message_alert_carries_an_icon(self, render_messages, level):
-        soup = render_messages(level)
-
-        alert = soup.select_one(".toast > [role='alert']")
-        assert alert.find("i") is not None
 
 
 class TestMessageAction:

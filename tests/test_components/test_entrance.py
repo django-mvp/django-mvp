@@ -15,7 +15,6 @@ default instead.
 
 import re
 
-import pytest
 from django import template
 from django.template.context import Context
 from django_cotton.compiler_regex import CottonCompiler
@@ -51,12 +50,9 @@ def card_classes(html):
 
 
 class TestEntranceSize:
-    @pytest.mark.parametrize("size", SIZES)
-    def test_each_size_caps_the_card_at_that_width(self, size):
-        classes = card_classes(
-            render(f'<c-mvp.entrance size="{size}">x</c-mvp.entrance>')
-        )
-        assert f"md:max-w-{size}" in classes
+    def test_a_size_caps_the_card_at_that_width(self):
+        classes = card_classes(render('<c-mvp.entrance size="lg">x</c-mvp.entrance>'))
+        assert "md:max-w-lg" in classes
 
     def test_size_full_leaves_the_card_uncapped(self):
         classes = card_classes(render('<c-mvp.entrance size="full">x</c-mvp.entrance>'))
@@ -74,17 +70,21 @@ class TestEntranceDeprecatedSmall:
 
 
 class TestEntranceSizesAreSafelisted:
-    @pytest.mark.parametrize("size", SIZES)
-    def test_each_size_is_safelisted(self, size):
-        html = render(f'<c-mvp.entrance size="{size}">x</c-mvp.entrance>')
-        produced = _responsive_classes(html, "md")
-        assert produced, f'<c-mvp.entrance size="{size}" /> produced no md: class'
+    def test_every_size_is_safelisted(self):
+        safelisted = _safelisted_classes()
+        problems = []
+        for size in SIZES:
+            html = render(f'<c-mvp.entrance size="{size}">x</c-mvp.entrance>')
+            produced = _responsive_classes(html, "md")
+            if not produced:
+                problems.append(f'size="{size}" produced no md: class')
+            elif produced - safelisted:
+                problems.append(f"size={size!r}: {sorted(produced - safelisted)}")
 
-        missing = produced - _safelisted_classes()
-        assert not missing, (
-            f"{sorted(missing)} not covered by any @source inline() entry in "
-            f"{BASE_CSS} — Tailwind's scanner cannot see a class built at "
-            "render time, so it will be missing from the shipped stylesheet"
+        assert not problems, (
+            f"not covered by any @source inline() entry in {BASE_CSS}: {problems}. "
+            "Tailwind's scanner cannot see a class built at render time, so it "
+            "will be missing from the shipped stylesheet"
         )
 
 

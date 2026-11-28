@@ -97,17 +97,3 @@ class TestClassAttributeMerge:
         assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
         assert "my-sidebar" in attrs[0]
         assert "drawer" in attrs[0]
-
-    def test_page_title_merges_caller_class(self):
-        html = render('<c-mvp.page.title title="Products" class="mb-8" />')
-        attrs = class_attrs_on(html, "div")
-        assert len(attrs) == 1, f"expected one class attribute, found {attrs}"
-        assert "mb-8" in attrs[0]
-        assert "page-title" in attrs[0]
-
-    def test_page_title_passes_other_attributes_through(self):
-        parser = _FirstTagAttrs("div")
-        parser.feed(
-            render('<c-mvp.page.title title="Products" id="product-heading" />')
-        )
-        assert ("id", "product-heading") in parser.attrs

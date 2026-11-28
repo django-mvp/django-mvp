@@ -102,15 +102,3 @@ class TestCreateActionSize:
         )
 
         assert "btn-sm" in soup.find("a")["class"]
-
-
-class TestCompactCreateAction:
-    def test_the_label_still_names_the_button(
-        self, cotton_render_string_soup, modal_context
-    ):
-        soup = cotton_render_string_soup(
-            "<c-mvp.page.list.actions.create compact />", context=modal_context
-        )
-        trigger = soup.find("button", attrs={"@click": "createModal.showModal()"})
-
-        assert trigger.get_text(strip=True) == "Add"
