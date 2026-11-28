@@ -110,9 +110,9 @@ class TestThemeChangeStillWorks:
         )
 
     def test_a_dropdown_entry_sets_that_theme_and_it_survives_a_reload(
-        self, page, live_server, served_config
+        self, page, live_server, monkeypatch
     ):
-        served_config.setitem(
+        monkeypatch.setitem(
             MVP_CONFIG["theme"], "choices", DEMO_MVP_CONFIG["theme"]["choices"]
         )
 
@@ -165,16 +165,16 @@ class TestThemeChangeStillWorks:
         )
 
     def test_a_stored_theme_the_project_no_longer_offers_stays_rejected(
-        self, page, live_server, served_config
+        self, page, live_server, monkeypatch
     ):
-        served_config.setitem(MVP_CONFIG["theme"], "choices", ["light", "dark"])
+        monkeypatch.setitem(MVP_CONFIG["theme"], "choices", ["light", "dark"])
         # Pin the default inside this scenario's own choices. It used to be
         # "light" package-wide, so the fixture read as self-consistent without
         # saying so; the packaged default is now "mvp" (docs/adr/0012), which
         # this project does not offer. Stating it here keeps the subject of the
         # test — a dropped theme staying dropped — independent of what the
         # package happens to default to.
-        served_config.setitem(MVP_CONFIG["theme"], "default", "light")
+        monkeypatch.setitem(MVP_CONFIG["theme"], "default", "light")
 
         page.goto(f"{live_server.url}/theme/")
         page.evaluate("() => localStorage.setItem('theme', 'dracula')")
@@ -248,9 +248,9 @@ class TestThemeColourFollowsTheTheme:
         assert page.evaluate(THEME_COLOUR) == after
 
     def test_a_header_with_no_colour_of_its_own_takes_the_one_behind_it(
-        self, page, live_server, served_config
+        self, page, live_server, monkeypatch
     ):
-        served_config.setitem(MVP_CONFIG["layout"]["navbar"], "class", "")
+        monkeypatch.setitem(MVP_CONFIG["layout"]["navbar"], "class", "")
 
         page.goto(f"{live_server.url}/components/", wait_until="load")
 

@@ -549,6 +549,7 @@ def _configure_context(context, external):
     """
     context.set_default_timeout(BROWSER_TIMEOUT_MS)
     context.set_default_navigation_timeout(BROWSER_TIMEOUT_MS)
+    # Routing turns the browser's HTTP cache off for the context.
     context.route(
         OFF_THIS_MACHINE,
         lambda route, request: answer_request(route, request, external),
@@ -558,11 +559,11 @@ def _configure_context(context, external):
 class RequestsInFlight:
     """Count the requests the live server is answering at this moment.
 
-    The live server answers in threads of its own, and the settings and
-    ``MVP_CONFIG`` it reads are shared with the test. A change made, or undone,
-    while a request is still being answered is read half-way, and the next test
-    inherits the last one's page. Waiting for this count to reach zero is what
-    makes the change happen between requests.
+    The live server answers in threads of its own, and ``MVP_CONFIG`` is one
+    dictionary shared with the test. A value put back while a request is still
+    being answered is read half-way, and the next test inherits the last one's
+    page. Waiting for this count to reach zero is what puts it back between
+    requests.
     """
 
     def __init__(self):
@@ -575,7 +576,8 @@ class RequestsInFlight:
 
     def _finished(self, **kwargs):
         with self._lock:
-            self._count -= 1
+            # A request that began before ``watch`` still finishes after it.
+            self._count = max(0, self._count - 1)
 
     def watch(self):
         """Start counting."""
@@ -589,16 +591,18 @@ class RequestsInFlight:
 
     def wait_until_idle(self):
         """Wait until the live server has finished every request it was sent."""
-        wait_until(lambda: self._count <= 0, timeout=15)
+        wait_until(lambda: self._count == 0, timeout=15)
 
 
 @pytest.fixture
 def requests_in_flight():
     """The live server's request count, and an idle server before the test ends.
 
-    A browser test's pages are closed before this fixture ends, and its
-    ``monkeypatch`` undoes after it, so everything a test changed is put back
-    only once no request can still be reading it.
+    A browser test's pages are closed before this fixture ends, and the test's
+    ``monkeypatch`` undoes after it, so a value the test set with
+    ``monkeypatch.setitem`` (``MVP_CONFIG``, say) is put back only once no
+    request can still be reading it. Settings changed through the ``settings``
+    fixture are put back earlier and are not covered.
     """
     counter = RequestsInFlight()
     counter.watch()
@@ -607,29 +611,6 @@ def requests_in_flight():
         counter.wait_until_idle()
     finally:
         counter.stop()
-
-
-@pytest.fixture
-def served_config(monkeypatch, requests_in_flight):
-    """Change ``MVP_CONFIG`` for the pages the live server serves.
-
-    ``MVP_CONFIG`` is one dictionary, shared with the server's threads. Calling
-    ``setitem`` waits for the server to finish any request first, so the change
-    is in place before the next request starts, and the ``monkeypatch`` that
-    holds the old value undoes it only after the pages are closed and the
-    server is idle (see ``requests_in_flight``).
-
-    Returns:
-        An object whose ``setitem(mapping, key, value)`` sets one value.
-    """
-
-    class ServedConfig:
-        @staticmethod
-        def setitem(mapping, key, value):
-            requests_in_flight.wait_until_idle()
-            monkeypatch.setitem(mapping, key, value)
-
-    return ServedConfig()
 
 
 @pytest.fixture(autouse=True)
