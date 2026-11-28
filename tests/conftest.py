@@ -449,11 +449,11 @@ def frames(page, count):
 def wait_until_still(page):
     """Wait until nothing on the page is moving or being requested.
 
-    No htmx request is in flight, no swap is settling, no row or panel is held or being sorted, and no
-    CSS transition is running, for two animation frames in a row. A swap is settled
-    only then: htmx scrolls the page back to the top as it finishes, after the new
-    address is already showing. This is the state a fixed pause after a gesture was
-    standing in for.
+    No htmx request is in flight, no swap is settling, no row or panel is held, being
+    sorted or sliding into place, and no CSS transition is running, for two animation
+    frames in a row. A swap is settled only then: htmx scrolls the page back to the top
+    as it finishes, after the new address is already showing. This is the state a fixed
+    pause after a gesture was standing in for.
 
     Args:
         page: The Playwright page.
@@ -464,10 +464,16 @@ def wait_until_still(page):
     still = page.evaluate(
         """async () => {
           const frame = () => new Promise(done => requestAnimationFrame(done));
+          // SortableJS marks a row it is sliding with a timer in `animated` and
+          // ignores a press on that row until the timer runs. Putting the rows back
+          // after a cancelled drag ends their transitions early, so the timer is
+          // checked as well.
           const busy = () => document.querySelector(
             '.htmx-request, .htmx-swapping, .htmx-settling, .htmx-added,'
             + ' .mvp-reorder-held, .mvp-reorder-sorting'
           )
+            || [...document.querySelectorAll('[data-mvp-reorder-row]')]
+              .some(row => row.animated)
             || document.getAnimations().some(a => a instanceof CSSTransition);
           let quiet = 0;
           for (let tries = 0; tries < 600 && quiet < 2; tries++) {
