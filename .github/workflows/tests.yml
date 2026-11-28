@@ -27,4 +27,7 @@ jobs:
       # Browser tests behave the same on every Python and Django release, so only
       # the coverage leg runs them. The other legs run `-m "not e2e"`.
       browser-marker: e2e
+      # The coverage leg runs every browser test, about 7.5 minutes. The shared
+      # default of 10 leaves too little room on a slow runner.
+      timeout-minutes: 15
     secrets: inherit
