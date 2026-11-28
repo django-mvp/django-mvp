@@ -18,10 +18,16 @@ on:
 
 jobs:
   call-tests:
-    uses: django-mvp/shared/.github/workflows/tests.yml@v0.6.0
+    uses: django-mvp/shared/.github/workflows/tests.yml@v0.7.0
     with:
       coverage-package: mvp
       # Downloads chromium so the browser tests actually run. Without it they
       # are marked, skipped and green, which is indistinguishable from passing.
       install-playwright: true
+      # Browser tests behave the same on every Python and Django release, so only
+      # the coverage leg runs them. The other legs run `-m "not e2e"`.
+      browser-marker: e2e
+      # The coverage leg runs every browser test, about 7.5 minutes. The shared
+      # default of 10 leaves too little room on a slow runner.
+      timeout-minutes: 15
     secrets: inherit
